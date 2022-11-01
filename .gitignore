@@ -1,0 +1,6 @@
+**/__pycache__/
+analytics
+logs
+cookies
+inventory.json
+settings.json
