@@ -133,4 +133,4 @@ class PokemonComunityGame(object):
         return purchases
 
     def get_inventory(self):
-        return "Balance: $ " + str(self.cash) + ", ".join(["{item}: {amount}".format(item=item, amount=self.inventory[item]) for item in sorted(self.inventory.keys())])
+        return "Balance: $" + str(self.cash) + " " + ", ".join(["{item}: {amount}".format(item=item, amount=self.inventory[item]) for item in sorted(self.inventory.keys())])

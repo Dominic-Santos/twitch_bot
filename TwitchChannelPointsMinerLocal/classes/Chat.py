@@ -1,5 +1,6 @@
 from datetime import datetime
 from time import sleep
+import logging
 
 from .ChatO import ClientIRC as ClientIRCO
 from .ChatO import ChatPresence as ChatPresenceO
@@ -16,6 +17,14 @@ POKEMON = PokemonComunityGame()
 REDLOG = "\x1b[31;20m"
 GREENLOG = "\x1b[32;20m"
 YELLOWLOG = "\x1b[36;20m"
+
+
+formatter = logging.Formatter('%(asctime)s %(message)s', datefmt="%Y-%m-%d %H:%M:%S")
+file_handler = logging.FileHandler("logs/pokemoncg.txt")
+file_handler.setFormatter(formatter)
+poke_logger = logging.getLogger(__name__ + "pokemon")
+poke_logger.setLevel(logging.DEBUG)
+poke_logger.addHandler(file_handler)
 
 
 class ClientIRCBase(ClientIRCO):
@@ -65,6 +74,10 @@ class ClientIRCPokemon(ClientIRCBase):
 
         self.pokemon_active = False
 
+    @staticmethod
+    def log_file(msg):
+        poke_logger.info(msg)
+
     def on_pubmsg(self, client, message):
         argstring = " ".join(message.arguments)
 
@@ -94,7 +107,7 @@ class ClientIRCPokemon(ClientIRCBase):
             for item, amount in buy_list:
                 self.buy_shop(client, item, amount)
 
-            self.log(f"{YELLOWLOG}" + POKEMON.get_inventory())
+            self.log_file(f"{YELLOWLOG}" + POKEMON.get_inventory())
 
     def buy_shop(self, client, item, amount):
         msg = "{color}Bought {amount} {item}{plural}".format(
@@ -112,7 +125,7 @@ class ClientIRCPokemon(ClientIRCBase):
                 plural="s" if amount // 10 > 1 else ""
             )
 
-        self.send_random_channel(client, "!pokeshop {item} {amount}".format(item=item, amount=amount), msg)
+        self.send_random_channel(client, "!pokeshop {item} {amount}".format(item=item, amount=amount), msg, logtofile=True)
 
         POKEMON.add_item(item, amount)
         if premierballs > 0:
@@ -137,13 +150,13 @@ class ClientIRCPokemon(ClientIRCBase):
         if message.target[1:] == last_channel:
             if argstring.startswith(last_catch + " has been caught by:"):
                 if self.username in argstring:
-                    self.log(f"{GREENLOG}Caught {last_catch}")
+                    self.log_file(f"{GREENLOG}Caught {last_catch}")
                 elif argstring.endswith("..."):
-                    self.log(f"{YELLOWLOG}I don't know if {last_catch} was caught, too many users")
+                    self.log_file(f"{YELLOWLOG}I don't know if {last_catch} was caught, too many users")
                 else:
-                    self.log(f"{REDLOG}Failed to catch {last_catch}")
+                    self.log_file(f"{REDLOG}Failed to catch {last_catch}")
             elif argstring.startswith(last_catch + " escaped."):
-                self.log(f"{REDLOG}Failed to catch {last_catch}")
+                self.log_file(f"{REDLOG}Failed to catch {last_catch}")
 
     def check_should_catch(self, client, argstring):
         last_catch, last_channel = POKEMON.last_attempt()
@@ -154,7 +167,7 @@ class ClientIRCPokemon(ClientIRCBase):
             if argstring.endswith("❌"):
                 self.catch_pokemon(client, pokemon)
             else:
-                self.log(f"{REDLOG}Won't catch {pokemon}")
+                self.log_file(f"{REDLOG}Won't catch {pokemon}")
                 POKEMON.last_attempt(pokemon, None)
             self.check_balance(client)
 
@@ -162,13 +175,16 @@ class ClientIRCPokemon(ClientIRCBase):
         if POKEMON.check_balance():
             self.send_random_channel(client, "!pokepass", YELLOWLOG + "Checking balance in {channel}")
 
-    def send_random_channel(self, client, message, logmessage=None):
+    def send_random_channel(self, client, message, logmessage=None, logtofile=False):
         random_channel = POKEMON.random_channel()
         if random_channel is not None:
             sleep(0.5)
             client.privmsg("#" + random_channel, message)
             if logmessage is not None:
-                self.log(logmessage.format(channel=random_channel))
+                if logtofile:
+                    self.log_file(logmessage.format(channel=random_channel))
+                else:
+                    self.log(logmessage.format(channel=random_channel))
         return random_channel
 
 
