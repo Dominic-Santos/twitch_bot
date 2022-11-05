@@ -123,9 +123,9 @@ class PokemonComunityGame(object):
                 if price > cash:
                     break
 
-                amount = cash // price
-                purchases.append((item, amount * ITEM_MIN_PURCHASE))
-                cash = cash % price
+                purchases.append((item, ITEM_MIN_PURCHASE))
+                cash = cash - price
+                break
 
         if buy:
             self.cash = cash
