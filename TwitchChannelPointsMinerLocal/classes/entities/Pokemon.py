@@ -4,7 +4,7 @@ from datetime import datetime
 
 CATCH_TRIGGER = 2
 CATCH_DELAY = 90  # seconds
-CATCH_BALL_PRIORITY = ["ultraball", "premierball", "pokeball"]
+CATCH_BALL_PRIORITY = ["ultraball", "greatball", "premierball", "pokeball"]
 
 INVENTORY_FILE = "inventory.json"
 BALANCE_TRIGGER = 2
@@ -13,6 +13,7 @@ ITEM_MIN_PURCHASE = 10
 ITEM_PRIORITY = ["pokeball", "ultraball"]
 ITEM_PRICES = {
     "pokeball": 300,
+    "greatball": 600,
     "ultraball": 1000,
 }
 
