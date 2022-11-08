@@ -151,6 +151,7 @@ class ClientIRCPokemon(ClientIRCBase):
             if argstring.startswith(last_catch + " has been caught by:"):
                 if self.username in argstring:
                     self.log_file(f"{GREENLOG}Caught {last_catch}")
+                    POKEMON.check_type_mission(inc=True)
                 elif argstring.endswith("..."):
                     self.log_file(f"{YELLOWLOG}I don't know if {last_catch} was caught, too many users")
                 else:
@@ -161,10 +162,18 @@ class ClientIRCPokemon(ClientIRCBase):
     def check_should_catch(self, client, argstring):
         last_catch, last_channel = POKEMON.last_attempt()
         pokemon = argstring.split(" ")[1]
+
         if last_catch == pokemon:
             self.log(f"{YELLOWLOG}Already decided on {pokemon}")
         else:
+            catch = False
             if argstring.endswith("❌"):
+                catch = True
+            else:
+                POKEMON.get_pokemon_type(pokemon)
+                catch = POKEMON.check_type_mission()
+
+            if catch:
                 self.catch_pokemon(client, pokemon)
             else:
                 self.log_file(f"{REDLOG}Won't catch {pokemon}")
@@ -178,7 +187,7 @@ class ClientIRCPokemon(ClientIRCBase):
     def send_random_channel(self, client, message, logmessage=None, logtofile=False):
         random_channel = POKEMON.random_channel()
         if random_channel is not None:
-            sleep(0.5)
+            sleep(1)
             client.privmsg("#" + random_channel, message)
             if logmessage is not None:
                 if logtofile:
@@ -218,7 +227,7 @@ class ThreadChat(ThreadChatO):
                 f"Leaving Pokemon: {self.channel}", extra={"emoji": ":speech_balloon:"}
             )
             if len(POKEMON.channel_list) == 0:
-                POKEMON.save_inventory()
+                POKEMON.save_settings()
 
 
 ChatPresence = ChatPresenceO

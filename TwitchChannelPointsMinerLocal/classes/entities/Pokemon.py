@@ -1,12 +1,18 @@
 import random
 import json
 from datetime import datetime
+import requests
+from bs4 import BeautifulSoup
+
+POKEMON_INFO_URL = "https://www.pokemon.com/us/pokedex/{pokemon}"
+HEADERS = {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.95 Safari/537.36'}
 
 CATCH_TRIGGER = 2
 CATCH_DELAY = 90  # seconds
 CATCH_BALL_PRIORITY = ["ultraball", "greatball", "premierball", "pokeball"]
 
-INVENTORY_FILE = "inventory.json"
+SETTINGS_FILE = "pokemon.json"
+
 BALANCE_TRIGGER = 2
 ITEM_MIN_AMOUNT = 30
 ITEM_MIN_PURCHASE = 10
@@ -31,22 +37,30 @@ class PokemonComunityGame(object):
 
         self.last_catch = None
         self.last_channel = None
+        self.last_type = None
 
+        self.settings = {}
         self.inventory = {}
         self.cash = 0
 
-        self.load_inventory()
+        self.load_settings()
 
-    def save_inventory(self):
-        with open(INVENTORY_FILE, "w") as f:
-            f.write(json.dumps(self.inventory, indent=4))
+    def save_settings(self):
+        with open(SETTINGS_FILE, "w") as f:
+            f.write(json.dumps({
+                "inventory": self.inventory,
+                "settings": self.settings
+            }, indent=4))
 
-    def load_inventory(self):
+    def load_settings(self):
         try:
-            with open(INVENTORY_FILE, "r") as f:
-                self.inventory = json.load(f)
+            with open(SETTINGS_FILE, "r") as f:
+                j = json.load(f)
+                self.inventory = {} if "inventory" not in j else j["inventory"]
+                self.settings = {} if "settings" not in j else j["settings"]
         except:
             self.inventory = {}
+            self.settings = {}
 
     def set_cash(self, cash):
         self.cash = cash
@@ -135,3 +149,37 @@ class PokemonComunityGame(object):
 
     def get_inventory(self):
         return "Balance: $" + str(self.cash) + " " + ", ".join(["{item}: {amount}".format(item=item, amount=self.inventory[item]) for item in sorted(self.inventory.keys())])
+
+    def get_pokemon_type(self, pokemon):
+        res = requests.get(POKEMON_INFO_URL.format(pokemon=pokemon), headers=HEADERS)
+        soup = BeautifulSoup(res.content, "html.parser")
+
+        try:
+            typedata = soup.find("div", class_="dtm-type").find_all("a")
+            types = [t.text for t in typedata]
+        except:
+            types = []
+
+        self.last_type = types
+        return types
+
+    def get_type_mission(self):
+        m = None if "type_mission" not in self.settings else self.settings["type_mission"]
+        t = None if "type_target" not in self.settings else self.settings["type_target"]
+        c = 0 if "type_caught" not in self.settings else self.settings["type_caught"]
+        return m, t, c
+
+    def check_type_mission(self, inc=False):
+        mission, target, caught = self.get_type_mission()
+        is_type = False
+
+        if mission in self.last_type:
+            if target is None:
+                is_type = True
+            elif caught < target:
+                is_type = True
+
+        if is_type and inc:
+            self.settings["type_caught"] = caught + 1
+
+        return is_type

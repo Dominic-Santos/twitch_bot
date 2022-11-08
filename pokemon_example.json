@@ -1,0 +1,13 @@
+{
+    "inventory": {
+        "premierball": 1,
+        "pokeball": 2,
+        "ultraball": 3,
+        "greatball": 4
+    },
+    "settings": {
+        "type_mission": "Type",
+        "type_target": 5,
+        "type_caught": 1
+    }
+}
