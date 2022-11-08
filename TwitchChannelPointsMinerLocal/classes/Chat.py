@@ -166,18 +166,17 @@ class ClientIRCPokemon(ClientIRCBase):
         if last_catch == pokemon:
             self.log(f"{YELLOWLOG}Already decided on {pokemon}")
         else:
-            catch = False
             if argstring.endswith("❌"):
-                catch = True
-            else:
-                POKEMON.get_pokemon_type(pokemon)
-                catch = POKEMON.check_type_mission()
-
-            if catch:
                 self.catch_pokemon(client, pokemon)
             else:
-                self.log_file(f"{REDLOG}Won't catch {pokemon}")
-                POKEMON.last_attempt(pokemon, None)
+                POKEMON.get_pokemon_type(pokemon)
+                if POKEMON.check_type_mission():
+                    mission = POKEMON.settings["type_mission"]
+                    self.log_file(f"{GREENLOG}Already have {pokemon} but is {mission} type")
+                    self.catch_pokemon(client, pokemon)
+                else:
+                    self.log_file(f"{REDLOG}Won't catch {pokemon}")
+                    POKEMON.last_attempt(pokemon, None)
             self.check_balance(client)
 
     def check_balance(self, client):
