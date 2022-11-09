@@ -159,9 +159,15 @@ class ClientIRCPokemon(ClientIRCBase):
             elif argstring.startswith(last_catch + " escaped."):
                 self.log_file(f"{REDLOG}Failed to catch {last_catch}")
 
+    def get_pokemon(self, argstring):
+        pokemon = argstring.split(" ")[1]
+        if pokemon.startswith("Nidoran"):
+            pokemon = "Nidoran-{sex}".format(sex="male" if pokemon.endswith("♂") else "female")
+        return pokemon
+
     def check_should_catch(self, client, argstring):
         last_catch, last_channel = POKEMON.last_attempt()
-        pokemon = argstring.split(" ")[1]
+        pokemon = self.get_pokemon(argstring)
 
         if last_catch == pokemon:
             self.log(f"{YELLOWLOG}Already decided on {pokemon}")
