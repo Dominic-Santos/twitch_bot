@@ -29,6 +29,7 @@ class PokemonComunityGame(object):
         self.connected = False
         self.twitch = None
         self.channel_list = []
+        self.last_random = ""
 
         self.catch_counter = 0
         self.catch_timer = datetime.now()
@@ -74,9 +75,16 @@ class PokemonComunityGame(object):
             self.channel_list.remove(channel)
 
     def random_channel(self):
-        if len(self.channel_list) == 0:
+        nr_channels = len(self.channel_list)
+
+        if nr_channels == 0:
             return None
-        return random.choice(self.channel_list)
+
+        if nr_channels == 1:
+            self.last_random = self.channel_list[0]
+        else:
+            self.last_random = random.choice([channel for channel in self.channel_list if channel != self.last_random])
+        return self.last_random
 
     def check_catch(self):
         now = datetime.now()
