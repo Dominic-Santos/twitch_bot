@@ -13,7 +13,7 @@ CATCH_BALL_PRIORITY = ["ultraball", "greatball", "premierball", "pokeball"]
 
 SETTINGS_FILE = "pokemon.json"
 
-BALANCE_TRIGGER = 2
+BALANCE_TRIGGER = 1
 ITEM_MIN_AMOUNT = 30
 ITEM_MIN_PURCHASE = 10
 ITEM_PRIORITY = ["pokeball", "ultraball"]

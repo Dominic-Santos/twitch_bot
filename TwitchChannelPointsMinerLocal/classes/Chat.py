@@ -197,7 +197,6 @@ class ClientIRCPokemon(ClientIRCBase):
     def send_random_channel(self, client, message, logmessage=None, logtofile=False):
         random_channel = POKEMON.random_channel()
         if random_channel is not None:
-            sleep(1)
             client.privmsg("#" + random_channel, message)
             if logmessage is not None:
                 if logtofile:
