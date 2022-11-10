@@ -108,6 +108,7 @@ class ClientIRCPokemon(ClientIRCBase):
                 self.buy_shop(client, item, amount)
 
             self.log_file(f"{YELLOWLOG}" + POKEMON.get_inventory())
+            POKEMON.save_settings()
 
     def buy_shop(self, client, item, amount):
         msg = "{color}Bought {amount} {item}{plural}".format(
@@ -160,9 +161,14 @@ class ClientIRCPokemon(ClientIRCBase):
                 self.log_file(f"{REDLOG}Failed to catch {last_catch}")
 
     def get_pokemon(self, argstring):
-        pokemon = argstring.split(" ")[1]
+        args = argstring.split(" ")
+        pokemon = args[1]
         if pokemon.startswith("Nidoran"):
             pokemon = "Nidoran-{sex}".format(sex="male" if pokemon.endswith("♂") else "female")
+        elif pokemon == "Mime":
+            pokemon = "Mime-jr"
+        elif pokemon.startswith("Mr"):
+            pokemon = "Mr-{poke}".format(poke=args[2])
         return pokemon
 
     def check_should_catch(self, client, argstring):
@@ -230,8 +236,6 @@ class ThreadChat(ThreadChatO):
             logger.info(
                 f"Leaving Pokemon: {self.channel}", extra={"emoji": ":speech_balloon:"}
             )
-            if len(POKEMON.channel_list) == 0:
-                POKEMON.save_settings()
 
 
 ChatPresence = ChatPresenceO
