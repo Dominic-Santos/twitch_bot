@@ -43,6 +43,7 @@ class PokemonComunityGame(object):
         self.settings = {}
         self.inventory = {}
         self.cash = 0
+        self.pending_purchases = []
 
         self.load_settings()
 
@@ -64,6 +65,14 @@ class PokemonComunityGame(object):
             self.settings = {}
 
     def set_cash(self, cash):
+
+        if cash < self.cash and len(self.pending_purchases) > 0:
+            for item, amount in self.pending_purchases:
+                self.add_item(item, amount)
+                if item in ITEM_PRIORITY and amount > 9:
+                    self.add_item("premierball", amount // 10)
+            self.pending_purchases = []
+
         self.cash = cash
 
     def add_channel(self, channel):
@@ -151,7 +160,7 @@ class PokemonComunityGame(object):
                 break
 
         if buy:
-            self.cash = cash
+            self.pending_purchases = purchases
 
         return purchases
 

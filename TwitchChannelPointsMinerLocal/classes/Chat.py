@@ -118,19 +118,13 @@ class ClientIRCPokemon(ClientIRCBase):
             plural="s" if amount > 0 else ""
         )
 
-        premierballs = 0
         if item.endswith("ball") and amount > 9:
-            premierballs = amount // 10
             msg = msg + " and got {amount} bonus premierball{plural}".format(
                 amount=amount // 10,
                 plural="s" if amount // 10 > 1 else ""
             )
 
-        self.send_random_channel(client, "!pokeshop {item} {amount}".format(item=item, amount=amount), msg, logtofile=True)
-
-        POKEMON.add_item(item, amount)
-        if premierballs > 0:
-            POKEMON.add_item("premierball", premierballs)
+        self.send_random_channel(client, "!pokeshop {item} {amount}".format(item=item, amount=amount), msg, logtofile=True, wait=15)
 
     def check_pokemon_active(self, client, message):
         if self.pokemon_active is False:
@@ -192,11 +186,13 @@ class ClientIRCPokemon(ClientIRCBase):
 
     def check_balance(self, client):
         if POKEMON.check_balance():
-            self.send_random_channel(client, "!pokepass", YELLOWLOG + "Checking balance in {channel}")
+            self.send_random_channel(client, "!pokepass", YELLOWLOG + "Checking balance in {channel}", wait=10)
 
-    def send_random_channel(self, client, message, logmessage=None, logtofile=False):
+    def send_random_channel(self, client, message, logmessage=None, logtofile=False, wait=0):
         random_channel = POKEMON.random_channel()
         if random_channel is not None:
+            if wait > 0:
+                sleep(wait)
             client.privmsg("#" + random_channel, message)
             if logmessage is not None:
                 if logtofile:
