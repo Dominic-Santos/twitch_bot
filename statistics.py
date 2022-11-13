@@ -29,9 +29,13 @@ class Args():
 
         if self.when == "all":
             self.when = "before"
+            self.start = None
         elif self.when == "last":
             self.when = "after"
             self.start = str(today - timedelta(days=self.days))
+        elif self.when == "today":
+            self.when = "on"
+            self.start = None
 
         if self.timeframe is None:
             self.timeframe = "daily"
@@ -67,11 +71,12 @@ def main():
         "after": when_after,
         "before": when_before,
         "all": None,
-        "last": None
+        "last": None,
+        "today": None,
     }
 
     parser = argparse.ArgumentParser(description="Statistics for the Pokemon Comunity Game catch rates")
-    parser.add_argument("when", help="look at data relating to when", choices=funcs.keys())
+    parser.add_argument("when", help="look at data relating to when", choices=sorted(funcs.keys()))
     parser.add_argument("-s", "--start", help="start date")
     parser.add_argument("-e", "--end", help="end date")
     parser.add_argument("-x", "--days", help="number of days to use with last", type=int)
