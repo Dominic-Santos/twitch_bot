@@ -114,12 +114,16 @@ def leading(n, length, zeros=False):
     return (("0" if zeros else " ") * (length - len(str(n)))) + str(n)
 
 
-def ball_catch_rates(catches, fails):
+def ball_catch_rates(final_rates, catches, fails):
     to_return = {}
     for ball in BALL_PRIORITY + ["unknown"]:
         if ball in catches or ball in fails:
             catch = catches.count(ball)
             total = fails.count(ball) + catch
+            if ball not in final_rates:
+                final_rates[ball] = {"catch": 0, "total": 0}
+            final_rates[ball]["catch"] += catch
+            final_rates[ball]["total"] += total
             to_return[ball] = "{catch}/{total} ({percent}%)".format(catch=catch, total=total, percent=round(catch * 100 / total))
     return to_return
 
@@ -128,6 +132,7 @@ def show_results(data, detailed, zeros):
     lines = []
     final_catch = 0
     final_total = 0
+    final_rates = {}
     for k in sorted(data.keys()):
         caught = len(data[k]["catch"]) + len(data[k]["mission_catch"])
         skipped = len(data[k]["skip"])
@@ -138,7 +143,7 @@ def show_results(data, detailed, zeros):
         skiped_per = 0 if total_skip == 0 else round(skipped * 100 / total_skip)
         final_catch += caught
         final_total += total
-        catch_rates = ball_catch_rates(data[k]["catch_balls"], data[k]["fail_balls"])
+        catch_rates = ball_catch_rates(final_rates, data[k]["catch_balls"], data[k]["fail_balls"])
 
         if detailed:
             s = "{date}:\n\tcaught={caught} ({caught_str})\n\tmissed={missed} ({missed_str})\n\tskipped={skipped} ({skipped_str})\n\tdunno={dunno} ({dunno_str})\n\tmissions:\n\t\tcaught={mission_c} ({mission_c_str})\n\t\tmissed={mission_f} ({mission_f_str})\n\t(caught={c}%, skipped={s}%)\n\tCatch Rates:\n{balls}".format(
@@ -181,7 +186,18 @@ def show_results(data, detailed, zeros):
         lines.append(s)
         print(s)
 
-    s = "Overall Catch Rate: {per}% ({catch}/{total})".format(per=round(final_catch * 100 / final_total), catch=final_catch, total=final_total)
+    s = "Overall Catch Rate: {per}% ({catch}/{total}):".format(per=round(final_catch * 100 / final_total), catch=final_catch, total=final_total)
+    lines.append(s)
+    print(s)
+
+    s = "{balls}".format(
+        balls="\t--" if len(final_rates.keys()) == 0 else "\n".join(["\t{ball}: {catch}/{total} ({percent}%)".format(
+            ball=ball,
+            catch=final_rates[ball]["catch"],
+            total=final_rates[ball]["total"],
+            percent=round(final_rates[ball]["catch"] * 100 / final_rates[ball]["total"])
+        ) for ball in BALL_PRIORITY + ["unknown"] if ball in catch_rates])
+    )
     lines.append(s)
     print(s)
 
@@ -317,6 +333,7 @@ def read_logs():
             if "Won't" in line:
                 data[dateh]["skip"].append(pokemon)
             elif "don't know" in line:
+                ball_used(inventory)
                 data[dateh]["dunno"].append(pokemon)
             else:
                 ball = ball_used(inventory)
