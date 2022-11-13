@@ -329,20 +329,22 @@ def read_logs():
             if dateh not in data:
                 data[dateh] = copy.deepcopy(DEFAULT_DICT)
 
-            pokemon = line.split(" ")[-1]
-            if "Won't" in line:
-                data[dateh]["skip"].append(pokemon)
-            elif "don't know" in line:
+            if "don't know" in line:
+                pokemon = line.split(" ")[6]
                 ball_used(inventory)
                 data[dateh]["dunno"].append(pokemon)
             else:
-                ball = ball_used(inventory)
-                if "Failed" in line:
-                    data[dateh]["%sfail" % ("mission_" if mission else "")].append(pokemon)
-                    data[dateh]["fail_balls"].append(ball)
+                pokemon = line.split(" ")[-1]
+                if "Won't" in line:
+                    data[dateh]["skip"].append(pokemon)
                 else:
-                    data[dateh]["%scatch" % ("mission_" if mission else "")].append(pokemon)
-                    data[dateh]["catch_balls"].append(ball)
+                    ball = ball_used(inventory)
+                    if "Failed" in line:
+                        data[dateh]["%sfail" % ("mission_" if mission else "")].append(pokemon)
+                        data[dateh]["fail_balls"].append(ball)
+                    else:
+                        data[dateh]["%scatch" % ("mission_" if mission else "")].append(pokemon)
+                        data[dateh]["catch_balls"].append(ball)
             mission = False
     return data
 
