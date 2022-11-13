@@ -2,13 +2,17 @@ import argparse
 import copy
 from dateutil.parser import parse
 from datetime import datetime, timedelta
+from TwitchChannelPointsMinerLocal.classes.entities.Pokemon import CATCH_BALL_PRIORITY as BALL_PRIORITY
 
 DEFAULT_DICT = {
     "catch": [],
     "fail": [],
     "mission_catch": [],
     "mission_fail": [],
-    "skip": []
+    "skip": [],
+    "dunno": [],
+    "catch_balls": [],
+    "fail_balls": []
 }
 
 
@@ -92,7 +96,7 @@ def main():
     args = Args(parser.parse_args())
     args.clean_args()
 
-    data = get_logs_data()
+    data = read_logs()
     funcs[args.when](data, args.start, args.end, args.fill)
     final = apply_timeframe(data, args.timeframe)
 
@@ -110,6 +114,16 @@ def leading(n, length, zeros=False):
     return (("0" if zeros else " ") * (length - len(str(n)))) + str(n)
 
 
+def ball_catch_rates(catches, fails):
+    to_return = {}
+    for ball in BALL_PRIORITY + ["unknown"]:
+        if ball in catches or ball in fails:
+            catch = catches.count(ball)
+            total = fails.count(ball) + catch
+            to_return[ball] = "{catch}/{total} ({percent}%)".format(catch=catch, total=total, percent=round(catch * 100 / total))
+    return to_return
+
+
 def show_results(data, detailed, zeros):
     lines = []
     final_catch = 0
@@ -117,15 +131,17 @@ def show_results(data, detailed, zeros):
     for k in sorted(data.keys()):
         caught = len(data[k]["catch"]) + len(data[k]["mission_catch"])
         skipped = len(data[k]["skip"])
+        dunno = len(data[k]["dunno"])
         total = len(data[k]["catch"] + data[k]["mission_catch"] + data[k]["fail"] + data[k]["mission_fail"])
         total_skip = total + len(data[k]["skip"])
         caught_per = 0 if total == 0 else round(caught * 100 / total)
         skiped_per = 0 if total_skip == 0 else round(skipped * 100 / total_skip)
         final_catch += caught
         final_total += total
+        catch_rates = ball_catch_rates(data[k]["catch_balls"], data[k]["fail_balls"])
 
         if detailed:
-            s = "{date}:\n\tcaught={caught} ({caught_str})\n\tmissed={missed} ({missed_str})\n\tskipped={skipped} ({skipped_str})\n\tmissions:\n\t\tcaught={mission_c} ({mission_c_str})\n\t\tmissed={mission_f} ({mission_f_str})\n\t(caught={c}%, skipped={s}%)".format(
+            s = "{date}:\n\tcaught={caught} ({caught_str})\n\tmissed={missed} ({missed_str})\n\tskipped={skipped} ({skipped_str})\n\tdunno={dunno} ({dunno_str})\n\tmissions:\n\t\tcaught={mission_c} ({mission_c_str})\n\t\tmissed={mission_f} ({mission_f_str})\n\t(caught={c}%, skipped={s}%)\n\tCatch Rates:\n{balls}".format(
                 date=k,
                 caught=leading(len(data[k]["catch"]), zeros),
                 missed=leading(len(data[k]["fail"]), zeros),
@@ -138,18 +154,29 @@ def show_results(data, detailed, zeros):
                 mission_c_str=",".join(data[k]["mission_catch"]),
                 mission_f_str=",".join(data[k]["mission_fail"]),
                 c=leading(caught_per, 3),
-                s=leading(skiped_per, 3)
+                s=leading(skiped_per, 3),
+                dunno=dunno,
+                dunno_str=",".join(data[k]["dunno"]),
+                balls="\t\t--" if len(catch_rates.keys()) == 0 else "\n".join(["\t\t{ball}: {rate}".format(
+                    ball=ball,
+                    rate=catch_rates[ball]
+                ) for ball in BALL_PRIORITY + ["unknown"] if ball in catch_rates])
             )
         else:
-            s = "{date}: caught={caught}, missed={missed}, skipped={skipped}, missions->(caught={mission_c}, missed={mission_f})  (caught={c}%, skipped={s}%)".format(
+            s = "{date}: caught={caught}/{total}  skipped={skipped}  dunno={dunno}  missions->(caught={mission_c}/{mission_total})  (caught={c}%, skipped={s}%)  balls->{balls}".format(
                 date=k,
                 caught=leading(len(data[k]["catch"]), zeros),
-                missed=leading(len(data[k]["fail"]), zeros),
+                total=leading(len(data[k]["fail"]) + len(data[k]["catch"]), zeros),
                 skipped=leading(len(data[k]["skip"]), zeros),
                 mission_c=leading(len(data[k]["mission_catch"]), zeros),
-                mission_f=leading(len(data[k]["mission_fail"]), zeros),
+                mission_total=leading(len(data[k]["mission_catch"]) + len(data[k]["mission_fail"]), zeros),
                 c=leading(caught_per, 3),
-                s=leading(skiped_per, 3)
+                s=leading(skiped_per, 3),
+                dunno=dunno,
+                balls=" --" if len(catch_rates.keys()) == 0 else ", ".join(["{ball} {rate}".format(
+                    ball=ball.replace("ball", ""),
+                    rate=catch_rates[ball]
+                ) for ball in BALL_PRIORITY + ["unknown"] if ball in catch_rates])
             )
         lines.append(s)
         print(s)
@@ -192,6 +219,9 @@ def apply_timeframe(data, timeframe):
             final[new_k]["mission_catch"] = final[new_k]["mission_catch"] + data[k]["mission_catch"]
             final[new_k]["mission_fail"] = final[new_k]["mission_fail"] + data[k]["mission_fail"]
             final[new_k]["skip"] = final[new_k]["skip"] + data[k]["skip"]
+            final[new_k]["dunno"] = final[new_k]["dunno"] + data[k]["dunno"]
+            final[new_k]["catch_balls"] = final[new_k]["catch_balls"] + data[k]["catch_balls"]
+            final[new_k]["fail_balls"] = final[new_k]["fail_balls"] + data[k]["fail_balls"]
 
     return final
 
@@ -251,15 +281,29 @@ def fill_data(fill, data, start, end):
         current_date = current_date + timedelta(days=1)
 
 
-def get_logs_data():
+def ball_used(inventory):
+    for ball in BALL_PRIORITY:
+        if inventory[ball] > 0:
+            inventory[ball] = inventory[ball] - 1
+            return ball
+    return "unknown"
+
+
+def read_logs():
     data = {}
     mission = False
+    inventory = {k: 0 for k in BALL_PRIORITY}
 
     with open("logs/pokemoncg.txt") as file:
         for uline in file:
             line = uline.rstrip()
 
-            if "Balance" in line or "Bought" in line:
+            if "Balance" in line:
+                balls = line.split(" ")[4:]
+                for i in range(0, len(balls), 2):
+                    inventory[balls[i][:-1]] = int(balls[i + 1].replace(",", ""))
+                continue
+            elif "Bought" in line:
                 continue
             elif "Already" in line:
                 mission = True
@@ -272,10 +316,16 @@ def get_logs_data():
             pokemon = line.split(" ")[-1]
             if "Won't" in line:
                 data[dateh]["skip"].append(pokemon)
-            elif "Failed" in line:
-                data[dateh]["%sfail" % ("mission_" if mission else "")].append(pokemon)
+            elif "don't know" in line:
+                data[dateh]["dunno"].append(pokemon)
             else:
-                data[dateh]["%scatch" % ("mission_" if mission else "")].append(pokemon)
+                ball = ball_used(inventory)
+                if "Failed" in line:
+                    data[dateh]["%sfail" % ("mission_" if mission else "")].append(pokemon)
+                    data[dateh]["fail_balls"].append(ball)
+                else:
+                    data[dateh]["%scatch" % ("mission_" if mission else "")].append(pokemon)
+                    data[dateh]["catch_balls"].append(ball)
             mission = False
     return data
 
