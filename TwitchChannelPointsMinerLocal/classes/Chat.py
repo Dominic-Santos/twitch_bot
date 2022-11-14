@@ -86,7 +86,10 @@ class ClientIRCPokemon(ClientIRCBase):
 
         if argstring.startswith(self.at_username):
             if "registered in Pokédex" in argstring:
-                self.check_should_catch(client, argstring)
+                if POKEMON.rechecking:
+                    self.rechecking_results(client, argstring)
+                else:
+                    self.check_should_catch(client, argstring)
             elif "Balance" in argstring:
                 self.update_balance(client, argstring)
 
@@ -132,27 +135,40 @@ class ClientIRCPokemon(ClientIRCBase):
             self.log(f"{YELLOWLOG}Joined Pokemon for {message.target[1:]}")
             POKEMON.add_channel(message.target[1:])
 
-    def check_pokemon(self, client):
-        if POKEMON.check_catch():
+    def check_pokemon(self, client, force=False):
+        if force or POKEMON.check_catch():
             self.send_random_channel(client, "!pokecheck", "Checking if need current Pokemon in {channel} stream")
 
-    def catch_pokemon(self, client, pokemon):
+    def catch_pokemon(self, client, pokemon, have=False):
         random_channel = self.send_random_channel(client, POKEMON.get_catch_message(), GREENLOG + "Trying to catch " + pokemon + " in {channel} stream")
-        POKEMON.last_attempt(pokemon, random_channel)
+        POKEMON.last_attempt(pokemon, random_channel, have)
+
+    def catch_results(self, pokemon, result):
+        if result == "caught":
+            self.log_file(f"{GREENLOG}Caught {pokemon}")
+            POKEMON.check_type_mission(inc=True)
+        elif result == "dunno":
+            self.log_file(f"{YELLOWLOG}I don't know if {pokemon} was caught, too many users")
+        else:
+            self.log_file(f"{REDLOG}Failed to catch {pokemon}")
 
     def check_pokemon_caught(self, client, message, argstring):
-        last_catch, last_channel = POKEMON.last_attempt()
+        last_catch, last_channel, last_have = POKEMON.last_attempt()
         if message.target[1:] == last_channel:
             if argstring.startswith(last_catch + " has been caught by:"):
                 if self.username in argstring:
-                    self.log_file(f"{GREENLOG}Caught {last_catch}")
-                    POKEMON.check_type_mission(inc=True)
+                    self.catch_results(last_catch, "caught")
                 elif argstring.endswith("..."):
-                    self.log_file(f"{YELLOWLOG}I don't know if {last_catch} was caught, too many users")
+                    if last_have:
+                        self.catch_results(last_catch, "dunno")
+                    else:
+                        self.log(f"{REDLOG}Too many users, must recheck {last_catch}")
+                        POKEMON.set_rechecking(True)
+                        self.check_pokemon(client, force=True)
                 else:
-                    self.log_file(f"{REDLOG}Failed to catch {last_catch}")
+                    self.catch_results(last_catch, "failed")
             elif argstring.startswith(last_catch + " escaped."):
-                self.log_file(f"{REDLOG}Failed to catch {last_catch}")
+                self.catch_results(last_catch, "failed")
 
     def get_pokemon(self, argstring):
         args = argstring.split(" ")
@@ -165,24 +181,35 @@ class ClientIRCPokemon(ClientIRCBase):
             pokemon = "Mr-{poke}".format(poke=args[2])
         return pokemon
 
+    def get_pokedex_status(self, argstring):
+        return argstring.endswith("❌") is False
+
     def check_should_catch(self, client, argstring):
-        last_catch, last_channel = POKEMON.last_attempt()
+        last_catch, last_channel, last_have = POKEMON.last_attempt()
         pokemon = self.get_pokemon(argstring)
 
         if last_catch == pokemon:
             self.log(f"{YELLOWLOG}Already decided on {pokemon}")
         else:
             POKEMON.get_pokemon_type(pokemon)
-            if argstring.endswith("❌"):
+            if self.get_pokedex_status(argstring) is False:
                 self.catch_pokemon(client, pokemon)
             elif POKEMON.check_type_mission():
                 mission = POKEMON.settings["type_mission"]
                 self.log_file(f"{GREENLOG}Already have {pokemon} but is {mission} type")
-                self.catch_pokemon(client, pokemon)
+                self.catch_pokemon(client, pokemon, True)
             else:
                 self.log_file(f"{REDLOG}Won't catch {pokemon}")
-                POKEMON.last_attempt(pokemon, None)
+                POKEMON.last_attempt(pokemon, None, True)
             self.check_balance(client)
+
+    def rechecking_results(self, client, argstring):
+        POKEMON.set_rechecking(False)
+        pokemon = self.get_pokemon(argstring)
+        if self.get_pokedex_status(argstring):
+            self.catch_results(pokemon, "caught")
+        else:
+            self.catch_results(pokemon, "failed")
 
     def check_balance(self, client):
         if POKEMON.check_balance():

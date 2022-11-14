@@ -39,6 +39,9 @@ class PokemonComunityGame(object):
         self.last_catch = None
         self.last_channel = None
         self.last_type = None
+        self.last_have = None
+
+        self.rechecking = False
 
         self.settings = {}
         self.inventory = {}
@@ -108,12 +111,17 @@ class PokemonComunityGame(object):
 
         return False
 
-    def last_attempt(self, set_to=None, channel=None):
+    def last_attempt(self, set_to=None, channel=None, have=None):
         if set_to is None:
-            return self.last_catch, self.last_channel
+            return self.last_catch, self.last_channel, self.last_have
 
         self.last_catch = set_to
         self.last_channel = channel
+        self.last_have = have
+        self.rechecking = False
+
+    def set_rechecking(self, rechecking):
+        self.rechecking = rechecking
 
     def add_item(self, item, amount):
         if item in self.inventory:
