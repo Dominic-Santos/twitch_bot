@@ -179,6 +179,7 @@ class ClientIRCPokemon(ClientIRCBase):
             pokemon = "Mime-jr"
         elif pokemon.startswith("Mr"):
             pokemon = "Mr-{poke}".format(poke=args[2])
+        pokemon = pokemon.replace("'", "")
         return pokemon
 
     def get_pokedex_status(self, argstring):
