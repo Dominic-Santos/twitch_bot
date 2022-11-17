@@ -196,7 +196,7 @@ def show_results(data, detailed, zeros):
             catch=final_rates[ball]["catch"],
             total=final_rates[ball]["total"],
             percent=round(final_rates[ball]["catch"] * 100 / final_rates[ball]["total"])
-        ) for ball in BALL_PRIORITY + ["unknown"] if ball in catch_rates])
+        ) for ball in BALL_PRIORITY + ["unknown"] if ball in final_rates])
     )
     lines.append(s)
     print(s)
