@@ -40,6 +40,9 @@ class Args():
         elif self.when == "today":
             self.when = "on"
             self.start = None
+        elif self.when == "yesterday":
+            self.when = "on"
+            self.start = str(today - timedelta(days=1))
 
         if self.timeframe is None:
             self.timeframe = "daily"
@@ -77,6 +80,7 @@ def main():
         "all": None,
         "last": None,
         "today": None,
+        "yesterday": None
     }
 
     parser = argparse.ArgumentParser(description="Statistics for the Pokemon Comunity Game catch rates")
