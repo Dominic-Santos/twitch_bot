@@ -15,6 +15,8 @@ DEFAULT_DICT = {
     "fail_balls": []
 }
 
+DEFAULT_TOP = 5
+
 
 class Args():
     def __init__(self, args):
@@ -25,11 +27,16 @@ class Args():
         self.fill = args.fill
         self.detailed = args.detailed
         self.days = args.days
+        self.pokemon = args.pokemon
+        self.top = args.top
 
     def clean_args(self):
         today = datetime.now().date()
-        if self.days is None:
+        if self.days is None or self.days <= 0:
             self.days = 30
+
+        if self.top is None or self.top <= 0:
+            self.top = DEFAULT_TOP
 
         if self.when == "all":
             self.when = "before"
@@ -90,6 +97,8 @@ def main():
     parser.add_argument("-x", "--days", help="number of days to use with last", type=int)
     parser.add_argument("-t", "--timeframe", help="timeframe", choices=["hourly", "daily", "monthly"])
     parser.add_argument("-d", "--detailed", help="detailed summary", action="store_true")
+    parser.add_argument("-p", "--pokemon", help="counts of pokemon that spawned", action="store_true")
+    parser.add_argument("-n", "--top", help="top n pokemon, default {top}".format(top=DEFAULT_TOP), type=int)
 
     parser.add_argument(
         "-f", "--fill",
@@ -111,7 +120,22 @@ def main():
     else:
         length = 3
 
-    show_results(final, args.detailed, length)
+    if args.pokemon:
+        show_pokemon(final, args.top)
+    else:
+        show_results(final, args.detailed, length)
+
+
+def show_pokemon(data, top):
+    counts = {}
+    for k in sorted(data.keys()):
+        for arr in ["catch", "mission_catch", "skip", "dunno", "mission_fail"]:
+            for pokemon in data[k][arr]:
+                counts[pokemon] = counts.get(pokemon, 0) + 1
+
+    print("Top {top} Pokemon:".format(top=top))
+    for pokemon, count in sorted(counts.items(), key=lambda x: x[1], reverse=True)[0:top]:
+        print("\t{pokemon}: {count}".format(pokemon=pokemon, count=count))
 
 
 def leading(n, length, zeros=False):
