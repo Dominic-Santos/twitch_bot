@@ -155,12 +155,15 @@ def show_pokemon(data, top):
     for pokemon, count in counts.items():
         results.setdefault(str(count), []).append(pokemon)
 
+    total = 0
     print("Top {top} Pokemon Spawns:".format(top=top))
     for count, poke_list in sorted(results.items(), key=lambda x: int(x[0]), reverse=True):
         poke_list_sorted = sorted(poke_list)
         print("\t{count}:".format(count=count))
+        total += len(poke_list)
         for i in range(0, len(poke_list), 10):
             print("\t\t{pokemon}".format(count=count, pokemon=", ".join(poke_list_sorted[i:i + 10])))
+    print("Total different seen: {total}".format(total=total))
 
 
 def leading(n, length, zeros=False):
