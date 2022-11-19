@@ -29,6 +29,7 @@ class Args():
         self.days = args.days
         self.pokemon = args.pokemon
         self.top = args.top
+        self.lookup = args.lookup
 
     def clean_args(self):
         today = datetime.now().date()
@@ -37,6 +38,9 @@ class Args():
 
         if self.top is None or self.top <= 0:
             self.top = DEFAULT_TOP
+
+        if self.lookup is not None:
+            self.lookup = self.lookup.title().strip()
 
         if self.when == "all":
             self.when = "before"
@@ -99,31 +103,45 @@ def main():
     parser.add_argument("-d", "--detailed", help="detailed summary", action="store_true")
     parser.add_argument("-p", "--pokemon", help="counts of pokemon that spawned", action="store_true")
     parser.add_argument("-n", "--top", help="top n pokemon, default {top}".format(top=DEFAULT_TOP), type=int)
-
-    parser.add_argument(
-        "-f", "--fill",
-        help="fill holes in data",
-        action="store_true"
-    )
+    parser.add_argument("-l", "--lookup", help="how many times a pokemon has spawned")
+    parser.add_argument("-f", "--fill", help="fill holes in data", action="store_true")
 
     args = Args(parser.parse_args())
     args.clean_args()
 
     data = read_logs()
     funcs[args.when](data, args.start, args.end, args.fill)
+
     final = apply_timeframe(data, args.timeframe)
 
-    if args.timeframe == "hourly":
-        length = 1
-    elif args.timeframe == "daily":
-        length = 2
-    else:
-        length = 3
-
-    if args.pokemon:
+    if args.lookup is not None and args.lookup != "":
+        lookup_pokemon(final, args.lookup)
+    elif args.pokemon:
         show_pokemon(final, args.top)
     else:
+        if args.timeframe == "hourly":
+            length = 1
+        elif args.timeframe == "daily":
+            length = 2
+        else:
+            length = 3
+
         show_results(final, args.detailed, length)
+
+
+def lookup_pokemon(data, pokemon):
+    count = 0
+    appearances = []
+    for k in sorted(data.keys()):
+        for arr in ["catch", "mission_catch", "skip", "dunno", "mission_fail"]:
+            tmp_count = data[k][arr].count(pokemon)
+            if tmp_count > 0:
+                appearances.append("{n} time{p} on {k}".format(n=tmp_count, p="" if tmp_count == 1 else "s", k=k))
+                count += tmp_count
+
+    print("{pokemon} appeared {count} times".format(pokemon=pokemon, count=count))
+    for appearance in appearances:
+        print("\t{appearance}".format(appearance=appearance))
 
 
 def show_pokemon(data, top):
@@ -133,9 +151,16 @@ def show_pokemon(data, top):
             for pokemon in data[k][arr]:
                 counts[pokemon] = counts.get(pokemon, 0) + 1
 
-    print("Top {top} Pokemon:".format(top=top))
-    for pokemon, count in sorted(counts.items(), key=lambda x: x[1], reverse=True)[0:top]:
-        print("\t{pokemon}: {count}".format(pokemon=pokemon, count=count))
+    results = {}
+    for pokemon, count in counts.items():
+        results.setdefault(str(count), []).append(pokemon)
+
+    print("Top {top} Pokemon Spawns:".format(top=top))
+    for count, poke_list in sorted(results.items(), key=lambda x: int(x[0]), reverse=True):
+        poke_list_sorted = sorted(poke_list)
+        print("\t{count}:".format(count=count))
+        for i in range(0, len(poke_list), 10):
+            print("\t\t{pokemon}".format(count=count, pokemon=", ".join(poke_list_sorted[i:i + 10])))
 
 
 def leading(n, length, zeros=False):
