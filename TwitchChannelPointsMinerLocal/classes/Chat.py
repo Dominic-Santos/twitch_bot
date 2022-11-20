@@ -9,22 +9,24 @@ from .ChatO import logger
 
 from .entities.Pokemon import PokemonComunityGame
 
-MARBLES_DELAY = 60 * 3  # seconds
-MARBLES_TRIGGER_COUNT = 3
-
-POKEMON = PokemonComunityGame()
-
-REDLOG = "\x1b[31;20m"
-GREENLOG = "\x1b[32;20m"
-YELLOWLOG = "\x1b[36;20m"
-
-
 formatter = logging.Formatter('%(asctime)s %(message)s', datefmt="%Y-%m-%d %H:%M:%S")
 file_handler = logging.FileHandler("logs/pokemoncg.txt")
 file_handler.setFormatter(formatter)
 poke_logger = logging.getLogger(__name__ + "pokemon")
 poke_logger.setLevel(logging.DEBUG)
 poke_logger.addHandler(file_handler)
+
+
+MARBLES_DELAY = 60 * 3  # seconds
+MARBLES_TRIGGER_COUNT = 3
+
+REDLOG = "\x1b[31;20m"
+GREENLOG = "\x1b[32;20m"
+YELLOWLOG = "\x1b[36;20m"
+
+POKEMON = PokemonComunityGame()
+
+poke_logger.info(f"{YELLOWLOG}" + POKEMON.get_inventory())
 
 
 class ClientIRCBase(ClientIRCO):
@@ -140,7 +142,7 @@ class ClientIRCPokemon(ClientIRCBase):
             self.send_random_channel(client, "!pokecheck", "Checking if need current Pokemon in {channel} stream")
 
     def catch_pokemon(self, client, pokemon, have=False):
-        random_channel = self.send_random_channel(client, POKEMON.get_catch_message(), GREENLOG + "Trying to catch " + pokemon + " in {channel} stream")
+        random_channel = self.send_random_channel(client, POKEMON.get_catch_message(repeat=have), GREENLOG + "Trying to catch " + pokemon + " in {channel} stream")
         POKEMON.last_attempt(pokemon, random_channel, have)
 
     def catch_results(self, pokemon, result):

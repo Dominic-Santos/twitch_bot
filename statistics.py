@@ -2,7 +2,7 @@ import argparse
 import copy
 from dateutil.parser import parse
 from datetime import datetime, timedelta
-from TwitchChannelPointsMinerLocal.classes.entities.Pokemon import CATCH_BALL_PRIORITY as BALL_PRIORITY
+from TwitchChannelPointsMinerLocal.classes.entities.Pokemon import CATCH_BALL_PRIORITY as BALL_PRIORITY, Inventory, Pokedex
 
 DEFAULT_DICT = {
     "catch": [],
@@ -353,29 +353,25 @@ def fill_data(fill, data, start, end):
         current_date = current_date + timedelta(days=1)
 
 
-def ball_used(inventory):
-    for ball in BALL_PRIORITY:
-        if inventory[ball] > 0:
-            inventory[ball] = inventory[ball] - 1
-            return ball
-    return "unknown"
-
-
 def read_logs():
     data = {}
     mission = False
-    inventory = {k: 0 for k in BALL_PRIORITY}
+    inventory = Inventory()
+    pokedex = Pokedex()
 
     with open("logs/pokemoncg.txt") as file:
         for uline in file:
             line = uline.rstrip()
 
             if "Balance" in line:
+                inventory.reset()
                 balls = line.split(" ")[4:]
                 for i in range(0, len(balls), 2):
-                    inventory[balls[i][:-1]] = int(balls[i + 1].replace(",", ""))
+                    ball = balls[i][:-1]
+                    amount = int(balls[i + 1].replace(",", ""))
+                    inventory.set_item(ball, amount)
                 continue
-            elif "Bought" in line:
+            elif "Bought" in line or "Nobody" in line:
                 continue
             elif "Already" in line:
                 mission = True
@@ -387,14 +383,21 @@ def read_logs():
 
             if "don't know" in line:
                 pokemon = line.split(" ")[6]
-                ball_used(inventory)
+                pokemon_type = pokedex.get_type(pokemon)
+
+                ball = inventory.get_catch_ball(types=pokemon_type, repeat=mission)
+                inventory.use(ball)
+
                 data[dateh]["dunno"].append(pokemon)
             else:
                 pokemon = line.split(" ")[-1]
                 if "Won't" in line:
                     data[dateh]["skip"].append(pokemon)
                 else:
-                    ball = ball_used(inventory)
+                    pokemon_type = pokedex.get_type(pokemon)
+                    ball = inventory.get_catch_ball(types=pokemon_type, repeat=mission)
+                    inventory.use(ball)
+
                     if "Failed" in line:
                         data[dateh]["%sfail" % ("mission_" if mission else "")].append(pokemon)
                         data[dateh]["fail_balls"].append(ball)
