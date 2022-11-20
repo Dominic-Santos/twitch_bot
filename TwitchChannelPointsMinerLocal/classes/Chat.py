@@ -259,6 +259,8 @@ class ThreadChat(ThreadChatO):
             logger.info(
                 f"Leaving Pokemon: {self.channel}", extra={"emoji": ":speech_balloon:"}
             )
+            if len(POKEMON.channel_list) == 0:
+                poke_logger.info("Nobody is streaming Pokemon CG")
 
 
 ChatPresence = ChatPresenceO
