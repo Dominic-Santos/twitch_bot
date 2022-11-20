@@ -1362,5 +1362,28 @@
     "Wigglytuff": [
         "Normal",
         "Fairy"
+    ],
+    "Persian": [
+        "Normal"
+    ],
+    "Drifloon": [
+        "Ghost",
+        "Flying"
+    ],
+    "Hoppip": [
+        "Grass",
+        "Flying"
+    ],
+    "Tropius": [
+        "Grass",
+        "Flying"
+    ],
+    "Frillish": [
+        "Water",
+        "Ghost"
+    ],
+    "Murkrow": [
+        "Dark",
+        "Flying"
     ]
 }

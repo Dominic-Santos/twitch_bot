@@ -133,11 +133,20 @@ def lookup_pokemon(data, pokemon):
     count = 0
     appearances = []
     for k in sorted(data.keys()):
-        for arr in ["catch", "mission_catch", "skip", "dunno", "mission_fail"]:
+        tmp_appearances = {}
+        for arr in ["mission_catch", "skip", "dunno", "mission_fail", "fail", "catch"]:
             tmp_count = data[k][arr].count(pokemon)
             if tmp_count > 0:
-                appearances.append("{n} time{p} on {k}".format(n=tmp_count, p="" if tmp_count == 1 else "s", k=k))
+                tmp_appearances[arr.split("_")[-1]] = tmp_appearances.get(arr.split("_")[-1], 0) + tmp_count
                 count += tmp_count
+        if len(tmp_appearances.keys()) > 0:
+            tmp_times = sum(tmp_appearances.values())
+            appearances.append("{n} time{p} on {k} ({details})".format(
+                n=tmp_times,
+                p="" if tmp_times == 1 else "s",
+                k=k,
+                details=", ".join(["{k} x{v}".format(k=k, v=v) for k, v in tmp_appearances.items()])
+            ))
 
     print("{pokemon} appeared {count} times".format(pokemon=pokemon, count=count))
     for appearance in appearances:
