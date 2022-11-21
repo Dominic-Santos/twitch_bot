@@ -6,6 +6,7 @@ test_cases = [
     ("Pikachu", ["Electric"]),
     ("Farfetch’d", ["Normal", "Flying"]),
     ("Mr. Mime", ["Psychic", "Fairy"]),
+    ("Flabébé", ["Fairy"]),
     ("Fake Pokemon", []),
 ]
 

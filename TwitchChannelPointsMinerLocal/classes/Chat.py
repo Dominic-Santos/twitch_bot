@@ -26,8 +26,6 @@ YELLOWLOG = "\x1b[36;20m"
 
 POKEMON = PokemonComunityGame()
 
-poke_logger.info(f"{YELLOWLOG}" + POKEMON.get_inventory())
-
 
 class ClientIRCBase(ClientIRCO):
     def __init__(self, username, token, channel):

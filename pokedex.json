@@ -1470,5 +1470,28 @@
     "Rhyhorn": [
         "Ground",
         "Rock"
+    ],
+    "Electivire": [
+        "Electric"
+    ],
+    "Whiscash": [
+        "Water",
+        "Ground"
+    ],
+    "Stunky": [
+        "Poison",
+        "Dark"
+    ],
+    "Amaura": [
+        "Rock",
+        "Ice"
+    ],
+    "Lanturn": [
+        "Water",
+        "Electric"
+    ],
+    "Litwick": [
+        "Ghost",
+        "Fire"
     ]
 }
