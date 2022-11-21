@@ -399,6 +399,8 @@ def read_logs():
                     pokemon_type = pokedex.get_type(pokemon)
 
                     ball = inventory.get_catch_ball(types=pokemon_type, repeat=mission is not None)
+                    if ball is None:
+                        ball = "unknown"
                 inventory.use(ball)
 
                 data[dateh]["dunno"].append(pokemon)
@@ -418,6 +420,8 @@ def read_logs():
                     else:
                         pokemon_type = pokedex.get_type(pokemon)
                         ball = inventory.get_catch_ball(types=pokemon_type, repeat=mission is not None)
+                        if ball is None:
+                            ball = "unknown"
 
                     inventory.use(ball)
 

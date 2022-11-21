@@ -1456,15 +1456,19 @@
         "Bug",
         "Grass"
     ],
-    "Charmander": [
-        "Fire"
+    "Ditto": [
+        "Normal"
     ],
-    "Farfetchd": [
-        "Normal",
-        "Flying"
+    "Venonat": [
+        "Bug",
+        "Poison"
     ],
-    "Mr-Mime": [
-        "Psychic",
-        "Fairy"
+    "Froslass": [
+        "Ice",
+        "Ghost"
+    ],
+    "Rhyhorn": [
+        "Ground",
+        "Rock"
     ]
 }
