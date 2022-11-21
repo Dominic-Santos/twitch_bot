@@ -2,8 +2,9 @@ import argparse
 import copy
 from dateutil.parser import parse
 from datetime import datetime, timedelta
-from TwitchChannelPointsMinerLocal.classes.entities.Pokemon import CATCH_BALL_PRIORITY as BALL_PRIORITY, Inventory, Pokedex
+from TwitchChannelPointsMinerLocal.classes.entities.Pokemon import CATCH_BALL_PRIORITY as BALL_PRIORITY, Inventory, Pokedex, CATCH_SPECIAL_BALLS
 
+ALL_BALLS = BALL_PRIORITY + sorted(set(CATCH_SPECIAL_BALLS.values())) + ["unknown"]
 DEFAULT_DICT = {
     "catch": [],
     "fail": [],
@@ -181,7 +182,7 @@ def leading(n, length, zeros=False):
 
 def ball_catch_rates(final_rates, catches, fails):
     to_return = {}
-    for ball in BALL_PRIORITY + ["unknown"]:
+    for ball in ALL_BALLS:
         if ball in catches or ball in fails:
             catch = catches.count(ball)
             total = fails.count(ball) + catch
@@ -230,7 +231,7 @@ def show_results(data, detailed, zeros):
                 balls="\t\t--" if len(catch_rates.keys()) == 0 else "\n".join(["\t\t{ball}: {rate}".format(
                     ball=ball,
                     rate=catch_rates[ball]
-                ) for ball in BALL_PRIORITY + ["unknown"] if ball in catch_rates])
+                ) for ball in ALL_BALLS if ball in catch_rates])
             )
         else:
             s = "{date}: caught={caught}/{total}  skipped={skipped}  dunno={dunno}  missions->(caught={mission_c}/{mission_total})  (caught={c}%, skipped={s}%)  balls->{balls}".format(
@@ -246,7 +247,7 @@ def show_results(data, detailed, zeros):
                 balls=" --" if len(catch_rates.keys()) == 0 else ", ".join(["{ball} {rate}".format(
                     ball=ball.replace("ball", ""),
                     rate=catch_rates[ball]
-                ) for ball in BALL_PRIORITY + ["unknown"] if ball in catch_rates])
+                ) for ball in ALL_BALLS if ball in catch_rates])
             )
         lines.append(s)
         print(s)
@@ -261,7 +262,7 @@ def show_results(data, detailed, zeros):
             catch=final_rates[ball]["catch"],
             total=final_rates[ball]["total"],
             percent=round(final_rates[ball]["catch"] * 100 / final_rates[ball]["total"])
-        ) for ball in BALL_PRIORITY + ["unknown"] if ball in final_rates])
+        ) for ball in ALL_BALLS if ball in final_rates])
     )
     lines.append(s)
     print(s)
@@ -364,7 +365,7 @@ def fill_data(fill, data, start, end):
 
 def read_logs():
     data = {}
-    mission = False
+    mission = None
     inventory = Inventory()
     pokedex = Pokedex()
 
@@ -383,7 +384,7 @@ def read_logs():
             elif "Bought" in line or "Nobody" in line:
                 continue
             elif "Already" in line:
-                mission = True
+                mission = line.split(" ")[4]
                 continue
 
             dateh = line.split(":")[0]
@@ -394,26 +395,28 @@ def read_logs():
                 pokemon = line.split(" ")[6]
                 pokemon_type = pokedex.get_type(pokemon)
 
-                ball = inventory.get_catch_ball(types=pokemon_type, repeat=mission)
+                ball = inventory.get_catch_ball(types=pokemon_type, repeat=mission is not None)
                 inventory.use(ball)
 
                 data[dateh]["dunno"].append(pokemon)
             else:
                 pokemon = line.split(" ")[-1]
+                if pokemon != mission:
+                    mission = None
                 if "Won't" in line:
                     data[dateh]["skip"].append(pokemon)
                 else:
                     pokemon_type = pokedex.get_type(pokemon)
-                    ball = inventory.get_catch_ball(types=pokemon_type, repeat=mission)
+                    ball = inventory.get_catch_ball(types=pokemon_type, repeat=mission is not None)
                     inventory.use(ball)
 
                     if "Failed" in line:
-                        data[dateh]["%sfail" % ("mission_" if mission else "")].append(pokemon)
+                        data[dateh]["%sfail" % ("mission_" if mission is not None else "")].append(pokemon)
                         data[dateh]["fail_balls"].append(ball)
                     else:
-                        data[dateh]["%scatch" % ("mission_" if mission else "")].append(pokemon)
+                        data[dateh]["%scatch" % ("mission_" if mission is not None else "")].append(pokemon)
                         data[dateh]["catch_balls"].append(ball)
-            mission = False
+            mission = None
     return data
 
 

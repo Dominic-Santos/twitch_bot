@@ -1385,5 +1385,67 @@
     "Murkrow": [
         "Dark",
         "Flying"
+    ],
+    "Togedemaru": [
+        "Electric",
+        "Steel"
+    ],
+    "Furfrou": [
+        "Normal"
+    ],
+    "Hitmonchan": [
+        "Fighting"
+    ],
+    "Unfezant": [
+        "Normal",
+        "Flying"
+    ],
+    "Drilbur": [
+        "Ground"
+    ],
+    "Medicham": [
+        "Fighting",
+        "Psychic"
+    ],
+    "Wishiwashi": [
+        "Water"
+    ],
+    "Haunter": [
+        "Ghost",
+        "Poison"
+    ],
+    "Slurpuff": [
+        "Fairy"
+    ],
+    "Psyduck": [
+        "Water"
+    ],
+    "Dusclops": [
+        "Ghost"
+    ],
+    "Ribombee": [
+        "Bug",
+        "Fairy"
+    ],
+    "Dedenne": [
+        "Electric",
+        "Fairy"
+    ],
+    "Yungoos": [
+        "Normal"
+    ],
+    "Smeargle": [
+        "Normal"
+    ],
+    "Charmander": [
+        "Fire"
+    ],
+    "Farfetchd": [
+        "Normal",
+        "Flying"
+    ],
+    "Mr-Mime": [
+        "Psychic",
+        "Fairy"
     ]
 }

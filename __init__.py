@@ -1,1 +1,1 @@
-from settings import load_settings
+from .utils import load_settings
