@@ -112,7 +112,7 @@ class ClientIRCPokemon(ClientIRCBase):
             for item, amount in buy_list:
                 self.buy_shop(client, item, amount)
 
-            self.log_file(f"{YELLOWLOG}" + POKEMON.get_inventory())
+            self.log(f"{YELLOWLOG}" + POKEMON.get_inventory())
             POKEMON.save_settings()
 
     def buy_shop(self, client, item, amount):
@@ -147,12 +147,12 @@ class ClientIRCPokemon(ClientIRCBase):
 
     def catch_results(self, pokemon, result):
         if result == "caught":
-            self.log_file(f"{GREENLOG}Caught {pokemon}")
+            self.log_file(f"{GREENLOG}Caught {pokemon} with {POKEMON.inventory.last_used}")
             POKEMON.check_type_mission(inc=True)
         elif result == "dunno":
-            self.log_file(f"{YELLOWLOG}I don't know if {pokemon} was caught, too many users")
+            self.log_file(f"{YELLOWLOG}I don't know if {pokemon} was caught with {POKEMON.inventory.last_used}, too many users ")
         else:
-            self.log_file(f"{REDLOG}Failed to catch {pokemon}")
+            self.log_file(f"{REDLOG}Failed to catch {pokemon} with {POKEMON.inventory.last_used}")
 
     def check_pokemon_caught(self, client, message, argstring):
         last_catch, last_channel, last_have = POKEMON.last_attempt()
@@ -174,15 +174,8 @@ class ClientIRCPokemon(ClientIRCBase):
 
     def get_pokemon(self, argstring):
         args = argstring.split(" ")
-        pokemon = args[1]
-        if pokemon.startswith("Nidoran"):
-            pokemon = "Nidoran-{sex}".format(sex="male" if pokemon.endswith("♂") else "female")
-        elif pokemon == "Mime":
-            pokemon = "Mime-jr"
-        elif pokemon.startswith("Mr"):
-            pokemon = "Mr-{poke}".format(poke=args[2])
-        pokemon = pokemon.replace("'", "")
-        return pokemon
+        pokemon = " ".join(args[1:2 + (len(args) - 6)])
+        return POKEMON.pokedex.clean_name(pokemon)
 
     def get_pokedex_status(self, argstring):
         return argstring.endswith("❌") is False

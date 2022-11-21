@@ -4,7 +4,7 @@ from dateutil.parser import parse
 from datetime import datetime, timedelta
 from TwitchChannelPointsMinerLocal.classes.entities.Pokemon import CATCH_BALL_PRIORITY as BALL_PRIORITY, Inventory, Pokedex, CATCH_SPECIAL_BALLS
 
-ALL_BALLS = BALL_PRIORITY + sorted(set(CATCH_SPECIAL_BALLS.values())) + ["unknown"]
+ALL_BALLS = BALL_PRIORITY + sorted(set(CATCH_SPECIAL_BALLS.values())) + ["repeatball", "unknown"]
 DEFAULT_DICT = {
     "catch": [],
     "fail": [],
@@ -393,21 +393,32 @@ def read_logs():
 
             if "don't know" in line:
                 pokemon = line.split(" ")[6]
-                pokemon_type = pokedex.get_type(pokemon)
+                if "with" in line:
+                    ball = line.split(" ")[8]
+                else:
+                    pokemon_type = pokedex.get_type(pokemon)
 
-                ball = inventory.get_catch_ball(types=pokemon_type, repeat=mission is not None)
+                    ball = inventory.get_catch_ball(types=pokemon_type, repeat=mission is not None)
                 inventory.use(ball)
 
                 data[dateh]["dunno"].append(pokemon)
             else:
-                pokemon = line.split(" ")[-1]
+                if "with" in line:
+                    pokemon = line.split(" ")[-3]
+                else:
+                    pokemon = line.split(" ")[-1]
+
                 if pokemon != mission:
                     mission = None
                 if "Won't" in line:
                     data[dateh]["skip"].append(pokemon)
                 else:
-                    pokemon_type = pokedex.get_type(pokemon)
-                    ball = inventory.get_catch_ball(types=pokemon_type, repeat=mission is not None)
+                    if "with" in line:
+                        ball = line.split(" ")[-1]
+                    else:
+                        pokemon_type = pokedex.get_type(pokemon)
+                        ball = inventory.get_catch_ball(types=pokemon_type, repeat=mission is not None)
+
                     inventory.use(ball)
 
                     if "Failed" in line:

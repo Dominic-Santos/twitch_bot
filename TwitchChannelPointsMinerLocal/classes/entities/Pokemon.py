@@ -76,10 +76,23 @@ class Pokedex(object):
         except:
             self.types = {}
 
+    @staticmethod
+    def clean_name(pokemon):
+        end = pokemon
+        if pokemon.startswith("Nidoran"):
+            end = "Nidoran-{sex}".format(sex="male" if pokemon.endswith("♂") else "female")
+        elif pokemon == "Mime":
+            end = "Mime-jr"
+        elif pokemon.startswith("Mr"):
+            end = "Mr-{poke}".format(poke=pokemon.split(" ")[1])
+        end = end.replace("’", "")
+        return end
+
 
 class Inventory(object):
     def __init__(self):
         self.reset()
+        self.last_used = None
 
     def __str__(self):
         return "Balance: $" + str(self.cash) + " " + ", ".join(["{item}: {amount}".format(item=item, amount=self.get_item(item)) for item in sorted(self.items.keys())])
@@ -112,6 +125,7 @@ class Inventory(object):
     def use(self, item):
         if self.have_item(item):
             self.remove_item(item, 1)
+            self.last_used = item
 
     def set_cash(self, cash):
         self.cash = cash
@@ -122,7 +136,7 @@ class Inventory(object):
                 return "repeatball"
 
         if types is not None:
-            for t in types:
+            for t in sorted(types):
                 if t in CATCH_SPECIAL_BALLS:
                     if self.have_item(CATCH_SPECIAL_BALLS[t]):
                         return CATCH_SPECIAL_BALLS[t]

@@ -1437,6 +1437,25 @@
     "Smeargle": [
         "Normal"
     ],
+    "Larvitar": [
+        "Rock",
+        "Ground"
+    ],
+    "Whirlipede": [
+        "Bug",
+        "Poison"
+    ],
+    "Inkay": [
+        "Dark",
+        "Psychic"
+    ],
+    "Blipbug": [
+        "Bug"
+    ],
+    "Parasect": [
+        "Bug",
+        "Grass"
+    ],
     "Charmander": [
         "Fire"
     ],
