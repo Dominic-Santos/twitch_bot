@@ -16,7 +16,6 @@ DEFAULT_DICT = {
     "fail_balls": []
 }
 
-DEFAULT_TOP = 5
 DIV_ZERO = "-"
 
 
@@ -30,16 +29,13 @@ class Args():
         self.detailed = args.detailed
         self.days = args.days
         self.pokemon = args.pokemon
-        self.top = args.top
         self.lookup = args.lookup
+        self.need = args.need
 
     def clean_args(self):
         today = datetime.now().date()
         if self.days is None or self.days <= 0:
             self.days = 30
-
-        if self.top is None or self.top <= 0:
-            self.top = DEFAULT_TOP
 
         if self.lookup is not None:
             self.lookup = self.lookup.title().strip()
@@ -104,9 +100,9 @@ def main():
     parser.add_argument("-t", "--timeframe", help="timeframe", choices=["hourly", "daily", "monthly"])
     parser.add_argument("-d", "--detailed", help="detailed summary", action="store_true")
     parser.add_argument("-p", "--pokemon", help="counts of pokemon that spawned", action="store_true")
-    parser.add_argument("-n", "--top", help="top n pokemon, default {top}".format(top=DEFAULT_TOP), type=int)
     parser.add_argument("-l", "--lookup", help="how many times a pokemon has spawned")
     parser.add_argument("-f", "--fill", help="fill holes in data", action="store_true")
+    parser.add_argument("-n", "--need", help="pokemon that have spawned and never caught", action="store_true")
 
     args = Args(parser.parse_args())
     args.clean_args()
@@ -118,8 +114,10 @@ def main():
 
     if args.lookup is not None and args.lookup != "":
         lookup_pokemon(final, args.lookup)
+    elif args.need:
+        show_escaped(final)
     elif args.pokemon:
-        show_pokemon(final, args.top)
+        show_pokemon(final)
     else:
         if args.timeframe == "hourly":
             length = 1
@@ -129,6 +127,30 @@ def main():
             length = 3
 
         show_results(final, args.detailed, length)
+
+
+def show_escaped(data):
+    final = {}
+    for k in sorted(data.keys()):
+        for arr in ["fail"]:
+            for pokemon in data[k][arr]:
+                if pokemon not in final:
+                    final[pokemon] = {"count": 0, "last_seen": None}
+                final[pokemon].update({"count": final[pokemon]["count"] + 1, "last_seen": k})
+        for arr in ["catch", "mission_catch", "mission_fail", "skip"]:
+            for pokemon in data[k][arr]:
+                final.pop(pokemon, None)
+
+    sorted_data = sorted([(pokemon, final[pokemon]["count"], final[pokemon]["last_seen"]) for pokemon in final], key=lambda x: x[1])
+
+    print("Pokemon that Escaped:")
+    for pokemon, count, last_seen in sorted_data:
+        print("\t{pokemon} spawned {count} time{counts}, last seen on {date}".format(
+            pokemon=pokemon,
+            count=count,
+            counts="s" if count > 1 else "",
+            date=last_seen
+        ))
 
 
 def lookup_pokemon(data, pokemon):
@@ -155,10 +177,10 @@ def lookup_pokemon(data, pokemon):
         print("\t{appearance}".format(appearance=appearance))
 
 
-def show_pokemon(data, top):
+def show_pokemon(data):
     counts = {}
     for k in sorted(data.keys()):
-        for arr in ["catch", "mission_catch", "skip", "dunno", "mission_fail"]:
+        for arr in ["catch", "mission_catch", "skip", "dunno", "mission_fail", "fail"]:
             for pokemon in data[k][arr]:
                 counts[pokemon] = counts.get(pokemon, 0) + 1
 
@@ -167,7 +189,7 @@ def show_pokemon(data, top):
         results.setdefault(str(count), []).append(pokemon)
 
     total = 0
-    print("Top {top} Pokemon Spawns:".format(top=top))
+    print("Top Pokemon Spawns:")
     for count, poke_list in sorted(results.items(), key=lambda x: int(x[0]), reverse=True):
         poke_list_sorted = sorted(poke_list)
         print("\t{count}:".format(count=count))
@@ -407,9 +429,9 @@ def read_logs():
                 data[dateh]["dunno"].append(pokemon)
             else:
                 if "with" in line:
-                    pokemon = line.split(" ")[-3]
+                    pokemon = " ".join(line.split(" ")[-3 - (1 if "(" in line else 0):-2])
                 else:
-                    pokemon = line.split(" ")[-1]
+                    pokemon = " ".join(line.split(" ")[-1 - (1 if "(" in line else 0):])
 
                 if pokemon != mission:
                     mission = None

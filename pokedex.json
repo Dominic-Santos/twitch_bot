@@ -2216,5 +2216,16 @@
     "Pidgey": [
         "Normal",
         "Flying"
+    ],
+    "Beartic": [
+        "Ice"
+    ],
+    "Crawdaunt": [
+        "Water",
+        "Dark"
+    ],
+    "Doublade": [
+        "Steel",
+        "Ghost"
     ]
 }
