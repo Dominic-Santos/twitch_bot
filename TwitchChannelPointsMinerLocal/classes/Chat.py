@@ -192,6 +192,8 @@ class ClientIRCPokemon(ClientIRCBase):
                 mission = POKEMON.settings["type_mission"]
                 self.log_file(f"{GREENLOG}Already have {pokemon} but is {mission} type")
                 self.catch_pokemon(client, pokemon, True)
+            elif pokemon.startswith("Rotom"):
+                self.catch_pokemon(client, pokemon)
             else:
                 self.log_file(f"{REDLOG}Won't catch {pokemon}")
                 POKEMON.last_attempt(pokemon, None, True)

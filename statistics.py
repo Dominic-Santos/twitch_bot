@@ -17,6 +17,7 @@ DEFAULT_DICT = {
 }
 
 DEFAULT_TOP = 5
+DIV_ZERO = "-"
 
 
 class Args():
@@ -190,7 +191,7 @@ def ball_catch_rates(final_rates, catches, fails):
                 final_rates[ball] = {"catch": 0, "total": 0}
             final_rates[ball]["catch"] += catch
             final_rates[ball]["total"] += total
-            to_return[ball] = "{catch}/{total} ({percent}%)".format(catch=catch, total=total, percent=round(catch * 100 / total))
+            to_return[ball] = "{catch}/{total} ({percent}%)".format(catch=catch, total=total, percent=DIV_ZERO if total == 0 else round(catch * 100 / total))
     return to_return
 
 
@@ -252,7 +253,7 @@ def show_results(data, detailed, zeros):
         lines.append(s)
         print(s)
 
-    s = "Overall Catch Rate: {per}% ({catch}/{total}):".format(per=round(final_catch * 100 / final_total), catch=final_catch, total=final_total)
+    s = "Overall Catch Rate: {per}% ({catch}/{total}):".format(per=DIV_ZERO if final_total == 0 else round(final_catch * 100 / final_total), catch=final_catch, total=final_total)
     lines.append(s)
     print(s)
 
