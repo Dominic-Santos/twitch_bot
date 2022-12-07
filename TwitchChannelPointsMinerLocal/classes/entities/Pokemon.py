@@ -257,13 +257,24 @@ class PokemonComunityGame(object):
 
         return "!pokecatch"
 
-    def check_balance(self):
+    def check_balance_tick(self):
         self.check_balance_counter += 1
 
         if self.check_balance_counter == BALANCE_TRIGGER:
             self.check_balance_counter = 0
             return True
 
+        return False
+
+    def check_balance(self):
+        if not self.need_items():
+            return False
+        return self.check_balance_tick()
+
+    def need_items(self):
+        for item in ITEM_PRIORITY:
+            if self.inventory.get_item(item) < ITEM_MIN_AMOUNT:
+                return True
         return False
 
     def get_purchase_list(self, buy=False):

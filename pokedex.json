@@ -2227,5 +2227,29 @@
     "Doublade": [
         "Steel",
         "Ghost"
+    ],
+    "Joltik": [
+        "Bug",
+        "Electric"
+    ],
+    "Pyroar": [
+        "Fire",
+        "Normal"
+    ],
+    "Nosepass": [
+        "Rock"
+    ],
+    "Escavalier": [
+        "Bug",
+        "Steel"
+    ],
+    "Politoed": [
+        "Water"
+    ],
+    "Shuppet": [
+        "Ghost"
+    ],
+    "Ursaring": [
+        "Normal"
     ]
 }
