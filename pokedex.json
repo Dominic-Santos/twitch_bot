@@ -2251,5 +2251,12 @@
     ],
     "Ursaring": [
         "Normal"
+    ],
+    "Dodrio": [
+        "Normal",
+        "Flying"
+    ],
+    "Mismagius": [
+        "Ghost"
     ]
 }

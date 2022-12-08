@@ -2,6 +2,7 @@ import argparse
 import copy
 from dateutil.parser import parse
 from datetime import datetime, timedelta
+from utils import load_settings
 from TwitchChannelPointsMinerLocal.classes.entities.Pokemon import CATCH_BALL_PRIORITY as BALL_PRIORITY, Inventory, Pokedex, CATCH_SPECIAL_BALLS
 
 ALL_BALLS = BALL_PRIORITY + sorted(set(CATCH_SPECIAL_BALLS.values())) + ["repeatball", "unknown"]
@@ -17,6 +18,7 @@ DEFAULT_DICT = {
 }
 
 DIV_ZERO = "-"
+NEEDS_FILE = "need.json"
 
 
 class Args():
@@ -130,6 +132,11 @@ def main():
 
 
 def show_escaped(data):
+    try:
+        need = load_settings(NEEDS_FILE)["need"]
+    except:
+        need = None
+
     final = {}
     for k in sorted(data.keys()):
         for arr in ["fail"]:
@@ -140,16 +147,27 @@ def show_escaped(data):
         for arr in ["catch", "mission_catch", "mission_fail", "skip"]:
             for pokemon in data[k][arr]:
                 final.pop(pokemon, None)
+                if need is not None and pokemon in need:
+                    need = [p for p in need if pokemon != p]
 
-    sorted_data = sorted([(pokemon, final[pokemon]["count"], final[pokemon]["last_seen"]) for pokemon in final], key=lambda x: x[1])
+    if need is not None:
+        for pokemon in final:
+            if pokemon not in need:
+                final.pop(pokemon)
+        for pokemon in need:
+            if pokemon not in final:
+                final[pokemon] = {"count": 0, "last_seen": None}
+
+    sorted_data = sorted([(pokemon, final[pokemon]["count"], final[pokemon]["last_seen"]) for pokemon in final], key=lambda x: (x[1], x[0]))
 
     print("Pokemon that Escaped:")
     for pokemon, count, last_seen in sorted_data:
-        print("\t{pokemon} spawned {count} time{counts}, last seen on {date}".format(
+        print("\t{pokemon} spawned {count} time{counts}, {seen}{date}".format(
             pokemon=pokemon,
             count=count,
-            counts="s" if count > 1 else "",
-            date=last_seen
+            counts="" if count == 1 else "s",
+            seen="never seen" if last_seen is None else "last seen on ",
+            date="" if last_seen is None else last_seen
         ))
 
 
