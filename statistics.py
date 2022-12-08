@@ -151,7 +151,7 @@ def show_escaped(data):
                     need = [p for p in need if pokemon != p]
 
     if need is not None:
-        for pokemon in final:
+        for pokemon in list(final.keys()):
             if pokemon not in need:
                 final.pop(pokemon)
         for pokemon in need:
