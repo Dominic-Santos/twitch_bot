@@ -1,5 +1,6 @@
 import argparse
 import copy
+import json
 from dateutil.parser import parse
 from datetime import datetime, timedelta
 from utils import load_settings
@@ -157,6 +158,9 @@ def show_escaped(data):
         for pokemon in need:
             if pokemon not in final:
                 final[pokemon] = {"count": 0, "last_seen": None}
+
+        with open(NEEDS_FILE, "w") as f:
+            f.write(json.dumps({"need": need}, indent=4))
 
     sorted_data = sorted([(pokemon, final[pokemon]["count"], final[pokemon]["last_seen"]) for pokemon in final], key=lambda x: (x[1], x[0]))
 

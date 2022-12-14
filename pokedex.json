@@ -2347,5 +2347,17 @@
     "Toxel": [
         "Electric",
         "Poison"
+    ],
+    "Flygon": [
+        "Ground",
+        "Dragon"
+    ],
+    "Toucannon": [
+        "Normal",
+        "Flying"
+    ],
+    "Gallade": [
+        "Psychic",
+        "Fighting"
     ]
 }
