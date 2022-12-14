@@ -2258,5 +2258,94 @@
     ],
     "Mismagius": [
         "Ghost"
+    ],
+    "Metagross": [
+        "Steel",
+        "Psychic"
+    ],
+    "Hypno": [
+        "Psychic"
+    ],
+    "Aerodactyl": [
+        "Rock",
+        "Flying"
+    ],
+    "Seviper": [
+        "Poison"
+    ],
+    "Goomy": [
+        "Dragon"
+    ],
+    "Mr-Rime": [
+        "Ice",
+        "Psychic"
+    ],
+    "Seel": [
+        "Water"
+    ],
+    "Scraggy": [
+        "Dark",
+        "Fighting"
+    ],
+    "Steelix": [
+        "Steel",
+        "Ground"
+    ],
+    "Cradily": [
+        "Rock",
+        "Grass"
+    ],
+    "Golisopod": [
+        "Bug",
+        "Water"
+    ],
+    "Chandelure": [
+        "Ghost",
+        "Fire"
+    ],
+    "Forretress": [
+        "Bug",
+        "Steel"
+    ],
+    "Gourgeist": [
+        "Ghost",
+        "Grass"
+    ],
+    "Excadrill": [
+        "Ground",
+        "Steel"
+    ],
+    "Bouffalant": [
+        "Normal"
+    ],
+    "Altaria": [
+        "Dragon",
+        "Flying"
+    ],
+    "Mienshao": [
+        "Fighting"
+    ],
+    "Thievul": [
+        "Dark"
+    ],
+    "Salazzle": [
+        "Poison",
+        "Fire"
+    ],
+    "Garbodor": [
+        "Poison"
+    ],
+    "Steenee": [
+        "Grass"
+    ],
+    "Furret": [
+        "Normal"
+    ],
+    "Lycanroc (Dusk)": [
+        "Rock"
+    ],
+    "Toxel": [
+        "Electric",
+        "Poison"
     ]
 }

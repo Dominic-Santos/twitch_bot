@@ -160,7 +160,7 @@ def show_escaped(data):
 
     sorted_data = sorted([(pokemon, final[pokemon]["count"], final[pokemon]["last_seen"]) for pokemon in final], key=lambda x: (x[1], x[0]))
 
-    print("Pokemon that Escaped:")
+    print("Pokemon Missing (%s):" % (len(sorted_data)))
     for pokemon, count, last_seen in sorted_data:
         print("\t{pokemon} spawned {count} time{counts}, {seen}{date}".format(
             pokemon=pokemon,

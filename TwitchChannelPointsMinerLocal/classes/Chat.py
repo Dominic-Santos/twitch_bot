@@ -256,6 +256,7 @@ class ThreadChat(ThreadChatO):
             )
             if len(POKEMON.channel_list) == 0:
                 poke_logger.info("Nobody is streaming Pokemon CG")
+                POKEMON.save_settings()
 
 
 ChatPresence = ChatPresenceO
