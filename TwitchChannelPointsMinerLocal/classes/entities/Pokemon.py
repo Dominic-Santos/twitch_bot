@@ -199,6 +199,7 @@ class PokemonComunityGame(object):
                 if item in ITEM_PRIORITY and amount > 9:
                     self.inventory.add_item("premierball", amount // 10)
             self.pending_purchases = []
+            self.save_settings()
 
         self.inventory.set_cash(cash)
 
@@ -253,6 +254,7 @@ class PokemonComunityGame(object):
         if selected is not None:
             if use:
                 self.inventory.use(selected)
+                self.save_settings()
             return f"!pokecatch {selected}"
 
         return "!pokecatch"
@@ -303,6 +305,9 @@ class PokemonComunityGame(object):
     def get_pokemon_type(self, pokemon):
         self.last_type = self.pokedex.get_type(pokemon)
         return self.last_type
+
+    def get_pokemon_exceptions(self):
+        return self.settings.get("catch_exceptions", [])
 
     def get_type_mission(self):
         m = self.settings.get("type_mission", None)

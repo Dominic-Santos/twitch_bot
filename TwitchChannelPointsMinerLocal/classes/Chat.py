@@ -73,6 +73,7 @@ class ClientIRCPokemon(ClientIRCBase):
         self.at_username = "@" + self.username
 
         self.pokemon_active = False
+        self.pokemon_disabled = False
 
     @staticmethod
     def log_file(msg):
@@ -94,7 +95,7 @@ class ClientIRCPokemon(ClientIRCBase):
                 self.update_balance(client, argstring)
 
         if "pokemoncommunitygame" in message.source:
-            self.check_pokemon_active(client, message)
+            self.check_pokemon_active(client, message, argstring)
             self.check_pokemon_caught(client, message, argstring)
 
     def update_balance(self, client, argstring):
@@ -111,7 +112,6 @@ class ClientIRCPokemon(ClientIRCBase):
                 self.buy_shop(client, item, amount)
 
             self.log(f"{YELLOWLOG}" + POKEMON.get_inventory())
-            POKEMON.save_settings()
 
     def buy_shop(self, client, item, amount):
         msg = "{color}Bought {amount} {item}{plural}".format(
@@ -129,8 +129,13 @@ class ClientIRCPokemon(ClientIRCBase):
 
         self.send_random_channel(client, "!pokeshop {item} {amount}".format(item=item, amount=amount), msg, logtofile=True, wait=15)
 
-    def check_pokemon_active(self, client, message):
-        if self.pokemon_active is False:
+    def check_pokemon_active(self, client, message, argstring):
+        if "Spawns and payouts are disabled" in argstring:
+            self.pokemon_disabled = True
+            self.pokemon_active = False
+            logger.info(f"Pokemon Disabled: {self.channel}", extra={"emoji": ":speech_balloon:"})
+            leave_channel(self.channel)
+        elif self.pokemon_active is False and self.pokemon_disabled is False:
             self.pokemon_active = True
             self.log(f"{YELLOWLOG}Joined Pokemon for {message.target[1:]}")
             POKEMON.add_channel(message.target[1:])
@@ -185,6 +190,12 @@ class ClientIRCPokemon(ClientIRCBase):
         if last_catch == pokemon:
             self.log(f"{YELLOWLOG}Already decided on {pokemon}")
         else:
+            exception = False
+            for exc in POKEMON.get_pokemon_exceptions():
+                if pokemon.startswith(exc):
+                    exception = True
+                    break
+
             POKEMON.get_pokemon_type(pokemon)
             if self.get_pokedex_status(argstring) is False:
                 self.catch_pokemon(client, pokemon)
@@ -192,12 +203,13 @@ class ClientIRCPokemon(ClientIRCBase):
                 mission = POKEMON.settings["type_mission"]
                 self.log_file(f"{GREENLOG}Already have {pokemon} but is {mission} type")
                 self.catch_pokemon(client, pokemon, True)
-            elif pokemon.startswith("Rotom") or pokemon.startswith("Minor"):
-                self.catch_pokemon(client, pokemon)
+            elif exception:
+                self.log_file(f"{GREENLOG}Already have {pokemon} but must catch")
+                self.catch_pokemon(client, pokemon, True)
             else:
                 self.log_file(f"{REDLOG}Won't catch {pokemon}")
                 POKEMON.last_attempt(pokemon, None, True)
-            self.check_balance(client)
+        self.check_balance(client)
 
     def rechecking_results(self, client, argstring):
         POKEMON.set_rechecking(False)
@@ -207,8 +219,8 @@ class ClientIRCPokemon(ClientIRCBase):
         else:
             self.catch_results(pokemon, "failed")
 
-    def check_balance(self, client):
-        if POKEMON.check_balance():
+    def check_balance(self, client, force=False):
+        if force or POKEMON.check_balance():
             self.send_random_channel(client, "!pokepass", YELLOWLOG + "Checking balance in {channel}", wait=10)
 
     def send_random_channel(self, client, message, logmessage=None, logtofile=False, wait=0):
@@ -249,14 +261,15 @@ class ThreadChat(ThreadChatO):
 
     def stop(self):
         ThreadChatO.stop(self)
-        if self.channel in POKEMON.channel_list:
-            POKEMON.remove_channel(self.channel)
-            logger.info(
-                f"Leaving Pokemon: {self.channel}", extra={"emoji": ":speech_balloon:"}
-            )
-            if len(POKEMON.channel_list) == 0:
-                poke_logger.info("Nobody is streaming Pokemon CG")
-                POKEMON.save_settings()
+        leave_channel(self.channel)
+
+
+def leave_channel(channel):
+    if channel in POKEMON.channel_list:
+        POKEMON.remove_channel(channel)
+        logger.info(f"Leaving Pokemon: {channel}", extra={"emoji": ":speech_balloon:"})
+        if len(POKEMON.channel_list) == 0:
+            poke_logger.info("Nobody is streaming Pokemon CG")
 
 
 ChatPresence = ChatPresenceO
