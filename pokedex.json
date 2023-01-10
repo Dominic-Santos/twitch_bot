@@ -1702,5 +1702,15 @@
     ],
     "Hattrem": [
         "Psychic"
+    ],
+    "Magmar": [
+        "Fire"
+    ],
+    "Mienshao": [
+        "Fighting"
+    ],
+    "Krokorok": [
+        "Ground",
+        "Dark"
     ]
 }
