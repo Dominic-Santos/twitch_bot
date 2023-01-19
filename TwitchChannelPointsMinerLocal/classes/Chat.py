@@ -8,6 +8,7 @@ from .ChatO import ThreadChat as ThreadChatO
 from .ChatO import logger
 
 from .entities.Pokemon import PokemonComunityGame
+from .WinAlerts import send_alert
 
 formatter = logging.Formatter('%(asctime)s %(message)s', datefmt="%Y-%m-%d %H:%M:%S")
 file_handler = logging.FileHandler("logs/pokemoncg.txt")
@@ -16,6 +17,8 @@ poke_logger = logging.getLogger(__name__ + "pokemon")
 poke_logger.setLevel(logging.DEBUG)
 poke_logger.addHandler(file_handler)
 
+ALWAYS_CATCH = ["Rotom", "Minior", "Lycan", "Glis", "Viv"]
+CATCH_EVERYTHING = False
 
 MARBLES_DELAY = 60 * 3  # seconds
 MARBLES_TRIGGER_COUNT = 3
@@ -153,11 +156,14 @@ class ClientIRCPokemon(ClientIRCBase):
     def catch_results(self, pokemon, result):
         if result == "caught":
             self.log_file(f"{GREENLOG}Caught {pokemon} with {POKEMON.inventory.last_used}")
+            send_alert("Pokemon CG", f"You caught {pokemon}! Congrats!")
             POKEMON.check_type_mission(inc=True)
         elif result == "dunno":
             self.log_file(f"{YELLOWLOG}I don't know if {pokemon} was caught with {POKEMON.inventory.last_used}, too many users ")
+            send_alert("Pokemon CG", f"You may have caught {pokemon}, Go check.")
         else:
             self.log_file(f"{REDLOG}Failed to catch {pokemon} with {POKEMON.inventory.last_used}")
+            send_alert("Pokemon CG", f"You missed {pokemon}, Sorry =(")
 
     def check_pokemon_caught(self, client, message, argstring):
         last_catch, last_channel, last_have = POKEMON.last_attempt()
@@ -189,6 +195,12 @@ class ClientIRCPokemon(ClientIRCBase):
         last_catch, last_channel, last_have = POKEMON.last_attempt()
         pokemon = self.get_pokemon(argstring)
 
+        special = False
+        for n in ALWAYS_CATCH:
+            if pokemon.startswith(n):
+                special = True
+                break
+
         if last_catch == pokemon:
             self.log(f"{YELLOWLOG}Already decided on {pokemon}")
         else:
@@ -199,8 +211,12 @@ class ClientIRCPokemon(ClientIRCBase):
                 mission = POKEMON.settings["type_mission"]
                 self.log_file(f"{GREENLOG}Already have {pokemon} but is {mission} type")
                 self.catch_pokemon(client, pokemon, True)
-            elif pokemon.startswith("Rotom") or pokemon.startswith("Minior") or pokemon.startswith("Lycan") or pokemon.startswith("Glis") or pokemon.startswith("Viv"):
-                self.catch_pokemon(client, pokemon)
+            elif special:
+                self.log_file(f"{GREENLOG}Already have {pokemon} but is special")
+                self.catch_pokemon(client, pokemon, True)
+            elif CATCH_EVERYTHING:
+                self.log_file(f"{GREENLOG}Already have {pokemon} but is any type")
+                self.catch_pokemon(client, pokemon, True)
             else:
                 self.log_file(f"{REDLOG}Won't catch {pokemon}")
                 POKEMON.last_attempt(pokemon, None, True)
