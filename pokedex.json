@@ -2175,5 +2175,57 @@
     ],
     "Clefable": [
         "Fairy"
+    ],
+    "Duraludon": [
+        "Steel",
+        "Dragon"
+    ],
+    "Eevee": [
+        "Normal"
+    ],
+    "Sawk": [
+        "Fighting"
+    ],
+    "Chandelure": [
+        "Ghost",
+        "Fire"
+    ],
+    "Vileplume": [
+        "Grass",
+        "Poison"
+    ],
+    "Phantump": [
+        "Ghost",
+        "Grass"
+    ],
+    "Golisopod": [
+        "Bug",
+        "Water"
+    ],
+    "Whimsicott": [
+        "Grass",
+        "Fairy"
+    ],
+    "Manectric": [
+        "Electric"
+    ],
+    "Zweilous": [
+        "Dark",
+        "Dragon"
+    ],
+    "Muk": [
+        "Poison"
+    ],
+    "Kadabra": [
+        "Psychic"
+    ],
+    "Grapploct": [
+        "Fighting"
+    ],
+    "Ursaring": [
+        "Normal"
+    ],
+    "Pinsir": [
+        "Bug"
     ]
 }

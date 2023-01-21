@@ -7,8 +7,8 @@ from bs4 import BeautifulSoup
 POKEMON_INFO_URL = "https://www.pokemon.com/us/pokedex/{pokemon}"
 HEADERS = {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.95 Safari/537.36'}
 
-CATCH_TRIGGER = 2
-CATCH_DELAY = 600  # seconds
+CATCH_TRIGGER = 10
+CATCH_DELAY = 60  # seconds
 CATCH_BALL_PRIORITY = ["ultraball", "greatball", "premierball", "pokeball"]
 CATCH_SPECIAL_BALLS = {
     "Water": "netball",
