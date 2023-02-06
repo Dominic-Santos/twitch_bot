@@ -9,5 +9,11 @@
         "type_mission": "Type",
         "type_target": 5,
         "type_caught": 1
+    },
+    "discord": {
+        "auth": "code",
+        "roles": {
+            "alter": "1068127190614552667"
+        }
     }
 }
