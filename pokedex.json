@@ -2227,5 +2227,217 @@
     ],
     "Pinsir": [
         "Bug"
+    ],
+    "Chansey": [
+        "Normal"
+    ],
+    "Barraskewda": [
+        "Water"
+    ],
+    "Seaking": [
+        "Water"
+    ],
+    "Wynaut": [
+        "Psychic"
+    ],
+    "Froslass": [
+        "Ice",
+        "Ghost"
+    ],
+    "Copperajah": [
+        "Steel"
+    ],
+    "Magmortar": [
+        "Fire"
+    ],
+    "Stonjourner": [
+        "Rock"
+    ],
+    "Illumise": [
+        "Bug"
+    ],
+    "Lurantis": [
+        "Grass"
+    ],
+    "Aegislash (Shield)": [
+        "Steel",
+        "Ghost"
+    ],
+    "Turtonator": [
+        "Fire",
+        "Dragon"
+    ],
+    "Cramorant": [
+        "Flying",
+        "Water"
+    ],
+    "Omastar": [
+        "Rock",
+        "Water"
+    ],
+    "Alcremie": [
+        "Fairy"
+    ],
+    "Coalossal": [
+        "Rock",
+        "Fire"
+    ],
+    "Foongus": [
+        "Grass",
+        "Poison"
+    ],
+    "Walrein": [
+        "Ice",
+        "Water"
+    ],
+    "Toxtricity": [
+        "Electric",
+        "Poison"
+    ],
+    "Leavanny": [
+        "Bug",
+        "Grass"
+    ],
+    "Glaceon": [
+        "Ice"
+    ],
+    "Blissey": [
+        "Normal"
+    ],
+    "Rapidash": [
+        "Fire"
+    ],
+    "Floatzel": [
+        "Water"
+    ],
+    "Nidorino": [
+        "Poison"
+    ],
+    "Volcarona": [
+        "Bug",
+        "Fire"
+    ],
+    "Seismitoad": [
+        "Water",
+        "Ground"
+    ],
+    "Pangoro": [
+        "Fighting",
+        "Dark"
+    ],
+    "Salamence": [
+        "Dragon",
+        "Flying"
+    ],
+    "Minior (Indigo)": [
+        "Rock",
+        "Flying"
+    ],
+    "Castform (Sunny)": [
+        "Normal"
+    ],
+    "Wobbuffet": [
+        "Psychic"
+    ],
+    "Rhyperior": [
+        "Ground",
+        "Rock"
+    ],
+    "Orbeetle": [
+        "Bug",
+        "Psychic"
+    ],
+    "Roserade": [
+        "Grass",
+        "Poison"
+    ],
+    "Porygon2": [
+        "Normal"
+    ],
+    "Lucario": [
+        "Fighting",
+        "Steel"
+    ],
+    "Oricorio (Pau)": [
+        "Fire",
+        "Flying"
+    ],
+    "Cinccino": [
+        "Normal"
+    ],
+    "Castform (Snowy)": [
+        "Normal"
+    ],
+    "Lopunny": [
+        "Normal"
+    ],
+    "Forretress": [
+        "Bug",
+        "Steel"
+    ],
+    "Runerigus": [
+        "Ground",
+        "Ghost"
+    ],
+    "Raichu": [
+        "Electric"
+    ],
+    "Excadrill": [
+        "Ground",
+        "Steel"
+    ],
+    "Hitmonchan": [
+        "Fighting"
+    ],
+    "Oricorio (Pom-Pom)": [
+        "Fire",
+        "Flying"
+    ],
+    "Riolu": [
+        "Fighting"
+    ],
+    "Exploud": [
+        "Normal"
+    ],
+    "Wormadam (Trash)": [
+        "Bug",
+        "Grass"
+    ],
+    "Luxray": [
+        "Electric"
+    ],
+    "Gorebyss": [
+        "Water"
+    ],
+    "Wormadam (Sandy)": [
+        "Bug",
+        "Grass"
+    ],
+    "Dodrio": [
+        "Normal",
+        "Flying"
+    ],
+    "Mandibuzz": [
+        "Dark",
+        "Flying"
+    ],
+    "Voltorb": [
+        "Electric"
+    ],
+    "Seviper": [
+        "Poison"
+    ],
+    "Grimmsnarl": [
+        "Dark",
+        "Fairy"
+    ],
+    "Bagon": [
+        "Dragon"
+    ],
+    "Boldore": [
+        "Rock"
+    ],
+    "Klinklang": [
+        "Steel"
     ]
 }

@@ -17,8 +17,10 @@ poke_logger = logging.getLogger(__name__ + "pokemon")
 poke_logger.setLevel(logging.DEBUG)
 poke_logger.addHandler(file_handler)
 
-ALWAYS_CATCH = ["Rotom", "Minior", "Lycan", "Glis", "Viv"]
 CATCH_EVERYTHING = False
+CATCH_POSSIBLE_ALTS = True
+ALWAYS_CATCH = [] # pokemon names
+ALWAYS_CATCH_TIERS = ["A"]
 
 MARBLES_DELAY = 60 * 3  # seconds
 MARBLES_TRIGGER_COUNT = 3
@@ -194,6 +196,7 @@ class ClientIRCPokemon(ClientIRCBase):
     def check_should_catch(self, client, argstring):
         last_catch, last_channel, last_have = POKEMON.last_attempt()
         pokemon = self.get_pokemon(argstring)
+        pokemon_tier = POKEMON.pokedex.tier(pokemon)
 
         special = False
         for n in ALWAYS_CATCH:
@@ -214,8 +217,14 @@ class ClientIRCPokemon(ClientIRCBase):
             elif special:
                 self.log_file(f"{GREENLOG}Already have {pokemon} but is special")
                 self.catch_pokemon(client, pokemon, True)
+            elif pokemon_tier in ALWAYS_CATCH_TIERS:
+                self.log_file(f"{GREENLOG}Already have {pokemon} but is {pokemon_tier} tier")
+                self.catch_pokemon(client, pokemon, True)
+            elif CATCH_POSSIBLE_ALTS and POKEMON.pokedex.alternate(pokemon):
+                self.log_file(f"{GREENLOG}Already have {pokemon} but it might be alternate version")
+                self.catch_pokemon(client, pokemon, True)
             elif CATCH_EVERYTHING:
-                self.log_file(f"{GREENLOG}Already have {pokemon} but is any type")
+                self.log_file(f"{GREENLOG}Already have {pokemon} but catching everything")
                 self.catch_pokemon(client, pokemon, True)
             else:
                 self.log_file(f"{REDLOG}Won't catch {pokemon}")
