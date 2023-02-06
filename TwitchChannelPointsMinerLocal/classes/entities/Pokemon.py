@@ -99,15 +99,12 @@ class Pokedex(object):
         return end
 
     def alternate(self, pokemon):
-        print("checking alternate")
         has_alts = pokemon in POKEMON_WITH_ALTERNATE_VERSIONS
 
         if self.discord is None:
-            print("bad disc")
             return has_alts
 
         if has_alts is False:
-            print("doesnt have alt")
             return False
 
         url = f"https://discord.com/api/v9/channels/{POKEPING_CHANNEL}/messages?limit=1"
@@ -115,8 +112,6 @@ class Pokedex(object):
 
         r = requests.get(url, headers=headers)
         data = r.json()[0]
-        print(data)
-        print("role found" if self.discord["roles"]["alter"] in data["mention_roles"] else "role not found")
         return self.discord["roles"]["alter"] in data["mention_roles"]
 
     @staticmethod
@@ -227,7 +222,7 @@ class PokemonComunityGame(object):
                 j = json.load(f)
                 self.inventory.set(j.get("inventory", {}))
                 self.settings = j.get("settings", {})
-                self.discord = j.get("discord", {})
+                self.discord = j.get("discord", None)
         except:
             self.settings = {}
 
