@@ -18,8 +18,8 @@ poke_logger.setLevel(logging.DEBUG)
 poke_logger.addHandler(file_handler)
 
 CATCH_EVERYTHING = False
-CATCH_POSSIBLE_ALTS = True  # no way to detect if alt or not
-ALWAYS_CATCH = []  # pokemon names
+CATCH_ALTS = True  # catch alternate version of pokemon
+ALWAYS_CATCH = ["Gliscor"]  # pokemon names
 ALWAYS_CATCH_TIERS = ["A"]  # S, A, B or C
 
 MARBLES_DELAY = 60 * 3  # seconds
@@ -220,8 +220,8 @@ class ClientIRCPokemon(ClientIRCBase):
             elif pokemon_tier in ALWAYS_CATCH_TIERS:
                 self.log_file(f"{GREENLOG}Already have {pokemon} but is {pokemon_tier} tier")
                 self.catch_pokemon(client, pokemon, True)
-            elif CATCH_POSSIBLE_ALTS and POKEMON.pokedex.alternate(pokemon):
-                self.log_file(f"{GREENLOG}Already have {pokemon} but it might be alternate version")
+            elif CATCH_ALTS and POKEMON.pokedex.alternate(pokemon):
+                self.log_file(f"{GREENLOG}Already have {pokemon} but is alternate version")
                 self.catch_pokemon(client, pokemon, True)
             elif CATCH_EVERYTHING:
                 self.log_file(f"{GREENLOG}Already have {pokemon} but catching everything")
