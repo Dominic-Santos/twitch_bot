@@ -18,9 +18,9 @@ poke_logger.setLevel(logging.DEBUG)
 poke_logger.addHandler(file_handler)
 
 CATCH_EVERYTHING = False
-CATCH_POSSIBLE_ALTS = True
-ALWAYS_CATCH = [] # pokemon names
-ALWAYS_CATCH_TIERS = ["A"]
+CATCH_POSSIBLE_ALTS = True  # no way to detect if alt or not
+ALWAYS_CATCH = []  # pokemon names
+ALWAYS_CATCH_TIERS = ["A"]  # S, A, B or C
 
 MARBLES_DELAY = 60 * 3  # seconds
 MARBLES_TRIGGER_COUNT = 3
