@@ -8,7 +8,11 @@
     "settings": {
         "type_mission": "Type",
         "type_target": 5,
-        "type_caught": 1
+        "type_caught": 1,
+        "catch_everything": false,
+        "catch_alternates": true,
+        "catch_tiers": [],
+        "catch": []
     },
     "discord": {
         "auth": "code",

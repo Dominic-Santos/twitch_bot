@@ -244,6 +244,18 @@ class PokemonComunityGame(object):
         except:
             self.settings = {}
 
+    def catch_everything(self):
+        return self.settings.get("catch_everything", False)
+
+    def catch_alternates(self):
+        return self.settings.get("catch_alternates", False)
+
+    def always_catch(self):
+        return self.settings.get("catch", [])
+
+    def always_catch_tiers(self):
+        return self.settings.get("catch_tiers", [])
+
     def set_cash(self, cash):
 
         if cash < self.inventory.cash and len(self.pending_purchases) > 0:

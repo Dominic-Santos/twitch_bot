@@ -17,11 +17,6 @@ poke_logger = logging.getLogger(__name__ + "pokemon")
 poke_logger.setLevel(logging.DEBUG)
 poke_logger.addHandler(file_handler)
 
-CATCH_EVERYTHING = False
-CATCH_ALTS = True  # catch alternate version of pokemon
-ALWAYS_CATCH = ["Gliscor", "Minior"]  # pokemon names
-ALWAYS_CATCH_TIERS = ["A"]  # S, A, B or C
-
 MARBLES_DELAY = 60 * 3  # seconds
 MARBLES_TRIGGER_COUNT = 3
 
@@ -203,7 +198,7 @@ class ClientIRCPokemon(ClientIRCBase):
             catch_alternate = POKEMON.pokedex.need_alternate(pokemon_alt_id)
 
         special = False
-        for n in ALWAYS_CATCH:
+        for n in POKEMON.always_catch():
             if pokemon.startswith(n):
                 special = True
                 break
@@ -221,13 +216,13 @@ class ClientIRCPokemon(ClientIRCBase):
             elif special:
                 self.log_file(f"{GREENLOG}Already have {pokemon} but is special")
                 self.catch_pokemon(client, pokemon, True)
-            elif pokemon_tier in ALWAYS_CATCH_TIERS:
+            elif pokemon_tier in POKEMON.always_catch_tiers():
                 self.log_file(f"{GREENLOG}Already have {pokemon} but is {pokemon_tier} tier")
                 self.catch_pokemon(client, pokemon, True)
-            elif CATCH_ALTS and catch_alternate:
+            elif POKEMON.catch_alternates() and catch_alternate:
                 self.log_file(f"{GREENLOG}Already have {pokemon} but is alternate version")
                 self.catch_pokemon(client, pokemon, True, pokemon_alt_id)
-            elif CATCH_EVERYTHING:
+            elif POKEMON.catch_everything():
                 self.log_file(f"{GREENLOG}Already have {pokemon} but catching everything")
                 self.catch_pokemon(client, pokemon, True)
             else:
