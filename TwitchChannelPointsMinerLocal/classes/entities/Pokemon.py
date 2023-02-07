@@ -44,9 +44,10 @@ POKEMON_TIERS = {
 
 
 class Pokedex(object):
-    def __init__(self, discord=None):
+    def __init__(self):
         self.types = {}
-        self.discord = discord
+        self.alts = []
+        self.discord = None
         self.load()
 
     def get(self, pokemon):
@@ -100,19 +101,31 @@ class Pokedex(object):
 
     def alternate(self, pokemon):
         has_alts = pokemon in POKEMON_WITH_ALTERNATE_VERSIONS
+        alt_id = "0"
 
         if self.discord is None:
-            return has_alts
+            return has_alts, alt_id
 
         if has_alts is False:
-            return False
+            return False, alt_id
 
         url = f"https://discord.com/api/v9/channels/{POKEPING_CHANNEL}/messages?limit=1"
         headers = {"Authorization": self.discord["auth"]}
 
         r = requests.get(url, headers=headers)
         data = r.json()[0]
-        return self.discord["roles"]["alter"] in data["mention_roles"]
+        is_alt = self.discord["roles"]["alter"] in data["mention_roles"]
+        if is_alt:
+            alt_id = data["content"].split("ID: ")[1].split(" ")[0]
+
+        return is_alt, alt_id
+
+    def alternate_caught(self, alt_id):
+        if alt_id not in self.alts and alt_id != "0":
+            self.alts.append(alt_id)
+
+    def need_alternate(self, alt_id):
+        return alt_id not in self.alts
 
     @staticmethod
     def tier(pokemon):
@@ -197,6 +210,7 @@ class PokemonComunityGame(object):
         self.last_channel = None
         self.last_type = None
         self.last_have = None
+        self.last_alternate_id = "0"
 
         self.rechecking = False
 
@@ -204,19 +218,19 @@ class PokemonComunityGame(object):
         self.pending_purchases = []
 
         self.inventory = Inventory()
+        self.pokedex = Pokedex()
 
         self.load_settings()
-
-        self.pokedex = Pokedex(self.discord)
 
     def save_settings(self):
         with open(SETTINGS_FILE, "w") as f:
             to_write = {
                 "inventory": self.inventory.get(),
-                "settings": self.settings
+                "settings": self.settings,
+                "alternates": self.pokedex.alts
             }
-            if self.discord is not None:
-                to_write["discord"] = self.discord
+            if self.pokedex.discord is not None:
+                to_write["discord"] = self.pokedex.discord
             f.write(json.dumps(to_write, indent=4))
 
     def load_settings(self):
@@ -225,7 +239,8 @@ class PokemonComunityGame(object):
                 j = json.load(f)
                 self.inventory.set(j.get("inventory", {}))
                 self.settings = j.get("settings", {})
-                self.discord = j.get("discord", None)
+                self.pokedex.discord = j.get("discord", None)
+                self.pokedex.alts = j.get("alternates", [])
         except:
             self.settings = {}
 
@@ -273,13 +288,14 @@ class PokemonComunityGame(object):
 
         return False
 
-    def last_attempt(self, set_to=None, channel=None, have=None):
+    def last_attempt(self, set_to=None, channel=None, have=None, alternate_id="0"):
         if set_to is None:
-            return self.last_catch, self.last_channel, self.last_have
+            return self.last_catch, self.last_channel, self.last_have, self.last_alternate_id
 
         self.last_catch = set_to
         self.last_channel = channel
         self.last_have = have
+        self.last_alternate_id = alternate_id
         self.rechecking = False
 
     def set_rechecking(self, rechecking):

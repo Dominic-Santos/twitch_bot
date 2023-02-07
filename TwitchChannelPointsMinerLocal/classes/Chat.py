@@ -19,7 +19,7 @@ poke_logger.addHandler(file_handler)
 
 CATCH_EVERYTHING = False
 CATCH_ALTS = True  # catch alternate version of pokemon
-ALWAYS_CATCH = ["Gliscor"]  # pokemon names
+ALWAYS_CATCH = ["Gliscor", "Minior"]  # pokemon names
 ALWAYS_CATCH_TIERS = ["A"]  # S, A, B or C
 
 MARBLES_DELAY = 60 * 3  # seconds
@@ -151,9 +151,9 @@ class ClientIRCPokemon(ClientIRCBase):
         if force or POKEMON.check_catch():
             self.send_random_channel(client, "!pokecheck", "Checking if need current Pokemon in {channel} stream")
 
-    def catch_pokemon(self, client, pokemon, have=False):
+    def catch_pokemon(self, client, pokemon, have=False, alternate_id="0"):
         random_channel = self.send_random_channel(client, POKEMON.get_catch_message(repeat=have), GREENLOG + "Trying to catch " + pokemon + " in {channel} stream")
-        POKEMON.last_attempt(pokemon, random_channel, have)
+        POKEMON.last_attempt(pokemon, random_channel, have, alternate_id)
 
     def catch_results(self, pokemon, result):
         if result == "caught":
@@ -168,7 +168,7 @@ class ClientIRCPokemon(ClientIRCBase):
             send_alert("Pokemon CG", f"You missed {pokemon}, Sorry =(")
 
     def check_pokemon_caught(self, client, message, argstring):
-        last_catch, last_channel, last_have = POKEMON.last_attempt()
+        last_catch, last_channel, last_have, last_id = POKEMON.last_attempt()
         if message.target[1:] == last_channel:
             if argstring.startswith(last_catch + " has been caught by:"):
                 if self.username in argstring:
@@ -194,9 +194,13 @@ class ClientIRCPokemon(ClientIRCBase):
         return argstring.endswith("❌") is False
 
     def check_should_catch(self, client, argstring):
-        last_catch, last_channel, last_have = POKEMON.last_attempt()
+        last_catch, last_channel, last_have, last_id = POKEMON.last_attempt()
         pokemon = self.get_pokemon(argstring)
         pokemon_tier = POKEMON.pokedex.tier(pokemon)
+        pokemon_alt, pokemon_alt_id = POKEMON.pokedex.alternate(pokemon)
+        catch_alternate = False
+        if pokemon_alt:
+            catch_alternate = POKEMON.pokedex.need_alternate(pokemon_alt_id)
 
         special = False
         for n in ALWAYS_CATCH:
@@ -220,15 +224,15 @@ class ClientIRCPokemon(ClientIRCBase):
             elif pokemon_tier in ALWAYS_CATCH_TIERS:
                 self.log_file(f"{GREENLOG}Already have {pokemon} but is {pokemon_tier} tier")
                 self.catch_pokemon(client, pokemon, True)
-            elif CATCH_ALTS and POKEMON.pokedex.alternate(pokemon):
+            elif CATCH_ALTS and catch_alternate:
                 self.log_file(f"{GREENLOG}Already have {pokemon} but is alternate version")
-                self.catch_pokemon(client, pokemon, True)
+                self.catch_pokemon(client, pokemon, True, pokemon_alt_id)
             elif CATCH_EVERYTHING:
                 self.log_file(f"{GREENLOG}Already have {pokemon} but catching everything")
                 self.catch_pokemon(client, pokemon, True)
             else:
                 self.log_file(f"{REDLOG}Won't catch {pokemon}")
-                POKEMON.last_attempt(pokemon, None, True)
+                POKEMON.last_attempt(pokemon, None, True, "0")
         self.check_balance(client)
 
     def rechecking_results(self, client, argstring):
