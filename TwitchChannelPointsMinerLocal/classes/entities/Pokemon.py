@@ -107,20 +107,22 @@ class Pokedex(object):
     def alternate(self, pokemon):
         has_alts = pokemon in POKEMON_WITH_ALTERNATE_VERSIONS
         alt_id = "0"
+        alt_name = "NA"
 
         if self.discord is None:
-            return has_alts, alt_id
+            return has_alts, alt_id, alt_name
 
         if has_alts is False:
-            return False, alt_id
+            return False, alt_id, alt_name
 
         url = f"https://discord.com/api/v9/channels/{POKEPING_CHANNEL}/messages?limit=1"
         data = self.Discord.get(url)[0]
         is_alt = self.discord["roles"]["alter"] in data["mention_roles"]
         if is_alt:
             alt_id = data["content"].split("ID: ")[1].split(" ")[0]
+            alt_name = data["content"].split("| ")[2].split(" ")[0]
 
-        return is_alt, alt_id
+        return is_alt, alt_id, alt_name
 
     def alternate_caught(self, alt_id):
         if alt_id not in self.alts and alt_id != "0":
@@ -212,7 +214,7 @@ class PokemonComunityGame(object):
         self.last_channel = None
         self.last_type = None
         self.last_have = None
-        self.last_alternate_id = "0"
+        self.last_alternate = ("0", "NA")
 
         self.rechecking = False
 
@@ -302,14 +304,14 @@ class PokemonComunityGame(object):
 
         return False
 
-    def last_attempt(self, set_to=None, channel=None, have=None, alternate_id="0"):
+    def last_attempt(self, set_to=None, channel=None, have=None, alternate=("0", "NA")):
         if set_to is None:
-            return self.last_catch, self.last_channel, self.last_have, self.last_alternate_id
+            return self.last_catch, self.last_channel, self.last_have, self.last_alternate
 
         self.last_catch = set_to
         self.last_channel = channel
         self.last_have = have
-        self.last_alternate_id = alternate_id
+        self.last_alternate = alternate
         self.rechecking = False
 
     def set_rechecking(self, rechecking):

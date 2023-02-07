@@ -150,11 +150,12 @@ class ClientIRCPokemon(ClientIRCBase):
         if force or POKEMON.check_catch():
             self.send_random_channel(client, "!pokecheck", "Checking if need current Pokemon in {channel} stream")
 
-    def catch_pokemon(self, client, pokemon, have=False, alternate_id="0"):
+    def catch_pokemon(self, client, pokemon, have=False, alternate_info=("0", "NA")):
         random_channel = self.send_random_channel(client, POKEMON.get_catch_message(repeat=have), GREENLOG + "Trying to catch " + pokemon + " in {channel} stream")
-        POKEMON.last_attempt(pokemon, random_channel, have, alternate_id)
+        POKEMON.last_attempt(pokemon, random_channel, have, alternate_info)
 
-    def catch_results(self, pokemon, result):
+    def catch_results(self, pokemon_name, result, alternate=("0", "NA")):
+        pokemon = pokemon_name if alternate[0] == "0" else alternate[1]
         if result == "caught":
             self.log_file(f"{GREENLOG}Caught {pokemon} with {POKEMON.inventory.last_used}")
             send_alert("Pokemon CG", f"You caught {pokemon}! Congrats!")
@@ -172,22 +173,22 @@ class ClientIRCPokemon(ClientIRCBase):
         DISCORD.post(DISCORD_CATCH_ALERTS, msg)
 
     def check_pokemon_caught(self, client, message, argstring):
-        last_catch, last_channel, last_have, last_id = POKEMON.last_attempt()
+        last_catch, last_channel, last_have, last_alternate = POKEMON.last_attempt()
         if message.target[1:] == last_channel:
             if argstring.startswith(last_catch + " has been caught by:"):
                 if self.username in argstring:
-                    self.catch_results(last_catch, "caught")
+                    self.catch_results(last_catch, "caught", last_alternate)
                 elif argstring.endswith("..."):
                     if last_have:
-                        self.catch_results(last_catch, "dunno")
+                        self.catch_results(last_catch, "dunno", last_alternate)
                     else:
                         self.log(f"{REDLOG}Too many users, must recheck {last_catch}")
                         POKEMON.set_rechecking(True)
                         self.check_pokemon(client, force=True)
                 else:
-                    self.catch_results(last_catch, "failed")
+                    self.catch_results(last_catch, "failed", last_alternate)
             elif argstring.startswith(last_catch + " escaped."):
-                self.catch_results(last_catch, "failed")
+                self.catch_results(last_catch, "failed", last_alternate)
 
     def get_pokemon(self, argstring):
         args = argstring.split(" ")
@@ -198,10 +199,10 @@ class ClientIRCPokemon(ClientIRCBase):
         return argstring.endswith("❌") is False
 
     def check_should_catch(self, client, argstring):
-        last_catch, last_channel, last_have, last_id = POKEMON.last_attempt()
+        last_catch, last_channel, last_have, last_alternate = POKEMON.last_attempt()
         pokemon = self.get_pokemon(argstring)
         pokemon_tier = POKEMON.pokedex.tier(pokemon)
-        pokemon_alt, pokemon_alt_id = POKEMON.pokedex.alternate(pokemon)
+        pokemon_alt, pokemon_alt_id, pokemon_alt_name = POKEMON.pokedex.alternate(pokemon)
         catch_alternate = False
         if pokemon_alt:
             catch_alternate = POKEMON.pokedex.need_alternate(pokemon_alt_id)
@@ -230,13 +231,13 @@ class ClientIRCPokemon(ClientIRCBase):
                 self.catch_pokemon(client, pokemon, True)
             elif POKEMON.catch_alternates() and catch_alternate:
                 self.log_file(f"{GREENLOG}Already have {pokemon} but is alternate version")
-                self.catch_pokemon(client, pokemon, True, pokemon_alt_id)
+                self.catch_pokemon(client, pokemon, True, (pokemon_alt_id, pokemon_alt_name))
             elif POKEMON.catch_everything():
                 self.log_file(f"{GREENLOG}Already have {pokemon} but catching everything")
                 self.catch_pokemon(client, pokemon, True)
             else:
                 self.log_file(f"{REDLOG}Won't catch {pokemon}")
-                POKEMON.last_attempt(pokemon, None, True, "0")
+                POKEMON.last_attempt(pokemon, None, True, ("0", "NA"))
         self.check_balance(client)
 
     def rechecking_results(self, client, argstring):
