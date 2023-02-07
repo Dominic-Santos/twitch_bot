@@ -9,6 +9,7 @@ from .ChatO import logger
 
 from .entities.Pokemon import PokemonComunityGame
 from .WinAlerts import send_alert
+from .DiscordAPI import DiscordAPI
 
 formatter = logging.Formatter('%(asctime)s %(message)s', datefmt="%Y-%m-%d %H:%M:%S")
 file_handler = logging.FileHandler("logs/pokemoncg.txt")
@@ -25,6 +26,9 @@ GREENLOG = "\x1b[32;20m"
 YELLOWLOG = "\x1b[36;20m"
 
 POKEMON = PokemonComunityGame()
+DISCORD = DiscordAPI(POKEMON.pokedex.discord["auth"])
+DISCORD_CATCH_ALERTS = "https://discord.com/api/v9/channels/1072557550526013440/messages"
+DISCORD.post(DISCORD_CATCH_ALERTS, "starting script")
 
 
 class ClientIRCBase(ClientIRCO):
@@ -155,12 +159,17 @@ class ClientIRCPokemon(ClientIRCBase):
             self.log_file(f"{GREENLOG}Caught {pokemon} with {POKEMON.inventory.last_used}")
             send_alert("Pokemon CG", f"You caught {pokemon}! Congrats!")
             POKEMON.check_type_mission(inc=True)
+            msg = f"I caught a {pokemon}! =P"
         elif result == "dunno":
             self.log_file(f"{YELLOWLOG}I don't know if {pokemon} was caught with {POKEMON.inventory.last_used}, too many users ")
             send_alert("Pokemon CG", f"You may have caught {pokemon}, Go check.")
+            msg = f"I maybe caught a {pokemon}! =S"
         else:
             self.log_file(f"{REDLOG}Failed to catch {pokemon} with {POKEMON.inventory.last_used}")
             send_alert("Pokemon CG", f"You missed {pokemon}, Sorry =(")
+            msg = f"I missed {pokemon}! ='("
+
+        DISCORD.post(DISCORD_CATCH_ALERTS, msg)
 
     def check_pokemon_caught(self, client, message, argstring):
         last_catch, last_channel, last_have, last_id = POKEMON.last_attempt()

@@ -3,6 +3,7 @@ import json
 from datetime import datetime
 import requests
 from bs4 import BeautifulSoup
+from ..DiscordAPI import DiscordAPI
 
 POKEMON_INFO_URL = "https://www.pokemon.com/us/pokedex/{pokemon}"
 POKEPING_CHANNEL = "935704401954349196"
@@ -48,7 +49,11 @@ class Pokedex(object):
         self.types = {}
         self.alts = []
         self.discord = None
+        self.Discord = None
         self.load()
+
+        if self.discord is not None:
+            self.Discord = DiscordAPI(self.discord["auth"])
 
     def get(self, pokemon):
         return self.types.get(pokemon, [])
@@ -110,10 +115,7 @@ class Pokedex(object):
             return False, alt_id
 
         url = f"https://discord.com/api/v9/channels/{POKEPING_CHANNEL}/messages?limit=1"
-        headers = {"Authorization": self.discord["auth"]}
-
-        r = requests.get(url, headers=headers)
-        data = r.json()[0]
+        data = self.Discord.get(url)[0]
         is_alt = self.discord["roles"]["alter"] in data["mention_roles"]
         if is_alt:
             alt_id = data["content"].split("ID: ")[1].split(" ")[0]
