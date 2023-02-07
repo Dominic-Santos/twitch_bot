@@ -211,10 +211,13 @@ class PokemonComunityGame(object):
 
     def save_settings(self):
         with open(SETTINGS_FILE, "w") as f:
-            f.write(json.dumps({
+            to_write = {
                 "inventory": self.inventory.get(),
                 "settings": self.settings
-            }, indent=4))
+            }
+            if self.discord is not None:
+                to_write["discord"] = self.discord
+            f.write(json.dumps(to_write, indent=4))
 
     def load_settings(self):
         try:
