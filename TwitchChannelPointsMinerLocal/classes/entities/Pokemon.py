@@ -52,11 +52,16 @@ class Pokedex(object):
         self.Discord = None
         self.load()
 
-        if self.discord is not None:
-            self.Discord = DiscordAPI(self.discord["auth"])
-
     def get(self, pokemon):
         return self.types.get(pokemon, [])
+
+    def set_discord(self, discord):
+        self.discord = discord
+        self.load_discord()
+
+    def load_discord(self):
+        if self.discord is not None:
+            self.Discord = DiscordAPI(self.discord["auth"])
 
     def get_data(self, pokemon):
         res = requests.get(POKEMON_INFO_URL.format(pokemon=pokemon), headers=HEADERS)
@@ -115,12 +120,15 @@ class Pokedex(object):
         if has_alts is False:
             return False, alt_id, alt_name
 
-        url = f"https://discord.com/api/v9/channels/{POKEPING_CHANNEL}/messages?limit=1"
-        data = self.Discord.get(url)[0]
-        is_alt = self.discord["roles"]["alter"] in data["mention_roles"]
-        if is_alt:
-            alt_id = data["content"].split("ID: ")[1].split(" ")[0]
-            alt_name = data["content"].split("| ")[2].split(" ")[0]
+        try:
+            url = f"https://discord.com/api/v9/channels/{POKEPING_CHANNEL}/messages?limit=1"
+            data = self.Discord.get(url)[0]
+            is_alt = self.discord["roles"]["alter"] in data["mention_roles"]
+            if is_alt:
+                alt_id = data["content"].split("ID: ")[1].split(" ")[0]
+                alt_name = data["content"].split("| ")[2].split(" ")[0]
+        except Exception as ex:
+            print(ex)
 
         return is_alt, alt_id, alt_name
 
@@ -243,7 +251,7 @@ class PokemonComunityGame(object):
                 j = json.load(f)
                 self.inventory.set(j.get("inventory", {}))
                 self.settings = j.get("settings", {})
-                self.pokedex.discord = j.get("discord", None)
+                self.pokedex.set_discord(j.get("discord", None))
                 self.pokedex.alts = j.get("alternates", [])
         except:
             self.settings = {}

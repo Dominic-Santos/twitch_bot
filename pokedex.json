@@ -2447,5 +2447,13 @@
     "Appletun": [
         "Grass",
         "Dragon"
+    ],
+    "Hawlucha": [
+        "Fighting",
+        "Flying"
+    ],
+    "Dragonite": [
+        "Dragon",
+        "Flying"
     ]
 }
