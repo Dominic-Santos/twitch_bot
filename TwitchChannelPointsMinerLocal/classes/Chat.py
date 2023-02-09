@@ -161,6 +161,7 @@ class ClientIRCPokemon(ClientIRCBase):
             send_alert("Pokemon CG", f"You caught {pokemon}! Congrats!")
             POKEMON.check_type_mission(inc=True)
             msg = f"I caught a {pokemon}! =P"
+            POKEMON.pokedex.alternate_caught(alternate[0])
         elif result == "dunno":
             self.log_file(f"{YELLOWLOG}I don't know if {pokemon} was caught with {POKEMON.inventory.last_used}, too many users ")
             send_alert("Pokemon CG", f"You may have caught {pokemon}, Go check.")
