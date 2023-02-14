@@ -220,6 +220,9 @@ class ClientIRCPokemon(ClientIRCBase):
             POKEMON.get_pokemon_type(pokemon)
             if self.get_pokedex_status(argstring) is False:
                 self.catch_pokemon(client, pokemon)
+            elif POKEMON.catch_alternates() and catch_alternate:
+                self.log_file(f"{GREENLOG}Already have {pokemon} but is alternate version")
+                self.catch_pokemon(client, pokemon, True, (pokemon_alt_id, pokemon_alt_name))
             elif POKEMON.check_type_mission():
                 mission = POKEMON.settings["type_mission"]
                 self.log_file(f"{GREENLOG}Already have {pokemon} but is {mission} type")
@@ -230,9 +233,6 @@ class ClientIRCPokemon(ClientIRCBase):
             elif pokemon_tier in POKEMON.always_catch_tiers():
                 self.log_file(f"{GREENLOG}Already have {pokemon} but is {pokemon_tier} tier")
                 self.catch_pokemon(client, pokemon, True)
-            elif POKEMON.catch_alternates() and catch_alternate:
-                self.log_file(f"{GREENLOG}Already have {pokemon} but is alternate version")
-                self.catch_pokemon(client, pokemon, True, (pokemon_alt_id, pokemon_alt_name))
             elif POKEMON.catch_everything():
                 self.log_file(f"{GREENLOG}Already have {pokemon} but catching everything")
                 self.catch_pokemon(client, pokemon, True)

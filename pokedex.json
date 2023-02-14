@@ -2455,5 +2455,21 @@
     "Dragonite": [
         "Dragon",
         "Flying"
+    ],
+    "Malamar": [
+        "Dark",
+        "Psychic"
+    ],
+    "Nidoqueen": [
+        "Poison",
+        "Ground"
+    ],
+    "Stunfisk": [
+        "Ground",
+        "Electric"
+    ],
+    "Toucannon": [
+        "Normal",
+        "Flying"
     ]
 }
