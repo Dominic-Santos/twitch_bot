@@ -8,6 +8,9 @@ test_cases = [
     ("Mr. Mime", ["Psychic", "Fairy"]),
     ("Flabébé", ["Fairy"]),
     ("Fake Pokemon", []),
+    ("Mime Jr.", ["Psychic", "Fairy"]),
+    ("Rotom (Mow)", ["Electric", "Ghost"]),
+    ("Aegislash (Shield)", ["Steel", "Ghost"])
 ]
 
 

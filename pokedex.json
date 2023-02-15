@@ -752,9 +752,6 @@
         "Normal",
         "Flying"
     ],
-    "Castform": [
-        "Normal"
-    ],
     "Mothim": [
         "Bug",
         "Flying"
@@ -1230,10 +1227,6 @@
     ],
     "Electivire": [
         "Electric"
-    ],
-    "Minior (Green)": [
-        "Rock",
-        "Flying"
     ],
     "Skiploom": [
         "Grass",
@@ -2163,10 +2156,6 @@
     "Patrat": [
         "Normal"
     ],
-    "Minior (Orange)": [
-        "Rock",
-        "Flying"
-    ],
     "Yamask": [
         "Ghost"
     ],
@@ -2329,13 +2318,6 @@
         "Dragon",
         "Flying"
     ],
-    "Minior (Indigo)": [
-        "Rock",
-        "Flying"
-    ],
-    "Castform (Sunny)": [
-        "Normal"
-    ],
     "Wobbuffet": [
         "Psychic"
     ],
@@ -2363,9 +2345,6 @@
         "Flying"
     ],
     "Cinccino": [
-        "Normal"
-    ],
-    "Castform (Snowy)": [
         "Normal"
     ],
     "Lopunny": [
@@ -2471,5 +2450,31 @@
     "Toucannon": [
         "Normal",
         "Flying"
+    ],
+    "Ferrothorn": [
+        "Grass",
+        "Steel"
+    ],
+    "Boltund": [
+        "Electric"
+    ],
+    "Tyranitar": [
+        "Rock",
+        "Dark"
+    ],
+    "Charmander": [
+        "Fire"
+    ],
+    "Mime-jr": [
+        "Psychic",
+        "Fairy"
+    ],
+    "Rotom": [
+        "Electric",
+        "Ghost"
+    ],
+    "Aegislash": [
+        "Steel",
+        "Ghost"
     ]
 }
