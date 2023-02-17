@@ -2476,5 +2476,15 @@
     "Aegislash": [
         "Steel",
         "Ghost"
+    ],
+    "Minior": [
+        "Rock",
+        "Flying"
+    ],
+    "Reuniclus": [
+        "Psychic"
+    ],
+    "Lycanroc": [
+        "Rock"
     ]
 }

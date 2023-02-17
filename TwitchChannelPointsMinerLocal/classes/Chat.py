@@ -28,7 +28,6 @@ YELLOWLOG = "\x1b[36;20m"
 POKEMON = PokemonComunityGame()
 DISCORD = DiscordAPI(POKEMON.pokedex.discord["auth"])
 DISCORD_CATCH_ALERTS = "https://discord.com/api/v9/channels/1072557550526013440/messages"
-DISCORD.post(DISCORD_CATCH_ALERTS, "starting script")
 
 
 class ClientIRCBase(ClientIRCO):
@@ -194,16 +193,23 @@ class ClientIRCPokemon(ClientIRCBase):
     def get_pokemon(self, argstring):
         args = argstring.split(" ")
         pokemon = " ".join(args[1:2 + (len(args) - 6)])
+        return pokemon
+
+    def clean_pokemon(self, pokemon):
         return POKEMON.pokedex.clean_name(pokemon)
+
+    def get_pokemon_clean(self, argstring):
+        return self.clean_pokemon(self.get_pokemon(argstring))
 
     def get_pokedex_status(self, argstring):
         return argstring.endswith("❌") is False
 
     def check_should_catch(self, client, argstring):
         last_catch, last_channel, last_have, last_alternate = POKEMON.last_attempt()
-        pokemon = self.get_pokemon(argstring)
+        pokemon_dirty = self.get_pokemon(argstring)
+        pokemon = self.clean_pokemon(pokemon_dirty)
         pokemon_tier = POKEMON.pokedex.tier(pokemon)
-        pokemon_alt, pokemon_alt_id, pokemon_alt_name = POKEMON.pokedex.alternate(pokemon)
+        pokemon_alt, pokemon_alt_id, pokemon_alt_name = POKEMON.pokedex.alternate(pokemon_dirty)
         catch_alternate = False
         if pokemon_alt:
             catch_alternate = POKEMON.pokedex.need_alternate(pokemon_alt_id)
@@ -243,11 +249,12 @@ class ClientIRCPokemon(ClientIRCBase):
 
     def rechecking_results(self, client, argstring):
         POKEMON.set_rechecking(False)
-        pokemon = self.get_pokemon(argstring)
+        pokemon = self.get_pokemon_clean(argstring)
+        last_catch, last_channel, last_have, last_alternate = POKEMON.last_attempt()
         if self.get_pokedex_status(argstring):
-            self.catch_results(pokemon, "caught")
+            self.catch_results(pokemon, "caught", last_alternate)
         else:
-            self.catch_results(pokemon, "failed")
+            self.catch_results(pokemon, "failed", last_alternate)
 
     def check_balance(self, client):
         if POKEMON.check_balance():

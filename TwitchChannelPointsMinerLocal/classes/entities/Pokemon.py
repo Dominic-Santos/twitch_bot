@@ -35,6 +35,7 @@ ITEM_PRICES = {
     "ultraball": 1000,
 }
 
+POKEMON_SPECIAL_ALTS = ["Minior", "Lycanroc", "Aegislash", "Rotom"]
 POKEMON_WITH_ALTERNATE_VERSIONS = ["Abomasnow", "Aegislash", "Aipom", "Alcremie", "Ambipom", "Appletun", "Arcanine", "Basculegion", "Basculin", "Beautifly", "Bibarel", "Bidoof", "Blaziken", "Braviary", "Buizel", "Burmy", "Butterfree", "Cacturne", "Camerupt", "Castform", "Centiskorch", "Charizard", "Cherrim", "Coalossal", "Combee", "Croagunk", "Darmanitan", "Deerling", "Diglett", "Donphan", "Dugtrio", "Dustox", "Exeggutor", "Finneon", "Frillish", "Gabite", "Garchomp", "Geodude", "Gible", "Girafarig", "Gligar", "Golbat", "Golem", "Goodra", "Gourgeist", "Graveler", "Grimer", "Growlithe", "Gulpin", "Heracross", "Hippowdon", "Houndoom", "Indeedee", "Jellicent", "Kricketot", "Krikcetune", "Ledian", "Ledyba", "Lilligant", "Ludicolo", "Lumineon", "Luxio", "Luxray", "Lycanroc", "Magikarp", "Magnemite", "Mamoswine", "Marowak", "Meditite", "Meowstic", "Meowth", "Milotic", "Minior", "Morpeko", "Mr-Mime", "Muk", "Murkrow", "Ninetales", "Numel", "Nuzleaf", "Octillery", "Orbeetle", "Oricorio", "Overqwil", "Pachirisu", "Palossand", "Persian", "Pikachu", "Piloswine", "Politoed", "Polteageist", "Ponyta", "Pumpkaboo", "Pyroar", "Quagsire", "Raichu", "Rapidash", "Raticate", "Rattata", "Relicanth", "Rhydon", "Rhyperior", "Rockruff", "Roselia", "Roserade", "Rotom", "Sandaconda", "Sandshrew", "Sandslash", "Sawsbuck", "Scizor", "Scyther", "Shellos", "Shiftry", "Shinx", "Sinistea", "Slowbro", "Vivillon", "Voltorb", "Vulpix", "Weavile", "Weezing", "Wishiwashi", "Wobbuffet", "Wooper", "Wormadam", "Xatu", "Yamask", "Zigzagoon", "Zoroark", "Zorua", "Zubat"]
 POKEMON_TIERS = {
     "S": ["Articuno", "Zapdos", "Moltres", "Mewtwo", "Mew", "Raikou", "Entei", "Suicune", "Lugia", "Ho-Oh", "Celebi", "Regirock", "Regice", "Registeel", "Latias", "Latios", "Kyogre", "Groudon", "Rayquaza", "Jirachi", "Deoxys", "Uxie", "Mesprit", "Azelf", "Dialga", "Palkia", "Heatran", "Regigigas", "Giratina", "Cresselia", "Phione", "Manaphy", "Darkrai", "Shaymin", "Arceus", "Victini", "Cobalion", "Terrakion", "Virizion", "Tornadus", "Thundurus", "Reshiram", "Zekrom", "Landorus", "Kyurem", "Keldeo", "Meloetta", "Genesect", "Xerneas", "Yveltal", "Zygarde", "Diancie", "Hoopa", "Volcanion", "Type:Null", "Silvally", "TapuKoko", "TapuLele", "TapuBulu", "TapuFini", "Cosmog", "Cosmoem", "Solgaleo", "Lunala", "Nihilego", "Buzzwole", "Pheromosa", "Xurkitree", "Celesteela", "Kartana", "Guzzlord", "Necrozma", "Magearna", "Marshadow", "Poipole", "Naganadel", "Stakataka", "Blacephalon", "Zeraora", "Meltan", "Melmetal", "Zacian", "Zamazenta", "Eternatus", "Kubfu", "Urshifu", "Zarude", "Regieleki", "Regidrago", "Glastrier", "Spectrier", "Calyrex", "Ting-lu", "Chien-pao", "Wo-chien", "Chi-yu", "Koraidon", "Miraidon"],
@@ -111,7 +112,8 @@ class Pokedex(object):
         end = end.replace("’", "")
         return end
 
-    def alternate(self, pokemon):
+    def alternate(self, pokemon_dirty):
+        pokemon = self.clean_name(pokemon_dirty)
         has_alts = pokemon in POKEMON_WITH_ALTERNATE_VERSIONS
         alt_id = "0"
         alt_name = "NA"
@@ -121,6 +123,9 @@ class Pokedex(object):
 
         if has_alts is False:
             return False, alt_id, alt_name
+
+        if pokemon in POKEMON_SPECIAL_ALTS:
+            return True, pokemon_dirty, pokemon_dirty
 
         try:
             url = f"https://discord.com/api/v9/channels/{POKEPING_CHANNEL}/messages?limit=1"

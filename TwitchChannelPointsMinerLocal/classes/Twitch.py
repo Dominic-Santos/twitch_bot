@@ -499,7 +499,7 @@ class Twitch(object):
         json_data["variables"] = {"channelLogin": streamer.username}
 
         response = self.post_gql_request(json_data)
-        if response != {}:
+        if response != {} and "errors" not in response:
             if response["data"]["community"] is None:
                 raise StreamerDoesNotExistException
             channel = response["data"]["community"]["channel"]

@@ -5,7 +5,7 @@ import logging
 from colorama import Fore
 from TwitchChannelPointsMinerLocal import TwitchChannelPointsMiner
 from TwitchChannelPointsMinerLocal.logger import LoggerSettings, ColorPalette
-from TwitchChannelPointsMinerLocal.classes.Chat import ChatPresence
+from TwitchChannelPointsMinerLocal.classes.Chat import ChatPresence, DISCORD, DISCORD_CATCH_ALERTS
 from TwitchChannelPointsMinerLocal.classes.Discord import Discord
 from TwitchChannelPointsMinerLocal.classes.Telegram import Telegram
 from TwitchChannelPointsMinerLocal.classes.Settings import Priority, Events, FollowersOrder
@@ -83,6 +83,7 @@ twitch_miner = TwitchChannelPointsMiner(
 streamers = settings["streamers"]
 streamers_ordered = sorted(streamers.keys(), key=lambda x: (streamers[x]["priority"], streamers[x]["goal"], streamers[x]["points"] * - 1))
 print(streamers_ordered)
+DISCORD.post(DISCORD_CATCH_ALERTS, "starting script")
 
 twitch_miner.mine(
     [
