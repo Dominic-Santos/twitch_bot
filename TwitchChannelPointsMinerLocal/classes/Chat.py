@@ -26,7 +26,7 @@ GREENLOG = "\x1b[32;20m"
 YELLOWLOG = "\x1b[36;20m"
 
 POKEMON = PokemonComunityGame()
-DISCORD = DiscordAPI(POKEMON.pokedex.discord["auth"])
+DISCORD = DiscordAPI(POKEMON.discord.data["auth"])
 DISCORD_CATCH_ALERTS = "https://discord.com/api/v9/channels/1072557550526013440/messages"
 
 
@@ -158,7 +158,7 @@ class ClientIRCPokemon(ClientIRCBase):
         if result == "caught":
             self.log_file(f"{GREENLOG}Caught {pokemon} with {POKEMON.inventory.last_used}")
             send_alert("Pokemon CG", f"You caught {pokemon}! Congrats!")
-            POKEMON.check_type_mission(inc=True)
+            POKEMON.missions.check_type_mission(POKEMON.last_type, inc=True)
             msg = f"I caught a {pokemon}! =P"
             POKEMON.pokedex.alternate_caught(alternate[0])
         elif result == "dunno":
@@ -229,8 +229,8 @@ class ClientIRCPokemon(ClientIRCBase):
             elif POKEMON.catch_alternates() and catch_alternate:
                 self.log_file(f"{GREENLOG}Already have {pokemon} but is alternate version")
                 self.catch_pokemon(client, pokemon, True, (pokemon_alt_id, pokemon_alt_name))
-            elif POKEMON.check_type_mission():
-                mission = POKEMON.settings["type_mission"]
+            elif POKEMON.missions.check_type_mission(POKEMON.last_type):
+                mission = POKEMON.missions.data["type_mission"]
                 self.log_file(f"{GREENLOG}Already have {pokemon} but is {mission} type")
                 self.catch_pokemon(client, pokemon, True)
             elif special:

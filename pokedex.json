@@ -2486,5 +2486,12 @@
     ],
     "Lycanroc": [
         "Rock"
+    ],
+    "Flygon": [
+        "Ground",
+        "Dragon"
+    ],
+    "Arcanine": [
+        "Fire"
     ]
 }

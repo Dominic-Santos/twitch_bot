@@ -1,39 +1,11 @@
-import random
-import json
-from datetime import datetime
 import requests
+import json
 from bs4 import BeautifulSoup
-from ..DiscordAPI import DiscordAPI
 
 POKEMON_INFO_URL = "https://www.pokemon.com/us/pokedex/{pokemon}"
 POKEPING_CHANNEL = "935704401954349196"
 HEADERS = {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.95 Safari/537.36'}
-
-CATCH_TRIGGER = 10
-CATCH_DELAY = 60  # seconds
-CATCH_BALL_PRIORITY = ["ultraball", "greatball", "premierball", "pokeball"]
-CATCH_SPECIAL_BALLS = {
-    "Water": "netball",
-    "Bug": "netball",
-    "Dark": "nightball",
-    "Ghost": "phantomball",
-    "Poison": "cipherball",
-    "Psychic": "cipherball",
-    "Ice": "frozenball"
-}
-
-SETTINGS_FILE = "pokemon.json"
 POKEDEX_FILE = "pokedex.json"
-
-BALANCE_TRIGGER = 1
-ITEM_MIN_AMOUNT = 30
-ITEM_MIN_PURCHASE = 10
-ITEM_PRIORITY = ["pokeball", "ultraball"]
-ITEM_PRICES = {
-    "pokeball": 300,
-    "greatball": 600,
-    "ultraball": 1000,
-}
 
 POKEMON_SPECIAL_ALTS = ["Minior", "Lycanroc", "Aegislash", "Rotom"]
 POKEMON_WITH_ALTERNATE_VERSIONS = ["Abomasnow", "Aegislash", "Aipom", "Alcremie", "Ambipom", "Appletun", "Arcanine", "Basculegion", "Basculin", "Beautifly", "Bibarel", "Bidoof", "Blaziken", "Braviary", "Buizel", "Burmy", "Butterfree", "Cacturne", "Camerupt", "Castform", "Centiskorch", "Charizard", "Cherrim", "Coalossal", "Combee", "Croagunk", "Darmanitan", "Deerling", "Diglett", "Donphan", "Dugtrio", "Dustox", "Exeggutor", "Finneon", "Frillish", "Gabite", "Garchomp", "Geodude", "Gible", "Girafarig", "Gligar", "Golbat", "Golem", "Goodra", "Gourgeist", "Graveler", "Grimer", "Growlithe", "Gulpin", "Heracross", "Hippowdon", "Houndoom", "Indeedee", "Jellicent", "Kricketot", "Krikcetune", "Ledian", "Ledyba", "Lilligant", "Ludicolo", "Lumineon", "Luxio", "Luxray", "Lycanroc", "Magikarp", "Magnemite", "Mamoswine", "Marowak", "Meditite", "Meowstic", "Meowth", "Milotic", "Minior", "Morpeko", "Mr-Mime", "Muk", "Murkrow", "Ninetales", "Numel", "Nuzleaf", "Octillery", "Orbeetle", "Oricorio", "Overqwil", "Pachirisu", "Palossand", "Persian", "Pikachu", "Piloswine", "Politoed", "Polteageist", "Ponyta", "Pumpkaboo", "Pyroar", "Quagsire", "Raichu", "Rapidash", "Raticate", "Rattata", "Relicanth", "Rhydon", "Rhyperior", "Rockruff", "Roselia", "Roserade", "Rotom", "Sandaconda", "Sandshrew", "Sandslash", "Sawsbuck", "Scizor", "Scyther", "Shellos", "Shiftry", "Shinx", "Sinistea", "Slowbro", "Vivillon", "Voltorb", "Vulpix", "Weavile", "Weezing", "Wishiwashi", "Wobbuffet", "Wooper", "Wormadam", "Xatu", "Yamask", "Zigzagoon", "Zoroark", "Zorua", "Zubat"]
@@ -50,19 +22,13 @@ class Pokedex(object):
         self.types = {}
         self.alts = []
         self.discord = None
-        self.Discord = None
         self.load()
-
-    def get(self, pokemon):
-        return self.types.get(pokemon, [])
 
     def set_discord(self, discord):
         self.discord = discord
-        self.load_discord()
 
-    def load_discord(self):
-        if self.discord is not None:
-            self.Discord = DiscordAPI(self.discord["auth"])
+    def get(self, pokemon):
+        return self.types.get(pokemon, [])
 
     def get_data(self, pokemon):
         res = requests.get(POKEMON_INFO_URL.format(pokemon=pokemon), headers=HEADERS)
@@ -127,16 +93,18 @@ class Pokedex(object):
         if pokemon in POKEMON_SPECIAL_ALTS:
             return True, pokemon_dirty, pokemon_dirty
 
-        try:
-            url = f"https://discord.com/api/v9/channels/{POKEPING_CHANNEL}/messages?limit=1"
-            data = self.Discord.get(url)[0]
-            is_alt = self.discord["roles"]["alter"] in data["mention_roles"]
-            if is_alt:
-                alt_id = data["content"].split("ID: ")[1].split(" ")[0]
-                alt_name = data["content"].split("| ")[2].split(" ")[0]
-        except Exception as ex:
-            print(ex)
+        return self.poke_ping_alternate()
 
+    def poke_ping_alternate(self):
+        url = f"https://discord.com/api/v9/channels/{POKEPING_CHANNEL}/messages?limit=1"
+        data = self.discord.get(url)[0]
+        is_alt = self.discord.get_role("alter") in data["mention_roles"]
+        if is_alt:
+            alt_id = data["content"].split("ID: ")[1].split(" ")[0]
+            alt_name = data["content"].split("| ")[2].split(" ")[0]
+        else:
+            alt_id = "0"
+            alt_name = "NA"
         return is_alt, alt_id, alt_name
 
     def alternate_caught(self, alt_id):
@@ -146,266 +114,19 @@ class Pokedex(object):
     def need_alternate(self, alt_id):
         return alt_id not in self.alts
 
+    def get_weight(self, pokemon=None):
+        if pokemon is None:
+            # response = self.poke_ping_last_pokemon()
+            pass
+        else:
+            # response = self.poke_ping_search(pokemon)
+            pass
+        # return self.parse_weight(response)
+        return 0
+
     @staticmethod
     def tier(pokemon):
         for k in POKEMON_TIERS.keys():
             if pokemon in POKEMON_TIERS[k]:
                 return k
         return None
-
-
-class Inventory(object):
-    def __init__(self):
-        self.reset()
-        self.last_used = None
-
-    def __str__(self):
-        return "Balance: $" + str(self.cash) + " " + ", ".join(["{item}: {amount}".format(item=item, amount=self.get_item(item)) for item in sorted(self.items.keys())])
-
-    def get(self):
-        return self.items
-
-    def set(self, items):
-        self.items = items
-
-    def reset(self):
-        self.items = {}
-        self.cash = 0
-
-    def add_item(self, item, amount):
-        self.items[item] = self.get_item(item) + amount
-
-    def remove_item(self, item, amount):
-        self.items[item] = self.get_item(item) - amount
-
-    def get_item(self, item):
-        return self.items.get(item, 0)
-
-    def set_item(self, item, amount):
-        self.items[item] = amount
-
-    def have_item(self, item):
-        return self.get_item(item) > 0
-
-    def use(self, item):
-        if self.have_item(item):
-            self.remove_item(item, 1)
-            self.last_used = item
-
-    def set_cash(self, cash):
-        self.cash = cash
-
-    def get_catch_ball(self, types=[], repeat=False):
-        if repeat:
-            if self.have_item("repeatball"):
-                return "repeatball"
-
-        if types is not None:
-            for t in sorted(types):
-                if t in CATCH_SPECIAL_BALLS:
-                    if self.have_item(CATCH_SPECIAL_BALLS[t]):
-                        return CATCH_SPECIAL_BALLS[t]
-
-        for item in CATCH_BALL_PRIORITY:
-            if self.have_item(item):
-                return item
-
-        return None
-
-
-class PokemonComunityGame(object):
-    def __init__(self):
-        self.connected = False
-        self.twitch = None
-        self.channel_list = []
-        self.last_random = ""
-
-        self.catch_counter = 0
-        self.catch_timer = datetime.now()
-
-        self.check_balance_counter = 0
-
-        self.last_catch = None
-        self.last_channel = None
-        self.last_type = None
-        self.last_have = None
-        self.last_alternate = ("0", "NA")
-
-        self.rechecking = False
-
-        self.settings = {}
-        self.pending_purchases = []
-
-        self.inventory = Inventory()
-        self.pokedex = Pokedex()
-
-        self.load_settings()
-
-    def save_settings(self):
-        with open(SETTINGS_FILE, "w") as f:
-            to_write = {
-                "inventory": self.inventory.get(),
-                "settings": self.settings,
-                "alternates": self.pokedex.alts
-            }
-            if self.pokedex.discord is not None:
-                to_write["discord"] = self.pokedex.discord
-            f.write(json.dumps(to_write, indent=4))
-
-    def load_settings(self):
-        try:
-            with open(SETTINGS_FILE, "r") as f:
-                j = json.load(f)
-                self.inventory.set(j.get("inventory", {}))
-                self.settings = j.get("settings", {})
-                self.pokedex.set_discord(j.get("discord", None))
-                self.pokedex.alts = j.get("alternates", [])
-        except:
-            self.settings = {}
-
-    def catch_everything(self):
-        return self.settings.get("catch_everything", False)
-
-    def catch_alternates(self):
-        return self.settings.get("catch_alternates", False)
-
-    def always_catch(self):
-        return self.settings.get("catch", [])
-
-    def always_catch_tiers(self):
-        return self.settings.get("catch_tiers", [])
-
-    def set_cash(self, cash):
-
-        if cash < self.inventory.cash and len(self.pending_purchases) > 0:
-            for item, amount in self.pending_purchases:
-                self.inventory.add_item(item, amount)
-                if item in ITEM_PRIORITY and amount > 9:
-                    self.inventory.add_item("premierball", amount // 10)
-            self.pending_purchases = []
-
-        self.inventory.set_cash(cash)
-
-    def add_channel(self, channel):
-        if channel not in self.channel_list:
-            self.channel_list.append(channel)
-
-    def remove_channel(self, channel):
-        if channel in self.channel_list:
-            self.channel_list.remove(channel)
-
-    def random_channel(self):
-        nr_channels = len(self.channel_list)
-
-        if nr_channels == 0:
-            return None
-
-        if nr_channels == 1:
-            self.last_random = self.channel_list[0]
-        else:
-            self.last_random = random.choice([channel for channel in self.channel_list if channel != self.last_random])
-        return self.last_random
-
-    def check_catch(self):
-        now = datetime.now()
-        if (now - self.catch_timer).total_seconds() > CATCH_DELAY:
-            self.catch_timer = now
-            self.catch_counter = 0
-
-        self.catch_counter += 1
-
-        if self.catch_counter == CATCH_TRIGGER:
-            return True
-
-        return False
-
-    def last_attempt(self, set_to=None, channel=None, have=None, alternate=("0", "NA")):
-        if set_to is None:
-            return self.last_catch, self.last_channel, self.last_have, self.last_alternate
-
-        self.last_catch = set_to
-        self.last_channel = channel
-        self.last_have = have
-        self.last_alternate = alternate
-        self.rechecking = False
-
-    def set_rechecking(self, rechecking):
-        self.rechecking = rechecking
-
-    def get_catch_message(self, use=True, repeat=False):
-        selected = self.inventory.get_catch_ball(self.last_type, repeat)
-
-        if selected is not None:
-            if use:
-                self.inventory.use(selected)
-            return f"!pokecatch {selected}"
-
-        return "!pokecatch"
-
-    def check_balance_tick(self):
-        self.check_balance_counter += 1
-
-        if self.check_balance_counter == BALANCE_TRIGGER:
-            self.check_balance_counter = 0
-            return True
-
-        return False
-
-    def check_balance(self):
-        if not self.need_items():
-            return False
-        return self.check_balance_tick()
-
-    def need_items(self):
-        for item in ITEM_PRIORITY:
-            if self.inventory.get_item(item) < ITEM_MIN_AMOUNT:
-                return True
-        return False
-
-    def get_purchase_list(self, buy=False):
-        cash = self.inventory.cash + 0
-        purchases = []
-
-        for item in ITEM_PRIORITY:
-            have = self.inventory.get_item(item)
-            if have < ITEM_MIN_AMOUNT:
-                price = ITEM_PRICES[item] * ITEM_MIN_PURCHASE
-                if price > cash:
-                    break
-
-                purchases.append((item, ITEM_MIN_PURCHASE))
-                cash = cash - price
-                break
-
-        if buy:
-            self.pending_purchases = purchases
-
-        return purchases
-
-    def get_inventory(self):
-        return str(self.inventory)
-
-    def get_pokemon_type(self, pokemon):
-        self.last_type = self.pokedex.get_type(pokemon)
-        return self.last_type
-
-    def get_type_mission(self):
-        m = self.settings.get("type_mission", None)
-        t = self.settings.get("type_target", None)
-        c = self.settings.get("type_caught", 0)
-        return m, t, c
-
-    def check_type_mission(self, inc=False):
-        mission, target, caught = self.get_type_mission()
-        is_type = False
-
-        if mission in self.last_type:
-            if target is None:
-                is_type = True
-            elif caught < target:
-                is_type = True
-
-        if is_type and inc:
-            self.settings["type_caught"] = caught + 1
-
-        return is_type

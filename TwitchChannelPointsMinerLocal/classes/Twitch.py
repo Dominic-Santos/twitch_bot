@@ -497,18 +497,23 @@ class Twitch(object):
     def load_channel_points_context(self, streamer):
         json_data = copy.deepcopy(GQLOperations.ChannelPointsContext)
         json_data["variables"] = {"channelLogin": streamer.username}
+        retry = 0
+        while retry < 3:
+            response = self.post_gql_request(json_data)
+            if "errors" in response:
+                retry += 1
+                continue
+            if response != {}:
+                if response["data"]["community"] is None:
+                    raise StreamerDoesNotExistException
+                channel = response["data"]["community"]["channel"]
+                community_points = channel["self"]["communityPoints"]
+                streamer.channel_points = community_points["balance"]
+                streamer.activeMultipliers = community_points["activeMultipliers"]
 
-        response = self.post_gql_request(json_data)
-        if response != {} and "errors" not in response:
-            if response["data"]["community"] is None:
-                raise StreamerDoesNotExistException
-            channel = response["data"]["community"]["channel"]
-            community_points = channel["self"]["communityPoints"]
-            streamer.channel_points = community_points["balance"]
-            streamer.activeMultipliers = community_points["activeMultipliers"]
-
-            if community_points["availableClaim"] is not None:
-                self.claim_bonus(streamer, community_points["availableClaim"]["id"])
+                if community_points["availableClaim"] is not None:
+                    self.claim_bonus(streamer, community_points["availableClaim"]["id"])
+            break
 
     def make_predictions(self, event):
         decision = event.bet.calculate(event.streamer.channel_points)
