@@ -18,7 +18,7 @@ class Discord(object):
         if self.data["auth"] is None:
             return
 
-        self.api = DiscordAPI(self.discord["auth"])
+        self.api = DiscordAPI(self.data["auth"])
         self.connected = True
 
     def get(self, url):

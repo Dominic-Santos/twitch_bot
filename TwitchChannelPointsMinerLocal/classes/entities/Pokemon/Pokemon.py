@@ -39,7 +39,6 @@ class PokemonComunityGame(object):
         self.last_channel = None
         self.last_type = None
         self.last_have = None
-        self.last_alternate = ("0", "NA")
 
         self.rechecking = False
 
@@ -57,9 +56,10 @@ class PokemonComunityGame(object):
         self.missions = Missions()
 
         self.pokedex.set_discord(self.discord)
-        self.missions.set_pokedex(self.pokedex)
 
         self.load_settings()
+
+        self.discord.connect()
 
     def save_settings(self):
         with open(SETTINGS_FILE, "w") as f:
@@ -142,14 +142,13 @@ class PokemonComunityGame(object):
 
         return False
 
-    def last_attempt(self, set_to=None, channel=None, have=None, alternate=("0", "NA")):
+    def last_attempt(self, set_to=None, channel=None, have=None):
         if set_to is None:
-            return self.last_catch, self.last_channel, self.last_have, self.last_alternate
+            return self.last_catch, self.last_channel, self.last_have
 
         self.last_catch = set_to
         self.last_channel = channel
         self.last_have = have
-        self.last_alternate = alternate
         self.rechecking = False
 
     def set_rechecking(self, rechecking):

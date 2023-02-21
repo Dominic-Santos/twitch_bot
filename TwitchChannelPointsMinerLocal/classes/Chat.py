@@ -149,46 +149,48 @@ class ClientIRCPokemon(ClientIRCBase):
         if force or POKEMON.check_catch():
             self.send_random_channel(client, "!pokecheck", "Checking if need current Pokemon in {channel} stream")
 
-    def catch_pokemon(self, client, pokemon, have=False, alternate_info=("0", "NA")):
-        random_channel = self.send_random_channel(client, POKEMON.get_catch_message(repeat=have), GREENLOG + "Trying to catch " + pokemon + " in {channel} stream")
-        POKEMON.last_attempt(pokemon, random_channel, have, alternate_info)
+    def catch_pokemon(self, client, pokemon, have=False, best=True):
+        # best = use best ball can, only false when want to miss
+        random_channel = self.send_random_channel(client, POKEMON.get_catch_message(repeat=have, best=best), GREENLOG + "Trying to catch " + pokemon.name + " in {channel} stream")
+        POKEMON.last_attempt(pokemon, random_channel, have)
 
-    def catch_results(self, pokemon_name, result, alternate=("0", "NA")):
-        pokemon = pokemon_name if alternate[0] == "0" else alternate[1]
+    def catch_results(self, pokemon, result):
+        pokemon_name = pokemon.name if pokemon.is_alternate is False else pokemon.alt_name
         if result == "caught":
-            self.log_file(f"{GREENLOG}Caught {pokemon} with {POKEMON.inventory.last_used}")
-            send_alert("Pokemon CG", f"You caught {pokemon}! Congrats!")
-            POKEMON.missions.check_type_mission(POKEMON.last_type, inc=True)
-            msg = f"I caught a {pokemon}! =P"
-            POKEMON.pokedex.alternate_caught(alternate[0])
+            self.log_file(f"{GREENLOG}Caught {pokemon_name} with {POKEMON.inventory.last_used}")
+            send_alert("Pokemon CG", f"You caught {pokemon_name}! Congrats!")
+            msg = f"I caught a {pokemon_name}! =P"
+            POKEMON.pokedex.alternate_caught(pokemon.alt_id)
         elif result == "dunno":
-            self.log_file(f"{YELLOWLOG}I don't know if {pokemon} was caught with {POKEMON.inventory.last_used}, too many users ")
-            send_alert("Pokemon CG", f"You may have caught {pokemon}, Go check.")
-            msg = f"I maybe caught a {pokemon}! =S"
+            self.log_file(f"{YELLOWLOG}I don't know if {pokemon_name} was caught with {POKEMON.inventory.last_used}, too many users ")
+            send_alert("Pokemon CG", f"You may have caught {pokemon_name}, Go check.")
+            msg = f"I maybe caught a {pokemon_name}! =S"
         else:
-            self.log_file(f"{REDLOG}Failed to catch {pokemon} with {POKEMON.inventory.last_used}")
-            send_alert("Pokemon CG", f"You missed {pokemon}, Sorry =(")
-            msg = f"I missed {pokemon}! ='("
+            self.log_file(f"{REDLOG}Failed to catch {pokemon_name} with {POKEMON.inventory.last_used}")
+            send_alert("Pokemon CG", f"You missed {pokemon_name}, Sorry =(")
+            msg = f"I missed {pokemon_name}! ='("
+
+        POKEMON.missions.check_missions_increment(result, bst=pokemon.bst, weight=pokemon.weight, types=POKEMON.last_type)
 
         DISCORD.post(DISCORD_CATCH_ALERTS, msg)
 
     def check_pokemon_caught(self, client, message, argstring):
-        last_catch, last_channel, last_have, last_alternate = POKEMON.last_attempt()
+        last_catch, last_channel, last_have = POKEMON.last_attempt()
         if message.target[1:] == last_channel:
-            if argstring.startswith(last_catch + " has been caught by:"):
+            if argstring.startswith(last_catch.name + " has been caught by:"):
                 if self.username in argstring:
-                    self.catch_results(last_catch, "caught", last_alternate)
+                    self.catch_results(last_catch, "caught")
                 elif argstring.endswith("..."):
                     if last_have:
-                        self.catch_results(last_catch, "dunno", last_alternate)
+                        self.catch_results(last_catch, "dunno")
                     else:
-                        self.log(f"{REDLOG}Too many users, must recheck {last_catch}")
+                        self.log(f"{REDLOG}Too many users, must recheck {last_catch.name}")
                         POKEMON.set_rechecking(True)
                         self.check_pokemon(client, force=True)
                 else:
-                    self.catch_results(last_catch, "failed", last_alternate)
-            elif argstring.startswith(last_catch + " escaped."):
-                self.catch_results(last_catch, "failed", last_alternate)
+                    self.catch_results(last_catch, "failed")
+            elif argstring.startswith(last_catch.name + " escaped."):
+                self.catch_results(last_catch, "failed")
 
     def get_pokemon(self, argstring):
         args = argstring.split(" ")
@@ -205,56 +207,67 @@ class ClientIRCPokemon(ClientIRCBase):
         return argstring.endswith("❌") is False
 
     def check_should_catch(self, client, argstring):
-        last_catch, last_channel, last_have, last_alternate = POKEMON.last_attempt()
+        last_catch, last_channel, last_have = POKEMON.last_attempt()
         pokemon_dirty = self.get_pokemon(argstring)
-        pokemon = self.clean_pokemon(pokemon_dirty)
-        pokemon_tier = POKEMON.pokedex.tier(pokemon)
-        pokemon_alt, pokemon_alt_id, pokemon_alt_name = POKEMON.pokedex.alternate(pokemon_dirty)
-        catch_alternate = False
-        if pokemon_alt:
-            catch_alternate = POKEMON.pokedex.need_alternate(pokemon_alt_id)
+        pokemon_clean = self.clean_pokemon(pokemon_dirty)
+        pokemon_tier = POKEMON.pokedex.tier(pokemon_clean)
+        pokemon = POKEMON.pokedex.scan(pokemon_dirty)
 
+        catch_alternate = False
+        if pokemon.is_alternate:
+            catch_alternate = POKEMON.pokedex.need_alternate(pokemon.alt_id)
         special = False
         for n in POKEMON.always_catch():
-            if pokemon.startswith(n):
+            if pokemon.name.startswith(n):
                 special = True
                 break
 
         if last_catch == pokemon:
-            self.log(f"{YELLOWLOG}Already decided on {pokemon}")
+            self.log(f"{YELLOWLOG}Already decided on {pokemon.name}")
         else:
-            POKEMON.get_pokemon_type(pokemon)
+            POKEMON.get_pokemon_type(pokemon.name)
+            mission = POKEMON.missions.check_all_missions(bst=pokemon.bst, weight=pokemon.weight, types=POKEMON.last_type)
+
             if self.get_pokedex_status(argstring) is False:
                 self.catch_pokemon(client, pokemon)
             elif POKEMON.catch_alternates() and catch_alternate:
-                self.log_file(f"{GREENLOG}Already have {pokemon} but is alternate version")
-                self.catch_pokemon(client, pokemon, True, (pokemon_alt_id, pokemon_alt_name))
-            elif POKEMON.missions.check_type_mission(POKEMON.last_type):
-                mission = POKEMON.missions.data["type_mission"]
-                self.log_file(f"{GREENLOG}Already have {pokemon} but is {mission} type")
+                self.log_file(f"{GREENLOG}Already have {pokemon.name} but is alternate version")
                 self.catch_pokemon(client, pokemon, True)
+            elif mission is not None:
+                if mission == "type":
+                    m = POKEMON.missions.data["type_mission"]
+                    mission_msg = f"is {m} type"
+                elif mission in ["bst", "weight"]:
+                    m_min = POKEMON.missions.data["{mission}_min"]
+                    m_max = POKEMON.missions.data["{mission}_max"]
+                    m_unit = {"bst": "bst", "weight": "KG"}
+                    mission_msg = f"is between {m_min} and {m_max} {m_unit[mission]}"
+                elif mission in ["attempt", "miss"]:
+                    mission_msg = f"need to {mission} more pokemon"
+                self.log_file(f"{GREENLOG}Already have {pokemon.name} but {mission_msg}")
+                self.catch_pokemon(client, pokemon, True, best=mission != "miss")
             elif special:
-                self.log_file(f"{GREENLOG}Already have {pokemon} but is special")
+                self.log_file(f"{GREENLOG}Already have {pokemon.name} but is special")
                 self.catch_pokemon(client, pokemon, True)
             elif pokemon_tier in POKEMON.always_catch_tiers():
-                self.log_file(f"{GREENLOG}Already have {pokemon} but is {pokemon_tier} tier")
+                self.log_file(f"{GREENLOG}Already have {pokemon.name} but is {pokemon_tier} tier")
                 self.catch_pokemon(client, pokemon, True)
             elif POKEMON.catch_everything():
-                self.log_file(f"{GREENLOG}Already have {pokemon} but catching everything")
+                self.log_file(f"{GREENLOG}Already have {pokemon.name} but catching everything")
                 self.catch_pokemon(client, pokemon, True)
             else:
-                self.log_file(f"{REDLOG}Won't catch {pokemon}")
-                POKEMON.last_attempt(pokemon, None, True, ("0", "NA"))
+                self.log_file(f"{REDLOG}Won't catch {pokemon.name}")
+                POKEMON.last_attempt(pokemon, None, True)
         self.check_balance(client)
 
     def rechecking_results(self, client, argstring):
         POKEMON.set_rechecking(False)
-        pokemon = self.get_pokemon_clean(argstring)
-        last_catch, last_channel, last_have, last_alternate = POKEMON.last_attempt()
+        # pokemon = self.get_pokemon_clean(argstring)
+        last_catch, last_channel, last_have = POKEMON.last_attempt()
         if self.get_pokedex_status(argstring):
-            self.catch_results(pokemon, "caught", last_alternate)
+            self.catch_results(last_catch, "caught")
         else:
-            self.catch_results(pokemon, "failed", last_alternate)
+            self.catch_results(last_catch, "failed")
 
     def check_balance(self, client):
         if POKEMON.check_balance():

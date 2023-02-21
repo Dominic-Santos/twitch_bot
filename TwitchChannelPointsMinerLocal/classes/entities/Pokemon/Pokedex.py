@@ -2,13 +2,12 @@ import requests
 import json
 from bs4 import BeautifulSoup
 
+from .Pokeping import Pokeping
+
 POKEMON_INFO_URL = "https://www.pokemon.com/us/pokedex/{pokemon}"
-POKEPING_CHANNEL = "935704401954349196"
 HEADERS = {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.95 Safari/537.36'}
 POKEDEX_FILE = "pokedex.json"
 
-POKEMON_SPECIAL_ALTS = ["Minior", "Lycanroc", "Aegislash", "Rotom"]
-POKEMON_WITH_ALTERNATE_VERSIONS = ["Abomasnow", "Aegislash", "Aipom", "Alcremie", "Ambipom", "Appletun", "Arcanine", "Basculegion", "Basculin", "Beautifly", "Bibarel", "Bidoof", "Blaziken", "Braviary", "Buizel", "Burmy", "Butterfree", "Cacturne", "Camerupt", "Castform", "Centiskorch", "Charizard", "Cherrim", "Coalossal", "Combee", "Croagunk", "Darmanitan", "Deerling", "Diglett", "Donphan", "Dugtrio", "Dustox", "Exeggutor", "Finneon", "Frillish", "Gabite", "Garchomp", "Geodude", "Gible", "Girafarig", "Gligar", "Golbat", "Golem", "Goodra", "Gourgeist", "Graveler", "Grimer", "Growlithe", "Gulpin", "Heracross", "Hippowdon", "Houndoom", "Indeedee", "Jellicent", "Kricketot", "Krikcetune", "Ledian", "Ledyba", "Lilligant", "Ludicolo", "Lumineon", "Luxio", "Luxray", "Lycanroc", "Magikarp", "Magnemite", "Mamoswine", "Marowak", "Meditite", "Meowstic", "Meowth", "Milotic", "Minior", "Morpeko", "Mr-Mime", "Muk", "Murkrow", "Ninetales", "Numel", "Nuzleaf", "Octillery", "Orbeetle", "Oricorio", "Overqwil", "Pachirisu", "Palossand", "Persian", "Pikachu", "Piloswine", "Politoed", "Polteageist", "Ponyta", "Pumpkaboo", "Pyroar", "Quagsire", "Raichu", "Rapidash", "Raticate", "Rattata", "Relicanth", "Rhydon", "Rhyperior", "Rockruff", "Roselia", "Roserade", "Rotom", "Sandaconda", "Sandshrew", "Sandslash", "Sawsbuck", "Scizor", "Scyther", "Shellos", "Shiftry", "Shinx", "Sinistea", "Slowbro", "Vivillon", "Voltorb", "Vulpix", "Weavile", "Weezing", "Wishiwashi", "Wobbuffet", "Wooper", "Wormadam", "Xatu", "Yamask", "Zigzagoon", "Zoroark", "Zorua", "Zubat"]
 POKEMON_TIERS = {
     "S": ["Articuno", "Zapdos", "Moltres", "Mewtwo", "Mew", "Raikou", "Entei", "Suicune", "Lugia", "Ho-Oh", "Celebi", "Regirock", "Regice", "Registeel", "Latias", "Latios", "Kyogre", "Groudon", "Rayquaza", "Jirachi", "Deoxys", "Uxie", "Mesprit", "Azelf", "Dialga", "Palkia", "Heatran", "Regigigas", "Giratina", "Cresselia", "Phione", "Manaphy", "Darkrai", "Shaymin", "Arceus", "Victini", "Cobalion", "Terrakion", "Virizion", "Tornadus", "Thundurus", "Reshiram", "Zekrom", "Landorus", "Kyurem", "Keldeo", "Meloetta", "Genesect", "Xerneas", "Yveltal", "Zygarde", "Diancie", "Hoopa", "Volcanion", "Type:Null", "Silvally", "TapuKoko", "TapuLele", "TapuBulu", "TapuFini", "Cosmog", "Cosmoem", "Solgaleo", "Lunala", "Nihilego", "Buzzwole", "Pheromosa", "Xurkitree", "Celesteela", "Kartana", "Guzzlord", "Necrozma", "Magearna", "Marshadow", "Poipole", "Naganadel", "Stakataka", "Blacephalon", "Zeraora", "Meltan", "Melmetal", "Zacian", "Zamazenta", "Eternatus", "Kubfu", "Urshifu", "Zarude", "Regieleki", "Regidrago", "Glastrier", "Spectrier", "Calyrex", "Ting-lu", "Chien-pao", "Wo-chien", "Chi-yu", "Koraidon", "Miraidon"],
     "A": ["Raichu", "Nidoqueen", "Nidoking", "Vileplume", "Arcanine", "Poliwrath", "Alakazam", "Machamp", "Victreebel", "Golem", "Gengar", "Starmie", "Gyarados", "Lapras", "Vaporeon", "Jolteon", "Flareon", "Aerodactyl", "Snorlax", "Dragonite", "Crobat", "Politoed", "Espeon", "Umbreon", "Slowking", "Steelix", "Scizor", "Kingdra", "Blissey", "Pupitar", "Tyranitar", "Ludicolo", "Shiftry", "Gardevoir", "Slaking", "Aggron", "Wailord", "Camerupt", "Flygon", "Altaria", "Milotic", "Walrein", "Salamence", "Metagross", "Luxray", "Roserade", "Rampardos", "Bastiodon", "Vespiquen", "Drifblim", "Mismagius", "Honchkrow", "Spiritomb", "Garchomp", "Lucario", "Hippowdon", "Toxicroak", "Abomasnow", "Weavile", "Magnezone", "Lickilicky", "Rhyperior", "Electivire", "Magmortar", "Togekiss", "Yanmega", "Leafeon", "Glaceon", "Gliscor", "Mamoswine", "Porygon-Z", "Gallade", "Dusknoir", "Froslass", "Rotom", "Gigalith", "Excadrill", "Conkeldurr", "Seismitoad", "Leavanny", "Scolipede", "Krookodile", "Darmanitan", "Cofagrigus", "Archeops", "Zoroark", "Gothitelle", "Reuniclus", "Vanilluxe", "Ferrothorn", "Klinklang", "Eelektross", "Chandelure", "Haxorus", "Druddigon", "Golurk", "Bisharp", "Hydreigon", "Volcarona", "Talonflame", "Pyroar", "Florges", "Pangoro", "Aegislash", "Dragalge", "Tyrantrum", "Sylveon", "Hawlucha", "Goodra", "Noivern", "Toucannon", "Vikavolt", "Toxapex", "Salazzle", "Bewear", "Tsareena", "Golisopod", "Turtonator", "Mimikyu", "Kommo-o", "Corviknight", "Orbeetle", "Coalossal", "Flapple", "Appletun", "Toxtricity", "Centiskorch", "Polteageist", "Hatterene", "Grimmsnarl", "Obstagoon", "Cursola", "Mr-Rime", "Runerigus", "Alcremie", "Copperajah", "Duraludon", "Drakloak", "Dragapult", "Farigiraf", "Dondozo", "Arboliva", "Revavroom", "Cetitan", "Baxcalibur", "Cyclizar", "Pawmot", "Flamigo", "Garganacl", "Glimmora", "Mabosstiff", "Gholdengo", "GreatTusk", "BruteBonnet", "SandyShocks", "ScreamTail", "FlutterMane", "SlitherWing", "RoaringMoon", "IronTreads", "IronMoth", "IronHands", "IronJugulis", "IronThorns", "IronBundle", "IronValiant", "Tinkaton", "Armarouge", "Ceruledge", "Kingambit", "Annihilape"],
@@ -17,15 +16,12 @@ POKEMON_TIERS = {
 }
 
 
-class Pokedex(object):
+class Pokedex(Pokeping):
     def __init__(self):
+        super().__init__()
         self.types = {}
         self.alts = []
-        self.discord = None
         self.load()
-
-    def set_discord(self, discord):
-        self.discord = discord
 
     def get(self, pokemon):
         return self.types.get(pokemon, [])
@@ -78,51 +74,12 @@ class Pokedex(object):
         end = end.replace("’", "")
         return end
 
-    def alternate(self, pokemon_dirty):
-        pokemon = self.clean_name(pokemon_dirty)
-        has_alts = pokemon in POKEMON_WITH_ALTERNATE_VERSIONS
-        alt_id = "0"
-        alt_name = "NA"
-
-        if self.discord is None:
-            return has_alts, alt_id, alt_name
-
-        if has_alts is False:
-            return False, alt_id, alt_name
-
-        if pokemon in POKEMON_SPECIAL_ALTS:
-            return True, pokemon_dirty, pokemon_dirty
-
-        return self.poke_ping_alternate()
-
-    def poke_ping_alternate(self):
-        url = f"https://discord.com/api/v9/channels/{POKEPING_CHANNEL}/messages?limit=1"
-        data = self.discord.get(url)[0]
-        is_alt = self.discord.get_role("alter") in data["mention_roles"]
-        if is_alt:
-            alt_id = data["content"].split("ID: ")[1].split(" ")[0]
-            alt_name = data["content"].split("| ")[2].split(" ")[0]
-        else:
-            alt_id = "0"
-            alt_name = "NA"
-        return is_alt, alt_id, alt_name
-
     def alternate_caught(self, alt_id):
         if alt_id not in self.alts and alt_id != "0":
             self.alts.append(alt_id)
 
     def need_alternate(self, alt_id):
         return alt_id not in self.alts
-
-    def get_weight(self, pokemon=None):
-        if pokemon is None:
-            # response = self.poke_ping_last_pokemon()
-            pass
-        else:
-            # response = self.poke_ping_search(pokemon)
-            pass
-        # return self.parse_weight(response)
-        return 0
 
     @staticmethod
     def tier(pokemon):
