@@ -111,3 +111,21 @@ class Missions(object):
             self.check_miss_mission(inc=True)
 
         self.check_attempt_mission(inc=True)
+
+    def mission_message(self, mission):
+        best = True
+        if mission == "type":
+            m = self.data["type_mission"]
+            mission_msg = f"is {m} type"
+        elif mission in ["bst", "weight"]:
+            m_min = self.data["{mission}_min"]
+            m_max = self.data["{mission}_max"]
+            m_unit = {"bst": "bst", "weight": "KG"}
+            mission_msg = f"is between {m_min} and {m_max} {m_unit[mission]}"
+        elif mission in ["attempt", "miss"]:
+            mission_msg = f"need to {mission} more pokemon"
+            best = False
+        else:
+            mission_msg = f"{mission} mission"
+
+        return mission_msg, best
