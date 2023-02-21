@@ -234,6 +234,7 @@ class ClientIRCPokemon(ClientIRCBase):
                 self.log_file(f"{GREENLOG}Already have {pokemon.name} but is alternate version")
                 self.catch_pokemon(client, pokemon, True)
             elif mission is not None:
+                best = True
                 if mission == "type":
                     m = POKEMON.missions.data["type_mission"]
                     mission_msg = f"is {m} type"
@@ -244,8 +245,9 @@ class ClientIRCPokemon(ClientIRCBase):
                     mission_msg = f"is between {m_min} and {m_max} {m_unit[mission]}"
                 elif mission in ["attempt", "miss"]:
                     mission_msg = f"need to {mission} more pokemon"
+                    best = False
                 self.log_file(f"{GREENLOG}Already have {pokemon.name} but {mission_msg}")
-                self.catch_pokemon(client, pokemon, True, best=mission != "miss")
+                self.catch_pokemon(client, pokemon, True, best=best)
             elif special:
                 self.log_file(f"{GREENLOG}Already have {pokemon.name} but is special")
                 self.catch_pokemon(client, pokemon, True)

@@ -86,17 +86,17 @@ class Missions(object):
         if self.check_type_mission(types):
             return "type"
 
-        if self.check_miss_mission():
-            return "miss"
-
-        if self.check_attempt_mission():
-            return "attempt"
-
         if self.check_weight_mission(weight):
             return "weight"
 
         if self.check_bst_mission(bst):
             return "bst"
+
+        if self.check_miss_mission():
+            return "miss"
+
+        if self.check_attempt_mission():
+            return "attempt"
 
         return None
 
