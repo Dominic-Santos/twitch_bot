@@ -24,8 +24,12 @@ def main():
     pokedex = Pokedex()
 
     pokedict = {}
+    shineys = []
     for pokemon in allpokemon["allPokemon"]:
-        pokedict.setdefault(pokemon["pokedexId"], []).append(pokemon)
+        if pokemon["isShiny"]:
+            shineys.append(pokemon)
+        else:
+            pokedict.setdefault(pokemon["pokedexId"], []).append(pokemon)
 
     changes = []
     for pokeid in pokedict.keys():
@@ -52,6 +56,10 @@ def main():
             if pokemon["nickname"] == nick:
                 continue
             changes.append((pokemon["id"], nick, pokemon["name"], pokemon["nickname"]))
+
+    for pokemon in shineys:
+        if pokemon["nickname"] is not None:
+            changes.append((pokemon["id"], "", pokemon["name"], pokemon["nickname"]))
 
     for poke_id, new_name, real_name, old_name in changes:
         api.set_name(poke_id, new_name)
