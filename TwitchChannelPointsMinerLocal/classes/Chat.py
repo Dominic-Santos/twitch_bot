@@ -1,5 +1,6 @@
 from datetime import datetime
 from time import sleep
+import random
 import logging
 
 from .ChatO import ClientIRC as ClientIRCO
@@ -62,6 +63,7 @@ class ClientIRCMarbles(ClientIRCBase):
         self.marbles_counter += 1
 
         if self.marbles_counter == MARBLES_TRIGGER_COUNT:
+            sleep(random.randint(0, 60))
             client.privmsg(message.target, "!play")
             self.log(f"Joined Marbles for {message.target[1:]}")
 

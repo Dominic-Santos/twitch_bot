@@ -118,8 +118,8 @@ class Missions(object):
             m = self.data["type_mission"]
             mission_msg = f"is {m} type"
         elif mission in ["bst", "weight"]:
-            m_min = self.data["{mission}_min"]
-            m_max = self.data["{mission}_max"]
+            m_min = self.data[f"{mission}_min"]
+            m_max = self.data[f"{mission}_max"]
             m_unit = {"bst": "bst", "weight": "KG"}
             mission_msg = f"is between {m_min} and {m_max} {m_unit[mission]}"
         elif mission in ["attempt", "miss"]:
