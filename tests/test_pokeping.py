@@ -181,3 +181,12 @@ def test_bst_role():
     assert pokemon.alt_name == "NA"
     assert pokemon.bst == 500
     assert pokemon.weight == 650.0
+
+
+def test_special_case():
+    name = "Lycanroc"
+    pokemon = POKEMON(name, name)
+    pokemon.check_special_cases()
+    assert pokemon.is_alternate
+    assert pokemon.alt_id == name
+    assert pokemon.alt_name == name

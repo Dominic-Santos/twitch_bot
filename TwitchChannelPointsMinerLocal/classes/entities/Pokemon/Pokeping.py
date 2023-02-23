@@ -55,7 +55,7 @@ class Pokemon(object):
         if self.name in POKEMON_SPECIAL_ALTS:
             self.is_alternate = True
             self.alt_name = self.dirty_name
-            self.id = self.dirty_name
+            self.alt_id = self.dirty_name
 
 
 class Pokeping(object):
