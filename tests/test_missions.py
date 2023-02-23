@@ -123,13 +123,13 @@ def test_bst_mission():
         "bst_target": 1,
         "bst_caught": 0,
         "bst_min": 100,
-        "bst_max": 200,
+        "bst_max": 600,
     }
 
     MISSIONS.set(test_case)
 
     assert MISSIONS.check_bst_mission(10) is False
-    assert MISSIONS.check_bst_mission(300, inc=True) is False
+    assert MISSIONS.check_bst_mission(700, inc=True) is False
     assert MISSIONS.check_bst_mission(150)
     assert MISSIONS.check_bst_mission(150, inc=True)
     assert MISSIONS.check_bst_mission(150) is False
