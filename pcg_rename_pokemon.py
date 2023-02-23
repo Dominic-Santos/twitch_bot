@@ -33,7 +33,7 @@ def main():
 
     changes = []
     for pokeid in pokedict.keys():
-        ordered = sorted(pokedict[pokeid], key=lambda x: -x["avgIV"])
+        ordered = sorted(pokedict[pokeid], key=lambda x: (-x["avgIV"], -x["lvl"]))
         for index, pokemon in enumerate(ordered):
             clean_name = pokedex.clean_name(pokemon["name"])
             if index == 0:
