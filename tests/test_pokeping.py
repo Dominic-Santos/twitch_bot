@@ -145,7 +145,6 @@ def test_normal():
     name = "Hippopotas"
     pokemon = POKEMON(name, name)
     pokemon.parse(NORMAL)
-    print(pokemon.is_alternate)
 
     assert pokemon.name == name
     assert pokemon.dirty_name == name
@@ -160,7 +159,6 @@ def test_alter():
     name = "Hippopotas"
     pokemon = POKEMON(name, name)
     pokemon.parse(ALTER)
-    print(pokemon.is_alternate)
 
     assert pokemon.name == name
     assert pokemon.dirty_name == name
@@ -175,7 +173,6 @@ def test_bst_role():
     name = "Copperajah"
     pokemon = POKEMON(name, name)
     pokemon.parse(BST_ROLE)
-    print(pokemon.is_alternate)
 
     assert pokemon.name == name
     assert pokemon.dirty_name == name

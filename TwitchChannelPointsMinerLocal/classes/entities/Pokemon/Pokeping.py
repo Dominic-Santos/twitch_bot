@@ -32,10 +32,6 @@ class Pokemon(object):
         return to_ret
 
     def parse(self, data):
-        print(ROLES)
-        print(ROLES["alter"])
-        print(data)
-        print(data["mention_roles"])
         if ROLES["alter"] in data["mention_roles"]:
             # must parse alt message
             self.is_alternate = True
