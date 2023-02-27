@@ -150,6 +150,8 @@ class ClientIRCPokemon(ClientIRCBase):
                 pokemon_to_trade = None
 
                 for tier in ["A", "B", "C"]:
+                    if pokemon_to_trade is not None:
+                        break
                     looking_for = f"trade{tier}"
                     for pokemon in allpokemon:
                         if pokemon["nickname"] is None:
@@ -162,8 +164,10 @@ class ClientIRCPokemon(ClientIRCBase):
                     self.log(f"{REDLOG}Could not find a pokemon to wondertrade")
                 else:
                     pokemon_received = self.pokemon_api.wondertrade(pokemon_to_trade["id"])
-                    print("received", pokemon_received)
-                    self.log(f"{REDLOG}Wondertraded {pokemon_to_trade['name']} for {pokemon_received['pokemon']['name']}")
+                    if "pokemon" in pokemon_received:
+                        self.log(f"{GREENLOG}Wondertraded {pokemon_to_trade['name']} for {pokemon_received['pokemon']['name']}")
+                    else:
+                        self.log(f"{REDLOG}Wondertrade failed {pokemon_received}")
 
     def sort_computer(self):
         allpokemon = POKEMON.computer.pokemon
@@ -267,14 +271,12 @@ class ClientIRCPokemon(ClientIRCBase):
                     msg = f"I missed {discord_pokemon_name}! ='("
 
                 DISCORD.post(DISCORD_CATCH_ALERTS, msg)
-
-                self.sort_computer()
-
             else:
                 self.log_file(f"{REDLOG}Don't need pokemon, skipping")
                 random_channel = POKEMON.random_channel()
                 client.privmsg("#" + random_channel, "!pokecheck")
 
+            self.sort_computer()
             self.check_wondertrade()
         else:
             # pokemon should be spawning soon

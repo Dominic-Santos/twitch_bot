@@ -95,7 +95,7 @@ class PokemonComunityGame(object):
 
     def check_wondertrade(self):
         if self.wondertrade_timer is None:
-            return True
+            return False
 
         if (datetime.utcnow() - self.wondertrade_timer).total_seconds() > WONDERTRADE_DELAY:
             return True
