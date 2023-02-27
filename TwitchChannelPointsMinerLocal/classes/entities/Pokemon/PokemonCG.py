@@ -61,10 +61,10 @@ class PokemonComunityGame(object):
         self.pokeping.get_roles()
 
     def reset_timer(self):
-        self.catch_timer = datetime.now()
+        self.catch_timer = datetime.utcnow()
 
     def reset_wondertrade_timer(self):
-        self.wondertrade_timer = datetime.now()
+        self.wondertrade_timer = datetime.utcnow()
 
     def save_settings(self):
         with open(SETTINGS_FILE, "w") as f:
@@ -88,7 +88,7 @@ class PokemonComunityGame(object):
                 self.settings[k] = settings[k]
 
     def check_catch(self):
-        if (datetime.now() - self.catch_timer).total_seconds() > self.delay:
+        if (datetime.utcnow() - self.catch_timer).total_seconds() > self.delay:
             return True
 
         return False
@@ -97,7 +97,7 @@ class PokemonComunityGame(object):
         if self.wondertrade_timer is None:
             return True
 
-        if (datetime.now() - self.wondertrade_timer).total_seconds() > WONDERTRADE_DELAY:
+        if (datetime.utcnow() - self.wondertrade_timer).total_seconds() > WONDERTRADE_DELAY:
             return True
 
         return False

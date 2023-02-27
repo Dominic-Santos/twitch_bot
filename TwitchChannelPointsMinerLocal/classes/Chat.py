@@ -59,7 +59,7 @@ class ClientIRCMarbles(ClientIRCBase):
 
     def init(self, marbles):
         self.marbles = marbles
-        self.marbles_timer = datetime.now()
+        self.marbles_timer = datetime.utcnow()
         self.marbles_counter = 0
 
     def on_pubmsg(self, client, message):
@@ -67,7 +67,7 @@ class ClientIRCMarbles(ClientIRCBase):
             self.check_marbles(client, message)
 
     def check_marbles(self, client, message):
-        now = datetime.now()
+        now = datetime.utcnow()
         if (now - self.marbles_timer).total_seconds() > MARBLES_DELAY:
             self.marbles_timer = now
             self.marbles_counter = 0
@@ -132,7 +132,7 @@ class ClientIRCPokemon(ClientIRCBase):
 
                 can_trade_in = pokemon["tradable"]
                 if can_trade_in is None:
-                    POKEMON.wondertrade_timer = datetime.now() - timedelta(hours=4)
+                    POKEMON.wondertrade_timer = datetime.utcnow() - timedelta(hours=4)
                 else:
                     if "hour" in can_trade_in:
                         hours = int(can_trade_in.split(" ")[0])
@@ -143,7 +143,7 @@ class ClientIRCPokemon(ClientIRCBase):
                     else:
                         minutes = 0
 
-                    POKEMON.wondertrade_timer = datetime.now() - timedelta(minutes=minutes, hours=hours)
+                    POKEMON.wondertrade_timer = datetime.utcnow() - timedelta(minutes=minutes, hours=hours)
 
             if POKEMON.check_wondertrade():
                 POKEMON.reset_wondertrade_timer()
@@ -214,8 +214,8 @@ class ClientIRCPokemon(ClientIRCBase):
         POKEMON.reset_timer()
         self.log_file(f"{GREENLOG}Checking pokemon spawn in pokeping")
         pokemon = POKEMON.get_last_spawned()
-        print(datetime.now(), pokemon.spawn, (datetime.now() - pokemon.spawn).total_seconds())
-        if (datetime.now() - pokemon.spawn).total_seconds() <= POKEMON_CHECK_LIMIT:
+
+        if (datetime.utcnow() - pokemon.spawn).total_seconds() <= POKEMON_CHECK_LIMIT:
             # pokemon spawned recently relax and process it
             POKEMON.delay = POKEMON_CHECK_DELAY_RELAX
             self.log_file(f"{GREENLOG}Pokemon spawned - processing {pokemon}")
@@ -254,7 +254,7 @@ class ClientIRCPokemon(ClientIRCBase):
                 filtered = POKEMON.computer.get_pokemon(pokemon)
                 caught = False
                 for poke in filtered:
-                    if (datetime.now() - parse(poke["caughtAt"][:-1])).total_seconds() < 60:
+                    if (datetime.utcnow() - parse(poke["caughtAt"][:-1])).total_seconds() < 60:
                         caught = True
                         break
 
