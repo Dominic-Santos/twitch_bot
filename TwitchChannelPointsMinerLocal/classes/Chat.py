@@ -135,18 +135,22 @@ class ClientIRCPokemon(ClientIRCBase):
                     POKEMON.wondertrade_timer = datetime.utcnow() - timedelta(hours=4)
                 else:
                     if "hour" in can_trade_in:
-                        hours = int(can_trade_in.split(" ")[0])
+                        hours = 2 - int(can_trade_in.split(" ")[0])
                     else:
-                        hours = 0
+                        hours = 2
                     if "minute" in can_trade_in:
-                        minutes = int(can_trade_in.split(" ")[-2])
+                        minutes = 60 - int(can_trade_in.split(" ")[-2])
                     else:
+                        minutes = 60
+
+                    if minutes == 60:
                         minutes = 0
+                        hours = hours + 1
 
                     POKEMON.wondertrade_timer = datetime.utcnow() - timedelta(minutes=minutes, hours=hours)
 
             if POKEMON.check_wondertrade():
-                POKEMON.reset_wondertrade_timer()
+
                 active = POKEMON.missions.have_mission("wondertrade")
                 pokemon_to_trade = None
 
@@ -185,6 +189,7 @@ class ClientIRCPokemon(ClientIRCBase):
                     pokemon_received = self.pokemon_api.wondertrade(pokemon_to_trade["id"])
                     if "pokemon" in pokemon_received:
                         self.log(f"{GREENLOG}Wondertraded {pokemon_to_trade['name']} for {pokemon_received['pokemon']['name']}")
+                        POKEMON.reset_wondertrade_timer()
                     else:
                         self.log(f"{REDLOG}Wondertrade {pokemon_to_trade['name']} failed {pokemon_received}")
             else:

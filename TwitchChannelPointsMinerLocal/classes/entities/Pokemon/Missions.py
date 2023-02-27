@@ -34,8 +34,6 @@ class Missions(object):
                 the_type = mission_title.split(" ")[1].title()
                 self.data.setdefault("type", []).append(the_type)
 
-        print("Missions", self.data)
-
     def have_mission(self, mission_name):
         return mission_name in self.data
 
