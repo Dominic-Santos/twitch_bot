@@ -1,86 +1,81 @@
+"""
+Todo:
+    catch pokemon by weight (heavier, lighter, between?)
+    catch pokemon with X ball
+    confirm attemp message
+"""
+
+
 class Missions(object):
     def __init__(self):
-        self.data = {
-            "type_mission": None,
-            "type_target": 0,
-            "type_caught": 0,
+        self.reset()
 
-            "miss_target": 0,
-            "miss_caught": 0,
+    def reset(self):
+        self.data = {}
 
-            "attempt_target": 0,
-            "attempt_caught": 0,
+    def set(self, missions):
+        self.reset()
+        for mission in missions["missions"]:
+            if mission["progress"] >= mission["goal"]:
+                continue
 
-            "weight_min": 0,
-            "weight_max": 0,
-            "weight_target": 0,
-            "weight_caught": 0,
+            mission_title = mission["name"].lower().replace("[flash]", " ").strip()
+            mission_title = "".join([c for c in mission_title if c.isalnum() or c == " "]).strip()
+            mission_title = " ".join([w for w in mission_title.split(" ") if w != ""])
 
-            "bst_min": 0,
-            "bst_max": 0,
-            "bst_target": 0,
-            "bst_caught": 0,
-        }
-        self.discord = None
-        self.last_type = []
+            if mission_title.startswith("wondertrade") and "type pokemon" in mission_title:
+                the_type = mission_title.split(" ")[1].title()
+                self.data.setdefault("wondertrade", []).append(the_type)
+            elif mission_title == "miss catches":
+                self.data["miss"] = True
+            elif mission_title == "attempt catches":
+                self.data["attemp"] = True
+            elif mission_title.startswith("catch") and "type pokemon" in mission_title:
+                the_type = mission_title.split(" ")[1].title()
+                self.data.setdefault("type", []).append(the_type)
 
-    def set(self, data):
-        for key in data:
-            if key in self.data:
-                self.data[key] = data[key]
+        print("Missions", self.data)
 
-    def counter_mission(self, prefix, inc=False):
-        target = self.data.get(f"{prefix}_target")
-        caught = self.data.get(f"{prefix}_caught")
-        catch = caught < target
+    def have_mission(self, mission_name):
+        return mission_name in self.data
 
-        if catch and inc:
-            self.data[f"{prefix}_caught"] = caught + 1
+    def _types_mission(self, mission_name, pokemon_types):
+        if self.have_mission(mission_name):
+            missions = self.data.get(mission_name)
 
-        return catch
+            for pokemon_type in pokemon_types:
+                if pokemon_type in missions:
+                    return True
 
-    def check_miss_mission(self, inc=False):
-        return self.counter_mission("miss", inc)
+        return False
 
-    def check_attempt_mission(self, inc=False):
-        return self.counter_mission("attempt", inc)
+    def _between_mission(self, mission_name, unit):
+        if self.have_mission(mission_name):
+            missions = self.data.get(mission_name)
 
-    def get_type_mission(self):
-        m = self.data.get("type_mission")
-        t = self.data.get("type_target")
-        c = self.data.get("type_caught")
-        return m, t, c
+            for m_min, m_max in missions:
+                if unit >= m_min and unit <= m_max:
+                    return True
 
-    def check_type_mission(self, pokemon_types, inc=False):
-        mission, target, caught = self.get_type_mission()
-        catch = False
+        return False
 
-        if mission in pokemon_types:
-            catch = caught < target
+    def check_type_mission(self, pokemon_types):
+        return self._types_mission("type", pokemon_types)
 
-        if catch and inc:
-            self.data["type_caught"] = caught + 1
+    def check_wondertrade_mission(self, pokemon_types):
+        return self._types_mission("wondertrade", pokemon_types)
 
-        return catch
+    def check_miss_mission(self):
+        return self.have_mission("miss")
 
-    def between_mission(self, prefix, unit, inc=False):
-        limit_min = self.data.get(f"{prefix}_min")
-        limit_max = self.data.get(f"{prefix}_max")
-        target = self.data.get(f"{prefix}_target")
-        caught = self.data.get(f"{prefix}_caught")
+    def check_attempt_mission(self):
+        return self.have_mission("attempt")
 
-        catch = unit >= limit_min and unit <= limit_max and caught < target
+    def check_weight_mission(self, weight):
+        return self._between_mission("weight", weight)
 
-        if catch and inc:
-            self.data[f"{prefix}_caught"] = caught + 1
-
-        return catch
-
-    def check_weight_mission(self, weight, inc=False):
-        return self.between_mission("weight", weight, inc)
-
-    def check_bst_mission(self, bst, inc=False):
-        return self.between_mission("bst", bst, inc)
+    def check_bst_mission(self, bst):
+        return self._between_mission("bst", bst)
 
     def check_all_missions(self, pokemon):
         reasons = []
@@ -101,31 +96,5 @@ class Missions(object):
 
         return reasons
 
-    def check_missions_increment(self, pokemon, caught=True):
-        if caught:
-            self.check_bst_mission(pokemon.bst, inc=True)
-            self.check_weight_mission(pokemon.weight, inc=True)
-            self.check_type_mission(pokemon.types, inc=True)
-        else:
-            self.check_miss_mission(inc=True)
-
-        self.check_attempt_mission(inc=True)
-
     def mission_best_ball(self, mission):
         return mission not in ["attempt", "miss"]
-
-    def mission_message(self, mission):
-        if mission == "type":
-            m = self.data["type_mission"]
-            mission_msg = f"is {m} type"
-        elif mission in ["bst", "weight"]:
-            m_min = self.data[f"{mission}_min"]
-            m_max = self.data[f"{mission}_max"]
-            m_unit = {"bst": "bst", "weight": "KG"}
-            mission_msg = f"is between {m_min} and {m_max} {m_unit[mission]}"
-        elif mission in ["attempt", "miss"]:
-            mission_msg = f"need to {mission} more pokemon"
-        else:
-            mission_msg = f"{mission} mission"
-
-        return mission_msg

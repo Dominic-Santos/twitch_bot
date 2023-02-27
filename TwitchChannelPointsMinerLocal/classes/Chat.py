@@ -147,11 +147,33 @@ class ClientIRCPokemon(ClientIRCBase):
 
             if POKEMON.check_wondertrade():
                 POKEMON.reset_wondertrade_timer()
+                active = POKEMON.missions.have_mission("wondertrade")
                 pokemon_to_trade = None
+
+                if active:
+                    for tier in ["A", "B", "C"]:
+                        if pokemon_to_trade is not None:
+                            break
+
+                        looking_for = f"trade{tier}"
+                        for pokemon in allpokemon:
+                            if pokemon["nickname"] is None:
+                                continue
+                            if looking_for in pokemon["nickname"]:
+                                print(pokemon)
+                                print("good nick")
+                                pokemon_stats = self.pokemon_api.get_pokemon(pokemon["id"])
+                                sleep(0.5)
+                                if POKEMON.missions.check_wondertrade_mission([pokemon_stats["type1"].title(), pokemon_stats["type2"].title()]) is False:
+                                    print("not type")
+                                    continue
+                                pokemon_to_trade = pokemon
+                                break
 
                 for tier in ["A", "B", "C"]:
                     if pokemon_to_trade is not None:
                         break
+
                     looking_for = f"trade{tier}"
                     for pokemon in allpokemon:
                         if pokemon["nickname"] is None:
@@ -167,7 +189,11 @@ class ClientIRCPokemon(ClientIRCBase):
                     if "pokemon" in pokemon_received:
                         self.log(f"{GREENLOG}Wondertraded {pokemon_to_trade['name']} for {pokemon_received['pokemon']['name']}")
                     else:
-                        self.log(f"{REDLOG}Wondertrade failed {pokemon_received}")
+                        self.log(f"{REDLOG}Wondertrade {pokemon_to_trade['name']} failed {pokemon_received}")
+            else:
+                time_remaining = POKEMON.check_wondertrade_left()
+                time_str = str(time_remaining).split(".")[0]
+                self.log(f"{YELLOWLOG}Wondertrade available in {time_str}")
 
     def sort_computer(self):
         allpokemon = POKEMON.computer.pokemon
@@ -224,12 +250,20 @@ class ClientIRCPokemon(ClientIRCBase):
             POKEMON.delay = POKEMON_CHECK_DELAY_RELAX
             self.log_file(f"{GREENLOG}Pokemon spawned - processing {pokemon}")
 
+            # sync everything
             dex = self.pokemon_api.get_pokedex()
             POKEMON.sync_pokedex(dex)
 
             all_pokemon = self.pokemon_api.get_all_pokemon()
             POKEMON.sync_computer(all_pokemon)
 
+            inv = self.pokemon_api.get_inventory()
+            POKEMON.sync_inventory(inv)
+
+            missions = self.pokemon_api.get_missions()
+            POKEMON.sync_missions(missions)
+
+            # find reasons to catch the pokemon
             catch_reasons, best_ball = POKEMON.need_pokemon(pokemon)
             repeat = True
             for reason in ["pokedex", "bag", "alt"]:
@@ -238,15 +272,12 @@ class ClientIRCPokemon(ClientIRCBase):
                     break
 
             if len(catch_reasons) > 0:
-                inv = self.pokemon_api.get_inventory()
-                POKEMON.sync_inventory(inv)
-
                 ball = POKEMON.inventory.get_catch_ball(pokemon.types, repeat=repeat, best=best_ball)
                 random_channel = POKEMON.random_channel()
                 message = f"!pokecatch {ball}"
                 client.privmsg("#" + random_channel, message)
 
-                reasons_string = ", ".join([POKEMON.missions.mission_message(reason) for reason in catch_reasons])
+                reasons_string = ", ".join(catch_reasons)
                 self.log_file(f"{GREENLOG}Trying to catch {pokemon.name} with {ball} because {reasons_string}")
 
                 sleep(5)

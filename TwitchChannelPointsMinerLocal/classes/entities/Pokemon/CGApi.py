@@ -63,3 +63,6 @@ class API(object):
     def wondertrade(self, pokemon_id):
         # response is {"pokemon": {the info}}
         return self._do_request("POST", TRAINER_URL + f"wonder-trade/{pokemon_id}/")
+
+    def get_missions(self):
+        return self._do_request("GET", TRAINER_URL + f"mission/")

@@ -26,6 +26,7 @@ ITEM_PRICES = {
 Todo:
     Mission parsing using api
     re-implement buying balls when need
+    pokedaily
 """
 
 
@@ -70,7 +71,6 @@ class PokemonComunityGame(object):
         with open(SETTINGS_FILE, "w") as f:
             to_write = {
                 "settings": self.settings,
-                "missions": self.missions.data,
                 "discord": self.discord.data
             }
             f.write(json.dumps(to_write, indent=4))
@@ -80,7 +80,6 @@ class PokemonComunityGame(object):
             j = json.load(f)
             self.set(j.get("settings", {}))
             self.discord.set(j.get("discord", {}))
-            self.missions.set(j.get("missions", {}))
 
     def set(self, settings):
         for k in settings:
@@ -112,6 +111,9 @@ class PokemonComunityGame(object):
     def sync_computer(self, all_pokemon):
         self.computer.set(all_pokemon)
 
+    def sync_missions(self, missions):
+        self.missions.set(missions)
+
     def set_delay(self, delay):
         self.delay = delay
 
@@ -133,7 +135,7 @@ class PokemonComunityGame(object):
 
         missions = self.missions.check_all_missions(pokemon)
         for mission in missions:
-            reasons.append(missions)
+            reasons.append(mission)
 
         for catch in self.settings["catch"]:
             if pokemon.name.startswith(catch):
