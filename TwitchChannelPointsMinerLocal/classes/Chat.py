@@ -214,6 +214,7 @@ class ClientIRCPokemon(ClientIRCBase):
         POKEMON.reset_timer()
         self.log_file(f"{GREENLOG}Checking pokemon spawn in pokeping")
         pokemon = POKEMON.get_last_spawned()
+        print(datetime.now(), pokemon.spawn, (datetime.now() - pokemon.spawn).total_seconds())
         if (datetime.now() - pokemon.spawn).total_seconds() <= POKEMON_CHECK_LIMIT:
             # pokemon spawned recently relax and process it
             POKEMON.delay = POKEMON_CHECK_DELAY_RELAX
