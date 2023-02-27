@@ -492,6 +492,17 @@ class Twitch(object):
             except Exception:
                 logger.error("Exception raised in send minute watched", exc_info=True)
 
+    def get_pokemoncg_token(self, channel_id):
+        json_data = copy.deepcopy(GQLOperations.ExtensionsForChannel)
+        json_data["variables"] = {"channelID": channel_id}
+        response = self.post_gql_request(json_data)
+        extensions = response["data"]["user"]["channel"]["selfInstalledExtensions"]
+        for extension in extensions:
+            if extension["installation"]["extension"]["name"] == "PokemonCommunityGame":
+                return extension["token"]["jwt"]
+
+        return None
+
     # === CHANNEL POINTS / PREDICTION === #
     # Load the amount of current points for a channel, check if a bonus is available
     def load_channel_points_context(self, streamer):

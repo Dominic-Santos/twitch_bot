@@ -1,55 +1,36 @@
 CATCH_BALL_PRIORITY = ["ultraball", "greatball", "premierball", "pokeball"]
-CATCH_SPECIAL_BALLS = {
-    "Water": "netball",
-    "Bug": "netball",
-    "Dark": "nightball",
-    "Ghost": "phantomball",
-    "Poison": "cipherball",
-    "Psychic": "cipherball",
-    "Ice": "frozenball"
-}
+POKEMON_TYPES = ["Normal", "Fighting", "Flying", "Poison", "Ground", "Rock", "Bug", "Ghost", "Steel", "Fire", "Water", "Grass", "Electric", "Psychic", "Ice", "Dragon", "Dark", "Fairy"]
 
 
 class Inventory(object):
     def __init__(self):
         self.reset()
-        self.last_used = None
-
-    def __str__(self):
-        return "Balance: $" + str(self.cash) + " " + ", ".join(["{item}: {amount}".format(item=item, amount=self.get_item(item)) for item in sorted(self.items.keys())])
-
-    def get(self):
-        return self.items
-
-    def set(self, items):
-        self.items = items
 
     def reset(self):
-        self.items = {}
         self.cash = 0
+        self.balls = {}
+        self.items = []
+        self.special_balls = {}
 
-    def add_item(self, item, amount):
-        self.items[item] = self.get_item(item) + amount
+    def __str__(self):
+        return "Balance: $" + str(self.cash) + " " + ", ".join(["{item}: {amount}".format(item=item["name"], amount=item["amount"]) for item in self.items])
 
-    def remove_item(self, item, amount):
-        self.items[item] = self.get_item(item) - amount
+    def set(self, inventory):
+        self.reset()
+        self.cash = inventory["cash"]
+        for item in inventory["allItems"]:
+            if item["category"] == "ball":
+                ball = item["name"].lower().replace(" ", "")
+                self.balls[ball] = item["amount"]
 
-    def get_item(self, item):
-        return self.items.get(item, 0)
+                for pokemon_type in POKEMON_TYPES:
+                    if pokemon_type in item["description"]:
+                        if pokemon_type not in self.special_balls:
+                            self.special_balls[pokemon_type] = []
+                        self.special_balls[pokemon_type].append(ball)
 
-    def set_item(self, item, amount):
-        self.items[item] = amount
-
-    def have_item(self, item):
-        return self.get_item(item) > 0
-
-    def use(self, item):
-        if self.have_item(item):
-            self.remove_item(item, 1)
-            self.last_used = item
-
-    def set_cash(self, cash):
-        self.cash = cash
+            else:
+                self.items.append(item)
 
     def get_catch_ball(self, types=[], repeat=False, best=True):
         if best:
@@ -58,22 +39,27 @@ class Inventory(object):
 
     def get_catch_ball_worst(self):
         for item in CATCH_BALL_PRIORITY[::-1]:
-            if self.have_item(item):
+            if self.have_ball(item):
                 return item
 
     def get_catch_best_ball(self, types=[], repeat=False):
         if repeat:
-            if self.have_item("repeatball"):
+            if self.have_ball("repeatball"):
                 return "repeatball"
+
+        if self.have_ball("ultraball"):
+            return "ultraball"
 
         if types is not None:
             for t in sorted(types):
-                if t in CATCH_SPECIAL_BALLS:
-                    if self.have_item(CATCH_SPECIAL_BALLS[t]):
-                        return CATCH_SPECIAL_BALLS[t]
+                if t in self.special_balls[t]:
+                    return self.special_balls[t][0]
 
-        for item in CATCH_BALL_PRIORITY:
-            if self.have_item(item):
+        for item in CATCH_BALL_PRIORITY[1:]:
+            if self.have_ball(item):
                 return item
 
         return None
+
+    def have_ball(self, ball):
+        return self.balls.get(ball, 0) > 0

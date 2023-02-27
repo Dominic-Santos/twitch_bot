@@ -1,14 +1,7 @@
-import requests
-import json
-from bs4 import BeautifulSoup
-
-from .Pokeping import Pokeping
-
-POKEMON_INFO_URL = "https://www.pokemon.com/us/pokedex/{pokemon}"
-HEADERS = {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.95 Safari/537.36'}
-POKEDEX_FILE = "pokedex.json"
+from .Pokemon import Pokemon
 
 STARTER_POKEMON = ["Bulbasaur", "Ivysaur", "Venusaur", "Charmander", "Charmeleon", "Charizard", "Squirtle", "Wartortle", "Blastoise", "Chikorita", "Bayleef", "Meganium", "Cyndaquil", "Quilava", "Typhlosion", "Totodile", "Croconaw", "Feraligatr", "Treecko", "Grovyle", "Sceptile", "Torchic", "Combusken", "Blaziken", "Mudkip", "Marshtomp", "Swampert", "Turtwig", "Grotle", "Torterra", "Chimchar", "Monferno", "Infernape", "Piplup", "Prinplup", "Empoleon", "Snivy", "Servine", "Serperior", "Tepig", "Pignite", "Emboar", "Oshawott", "Dewott", "Samurott", "Chespin", "Quilladin", "Chesnaught", "Fennekin", "Braixen", "Delphox", "Froakie", "Frogadier", "Greninja", "Rowlet", "Dartrix", "Decidueye", "Litten", "Torracat", "Incineroar", "Popplio", "Brionne", "Primarina", "Grookey", "Thwackey", "Rillaboom", "Scorbunny", "Raboot", "Cinderace", "Sobble", "Drizzile", "Inteleon"]
+FEMALE_POKEMON = [10025, 86320, 10143, 10144, 10262, 10284, 10285, 10286, 10287, 10288, 10292, 10295, 10302, 10309, 10316, 10319, 10325, 10340, 10350, 10352, 10359, 10360, 10361, 10362, 10365, 10368, 10370, 10372, 10373, 10375, 10378, 10379, 10381, 10382, 10384, 10385, 10387, 10388, 10391, 10392, 10396, 10404, 10418, 10422, 10423, 10424, 10427, 10429, 10438, 10441, 10442, 10445, 10446, 10449, 10451, 10452, 10453, 10454, 10455, 10456, 10467, 10468, 10470, 10471, 10540, 10543, 10544, 10545, 10553]
 POKEMON_TIERS = {
     "S": ["Articuno", "Zapdos", "Moltres", "Mewtwo", "Mew", "Raikou", "Entei", "Suicune", "Lugia", "Ho-Oh", "Celebi", "Regirock", "Regice", "Registeel", "Latias", "Latios", "Kyogre", "Groudon", "Rayquaza", "Jirachi", "Deoxys", "Uxie", "Mesprit", "Azelf", "Dialga", "Palkia", "Heatran", "Regigigas", "Giratina", "Cresselia", "Phione", "Manaphy", "Darkrai", "Shaymin", "Arceus", "Victini", "Cobalion", "Terrakion", "Virizion", "Tornadus", "Thundurus", "Reshiram", "Zekrom", "Landorus", "Kyurem", "Keldeo", "Meloetta", "Genesect", "Xerneas", "Yveltal", "Zygarde", "Diancie", "Hoopa", "Volcanion", "Type:Null", "Silvally", "TapuKoko", "TapuLele", "TapuBulu", "TapuFini", "Cosmog", "Cosmoem", "Solgaleo", "Lunala", "Nihilego", "Buzzwole", "Pheromosa", "Xurkitree", "Celesteela", "Kartana", "Guzzlord", "Necrozma", "Magearna", "Marshadow", "Poipole", "Naganadel", "Stakataka", "Blacephalon", "Zeraora", "Meltan", "Melmetal", "Zacian", "Zamazenta", "Eternatus", "Kubfu", "Urshifu", "Zarude", "Regieleki", "Regidrago", "Glastrier", "Spectrier", "Calyrex", "Ting-lu", "Chien-pao", "Wo-chien", "Chi-yu", "Koraidon", "Miraidon"],
     "A": ["Raichu", "Nidoqueen", "Nidoking", "Vileplume", "Arcanine", "Poliwrath", "Alakazam", "Machamp", "Victreebel", "Golem", "Gengar", "Starmie", "Gyarados", "Lapras", "Vaporeon", "Jolteon", "Flareon", "Aerodactyl", "Snorlax", "Dragonite", "Crobat", "Politoed", "Espeon", "Umbreon", "Slowking", "Steelix", "Scizor", "Kingdra", "Blissey", "Pupitar", "Tyranitar", "Ludicolo", "Shiftry", "Gardevoir", "Slaking", "Aggron", "Wailord", "Camerupt", "Flygon", "Altaria", "Milotic", "Walrein", "Salamence", "Metagross", "Luxray", "Roserade", "Rampardos", "Bastiodon", "Vespiquen", "Drifblim", "Mismagius", "Honchkrow", "Spiritomb", "Garchomp", "Lucario", "Hippowdon", "Toxicroak", "Abomasnow", "Weavile", "Magnezone", "Lickilicky", "Rhyperior", "Electivire", "Magmortar", "Togekiss", "Yanmega", "Leafeon", "Glaceon", "Gliscor", "Mamoswine", "Porygon-Z", "Gallade", "Dusknoir", "Froslass", "Rotom", "Gigalith", "Excadrill", "Conkeldurr", "Seismitoad", "Leavanny", "Scolipede", "Krookodile", "Darmanitan", "Cofagrigus", "Archeops", "Zoroark", "Gothitelle", "Reuniclus", "Vanilluxe", "Ferrothorn", "Klinklang", "Eelektross", "Chandelure", "Haxorus", "Druddigon", "Golurk", "Bisharp", "Hydreigon", "Volcarona", "Talonflame", "Pyroar", "Florges", "Pangoro", "Aegislash", "Dragalge", "Tyrantrum", "Sylveon", "Hawlucha", "Goodra", "Noivern", "Toucannon", "Vikavolt", "Toxapex", "Salazzle", "Bewear", "Tsareena", "Golisopod", "Turtonator", "Mimikyu", "Kommo-o", "Corviknight", "Orbeetle", "Coalossal", "Flapple", "Appletun", "Toxtricity", "Centiskorch", "Polteageist", "Hatterene", "Grimmsnarl", "Obstagoon", "Cursola", "Mr-Rime", "Runerigus", "Alcremie", "Copperajah", "Duraludon", "Drakloak", "Dragapult", "Farigiraf", "Dondozo", "Arboliva", "Revavroom", "Cetitan", "Baxcalibur", "Cyclizar", "Pawmot", "Flamigo", "Garganacl", "Glimmora", "Mabosstiff", "Gholdengo", "GreatTusk", "BruteBonnet", "SandyShocks", "ScreamTail", "FlutterMane", "SlitherWing", "RoaringMoon", "IronTreads", "IronMoth", "IronHands", "IronJugulis", "IronThorns", "IronBundle", "IronValiant", "Tinkaton", "Armarouge", "Ceruledge", "Kingambit", "Annihilape"],
@@ -17,49 +10,42 @@ POKEMON_TIERS = {
 }
 
 
-class Pokedex(Pokeping):
+class Pokedex(object):
     def __init__(self):
-        super().__init__()
-        self.types = {}
-        self.alts = []
-        self.load()
+        self.pokemon = {}
+        self.total = 0
 
-    def get(self, pokemon):
-        return self.types.get(pokemon, [])
+    def set(self, dex):
+        for pokemon in dex["dex"]:
+            self.pokemon[pokemon["name"]] = pokemon["c"]
+        self.total = dex["totalPkm"]
 
-    def get_data(self, pokemon):
-        res = requests.get(POKEMON_INFO_URL.format(pokemon=pokemon), headers=HEADERS)
-        soup = BeautifulSoup(res.content, "html.parser")
-        return soup
+    @staticmethod
+    def _get_pokemon_name(pokemon):
+        if isinstance(pokemon, Pokemon):
+            return pokemon.pokedex_name
+        return pokemon
 
-    def get_type_request(self, pokemon):
-        try:
-            data = self.get_data(pokemon)
-            typedata = data.find("div", class_="dtm-type").find_all("a")
-            types = [t.text for t in typedata]
-            self.types[pokemon] = types
-            self.save()
-        except:
-            pass
+    @staticmethod
+    def _get_pokemon_id(pokemon):
+        if isinstance(pokemon, Pokemon):
+            return pokemon.pokemon_id
+        return pokemon
 
-    def get_type(self, pokemon):
-        if pokemon in self.types:
-            return self.types[pokemon]
+    def have(self, pokemon):
+        poke_name = self._get_pokemon_name(pokemon)
+        return self.pokemon.get(poke_name, False)
 
-        self.get_type_request(pokemon)
+    def need(self, pokemon):
+        return self.have(pokemon) is False
 
-        return self.get(pokemon)
+    def starter(self, pokemon):
+        poke_name = self._get_pokemon_name(pokemon)
+        return poke_name in STARTER_POKEMON
 
-    def save(self):
-        with open(POKEDEX_FILE, "w") as f:
-            f.write(json.dumps(self.types, indent=4))
-
-    def load(self):
-        try:
-            with open(POKEDEX_FILE, "r") as f:
-                self.types = json.load(f)
-        except:
-            self.types = {}
+    def female(self, pokemon):
+        poke_id = self._get_pokemon_id(pokemon)
+        return poke_id in FEMALE_POKEMON
 
     @staticmethod
     def clean_name(pokemon):
@@ -75,20 +61,9 @@ class Pokedex(Pokeping):
         end = end.replace("’", "")
         return end
 
-    def alternate_caught(self, alt_id):
-        if alt_id not in self.alts and alt_id != "0":
-            self.alts.append(alt_id)
-
-    def need_alternate(self, alt_id):
-        return alt_id not in self.alts
-
-    @staticmethod
-    def tier(pokemon):
+    def tier(self, pokemon):
+        poke_name = self.clean_name(self._get_pokemon_name(pokemon))
         for k in POKEMON_TIERS.keys():
-            if pokemon in POKEMON_TIERS[k]:
+            if poke_name in POKEMON_TIERS[k]:
                 return k
         return None
-
-    @staticmethod
-    def starter(pokemon):
-        return pokemon in STARTER_POKEMON

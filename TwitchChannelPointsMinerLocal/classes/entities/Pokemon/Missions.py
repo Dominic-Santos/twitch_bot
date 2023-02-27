@@ -82,38 +82,39 @@ class Missions(object):
     def check_bst_mission(self, bst, inc=False):
         return self.between_mission("bst", bst, inc)
 
-    def check_all_missions(self, bst=0, weight=0, types=[]):
-        if self.check_type_mission(types):
-            return "type"
+    def check_all_missions(self, pokemon):
+        reasons = []
+        if self.check_type_mission(pokemon.types):
+            reasons.append("type")
 
-        if self.check_weight_mission(weight):
-            return "weight"
+        if self.check_weight_mission(pokemon.weight):
+            reasons.append("weight")
 
-        if self.check_bst_mission(bst):
-            return "bst"
+        if self.check_bst_mission(pokemon.bst):
+            reasons.append("bst")
 
         if self.check_miss_mission():
-            return "miss"
+            reasons.append("miss")
 
         if self.check_attempt_mission():
-            return "attempt"
+            reasons.append("attempt")
 
-        return None
+        return reasons
 
-    def check_missions_increment(self, status="caught", bst=0, weight=0, types=[]):
-        if status == "caught":
-            self.check_bst_mission(bst, inc=True)
-            self.check_weight_mission(weight, inc=True)
-            self.check_type_mission(types, inc=True)
-        elif status == "dunno":
-            pass  # nothing yet?
+    def check_missions_increment(self, pokemon, caught=True):
+        if caught:
+            self.check_bst_mission(pokemon.bst, inc=True)
+            self.check_weight_mission(pokemon.weight, inc=True)
+            self.check_type_mission(pokemon.types, inc=True)
         else:
             self.check_miss_mission(inc=True)
 
         self.check_attempt_mission(inc=True)
 
+    def mission_best_ball(self, mission):
+        return mission not in ["attempt", "miss"]
+
     def mission_message(self, mission):
-        best = True
         if mission == "type":
             m = self.data["type_mission"]
             mission_msg = f"is {m} type"
@@ -124,8 +125,7 @@ class Missions(object):
             mission_msg = f"is between {m_min} and {m_max} {m_unit[mission]}"
         elif mission in ["attempt", "miss"]:
             mission_msg = f"need to {mission} more pokemon"
-            best = False
         else:
             mission_msg = f"{mission} mission"
 
-        return mission_msg, best
+        return mission_msg

@@ -1,3 +1,4 @@
+from datetime import datetime
 from ..Chat import ChatPresence, ThreadChat
 from .Bet import BetSettings
 from .StreamerO import StreamerSettings as StreamerSettingsO
@@ -12,7 +13,7 @@ class StreamerSettings(StreamerSettingsO):
         "watch_streak",
         "bet",
         "chat",
-        "marbles",
+        "marbles"
     ]
 
     def __init__(
@@ -48,5 +49,7 @@ class Streamer(StreamerO):
                 self.irc_chat.username,
                 self.irc_chat.token,
                 self.username,
-                self.settings.marbles,
+                self.irc_chat.channel_id,
+                self.irc_chat.get_pokemoncg_token_func,
+                self.irc_chat.marbles,
             )

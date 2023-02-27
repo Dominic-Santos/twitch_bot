@@ -1,5 +1,6 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 from time import sleep
+from dateutil.parser import parse
 import random
 import logging
 
@@ -8,16 +9,20 @@ from .ChatO import ChatPresence as ChatPresenceO
 from .ChatO import ThreadChat as ThreadChatO
 from .ChatO import logger
 
-from .entities.Pokemon import PokemonComunityGame
+from .entities.Pokemon import PokemonComunityGame, CGApi
 from .WinAlerts import send_alert
 from .DiscordAPI import DiscordAPI
 
 formatter = logging.Formatter('%(asctime)s %(message)s', datefmt="%Y-%m-%d %H:%M:%S")
-file_handler = logging.FileHandler("logs/pokemoncg.txt")
+file_handler = logging.FileHandler("logs/pokemoncg.txt", encoding='utf-8')
 file_handler.setFormatter(formatter)
 poke_logger = logging.getLogger(__name__ + "pokemon")
 poke_logger.setLevel(logging.DEBUG)
 poke_logger.addHandler(file_handler)
+
+POKEMON_CHECK_DELAY = 45  # seconds
+POKEMON_CHECK_DELAY_RELAX = 60 * 14  # 14 mins
+POKEMON_CHECK_LIMIT = 60  # pokemon is valid for 60 seconds
 
 MARBLES_DELAY = 60 * 3  # seconds
 MARBLES_TRIGGER_COUNT = 3
@@ -27,8 +32,15 @@ GREENLOG = "\x1b[32;20m"
 YELLOWLOG = "\x1b[36;20m"
 
 POKEMON = PokemonComunityGame()
+POKEMON.set_delay(POKEMON_CHECK_DELAY)
 DISCORD = DiscordAPI(POKEMON.discord.data["auth"])
 DISCORD_CATCH_ALERTS = "https://discord.com/api/v9/channels/1072557550526013440/messages"
+
+
+CHARACTERS = {
+    "starter": "⭐",
+    "female": "♀"
+}
 
 
 class ClientIRCBase(ClientIRCO):
@@ -69,71 +81,35 @@ class ClientIRCMarbles(ClientIRCBase):
 
 
 class ClientIRCPokemon(ClientIRCBase):
-    def __init__(self, username, token, channel):
+    def __init__(self, username, token, channel, get_pokemon_token):
         ClientIRCBase.__init__(self, username, token, channel)
-        self.init(username)
+        self.init(username, get_pokemon_token)
 
-    def init(self, username):
+    def init(self, username, get_pokemon_token):
         self.username = username.lower()
         self.at_username = "@" + self.username
 
         self.pokemon_active = False
         self.pokemon_disabled = False
+        self.pokemon_api = CGApi()
+        self.pokemon_api.get_auth_token = get_pokemon_token
 
     @staticmethod
     def log_file(msg):
         poke_logger.info(msg)
 
+    def have_pokemon(self):
+        return self.pokemon_active and self.pokemon_disabled is False
+
     def on_pubmsg(self, client, message):
         argstring = " ".join(message.arguments)
 
-        if "!pokecatch" in argstring:
-            self.check_pokemon(client)
-
-        if argstring.startswith(self.at_username):
-            if "registered in Pokédex" in argstring:
-                if POKEMON.rechecking:
-                    self.rechecking_results(client, argstring)
-                else:
-                    self.check_should_catch(client, argstring)
-            elif "Balance" in argstring:
-                self.update_balance(client, argstring)
-
         if "pokemoncommunitygame" in message.source:
             self.check_pokemon_active(client, message, argstring)
-            self.check_pokemon_caught(client, message, argstring)
 
-    def update_balance(self, client, argstring):
-        try:
-            cash = int(argstring.split("$")[1].split(" ")[0])
-        except:
-            self.log(f"{REDLOG}Failed to parse current balance: {argstring}")
-            cash = 0
-        else:
-            POKEMON.set_cash(cash)
-            buy_list = POKEMON.get_purchase_list(True)
-
-            for item, amount in buy_list:
-                self.buy_shop(client, item, amount)
-
-            self.log(f"{YELLOWLOG}" + POKEMON.get_inventory())
-            POKEMON.save_settings()
-
-    def buy_shop(self, client, item, amount):
-        msg = "{color}Bought {amount} {item}{plural}".format(
-            color=GREENLOG,
-            amount=amount,
-            item=item,
-            plural="s" if amount > 0 else ""
-        )
-
-        if item.endswith("ball") and amount > 9:
-            msg = msg + " and got {amount} bonus premierball{plural}".format(
-                amount=amount // 10,
-                plural="s" if amount // 10 > 1 else ""
-            )
-
-        self.send_random_channel(client, "!pokeshop {item} {amount}".format(item=item, amount=amount), msg, logtofile=True, wait=15)
+        if self.have_pokemon():
+            if POKEMON.check_catch():
+                self.check_main(client)
 
     def check_pokemon_active(self, client, message, argstring):
 
@@ -147,143 +123,185 @@ class ClientIRCPokemon(ClientIRCBase):
             self.log(f"{YELLOWLOG}Joined Pokemon for {message.target[1:]}")
             POKEMON.add_channel(message.target[1:])
 
-    def check_pokemon(self, client, force=False):
-        if force or POKEMON.check_catch():
-            self.send_random_channel(client, "!pokecheck", "Checking if need current Pokemon in {channel} stream")
+    def check_wondertrade(self):
+        allpokemon = POKEMON.computer.pokemon
+        if len(allpokemon) > 0:
+            if POKEMON.wondertrade_timer is None:
+                # get the timer from a pokemon
+                pokemon = self.pokemon_api.get_pokemon(allpokemon[0]["id"])
 
-    def catch_pokemon(self, client, pokemon, have=False, best=True):
-        # best = use best ball can, only false when want to miss
-        random_channel = self.send_random_channel(client, POKEMON.get_catch_message(repeat=have, best=best), GREENLOG + "Trying to catch " + pokemon.name + " in {channel} stream")
-        POKEMON.last_attempt(pokemon, random_channel, have)
-
-    def catch_results(self, pokemon, result):
-        pokemon_name = pokemon.name if pokemon.is_alternate is False else pokemon.alt_name
-        if result == "caught":
-            self.log_file(f"{GREENLOG}Caught {pokemon_name} with {POKEMON.inventory.last_used}")
-            send_alert("Pokemon CG", f"You caught {pokemon_name}! Congrats!")
-            msg = f"I caught a {pokemon_name}! =P"
-            POKEMON.pokedex.alternate_caught(pokemon.alt_id)
-        elif result == "dunno":
-            self.log_file(f"{YELLOWLOG}I don't know if {pokemon_name} was caught with {POKEMON.inventory.last_used}, too many users ")
-            send_alert("Pokemon CG", f"You may have caught {pokemon_name}, Go check.")
-            msg = f"I maybe caught a {pokemon_name}! =S"
-        else:
-            self.log_file(f"{REDLOG}Failed to catch {pokemon_name} with {POKEMON.inventory.last_used}")
-            send_alert("Pokemon CG", f"You missed {pokemon_name}, Sorry =(")
-            msg = f"I missed {pokemon_name}! ='("
-
-        POKEMON.missions.check_missions_increment(result, bst=pokemon.bst, weight=pokemon.weight, types=POKEMON.last_type)
-
-        DISCORD.post(DISCORD_CATCH_ALERTS, msg)
-
-    def check_pokemon_caught(self, client, message, argstring):
-        last_catch, last_channel, last_have = POKEMON.last_attempt()
-        if message.target[1:] == last_channel:
-            if argstring.startswith(last_catch.name + " has been caught by:"):
-                if self.username in argstring:
-                    self.catch_results(last_catch, "caught")
-                elif argstring.endswith("..."):
-                    if last_have:
-                        self.catch_results(last_catch, "dunno")
+                can_trade_in = pokemon["tradable"]
+                if can_trade_in is None:
+                    POKEMON.wondertrade_timer = datetime.now() - timedelta(hours=4)
+                else:
+                    if "hour" in can_trade_in:
+                        hours = int(can_trade_in.split(" ")[0])
                     else:
-                        self.log(f"{REDLOG}Too many users, must recheck {last_catch.name}")
-                        POKEMON.set_rechecking(True)
-                        self.check_pokemon(client, force=True)
+                        hours = 0
+                    if "minute" in can_trade_in:
+                        minutes = int(can_trade_in.split(" ")[-2])
+                    else:
+                        minutes = 0
+
+                    POKEMON.wondertrade_timer = datetime.now() - timedelta(minutes=minutes, hours=hours)
+
+            if POKEMON.check_wondertrade():
+                POKEMON.reset_wondertrade_timer()
+                pokemon_to_trade = None
+
+                for tier in ["A", "B", "C"]:
+                    looking_for = f"trade{tier}"
+                    for pokemon in allpokemon:
+                        if pokemon["nickname"] is None:
+                            continue
+                        if looking_for in pokemon["nickname"]:
+                            pokemon_to_trade = pokemon
+                            break
+
+                if pokemon_to_trade is None:
+                    self.log(f"{REDLOG}Could not find a pokemon to wondertrade")
                 else:
-                    self.catch_results(last_catch, "failed")
-            elif argstring.startswith(last_catch.name + " escaped."):
-                self.catch_results(last_catch, "failed")
+                    pokemon_received = self.pokemon_api.wondertrade(pokemon_to_trade["id"])
+                    print("received", pokemon_received)
+                    self.log(f"{REDLOG}Wondertraded {pokemon_to_trade['name']} for {pokemon_received['pokemon']['name']}")
 
-    def get_pokemon(self, argstring):
-        args = argstring.split(" ")
-        pokemon = " ".join(args[1:2 + (len(args) - 6)])
-        return pokemon
+    def sort_computer(self):
+        allpokemon = POKEMON.computer.pokemon
+        pokedict = {}
+        shineys = []
+        changes = []
 
-    def clean_pokemon(self, pokemon):
-        return POKEMON.pokedex.clean_name(pokemon)
-
-    def get_pokemon_clean(self, argstring):
-        return self.clean_pokemon(self.get_pokemon(argstring))
-
-    def get_pokedex_status(self, argstring):
-        return argstring.endswith("❌") is False
-
-    def check_should_catch(self, client, argstring):
-        last_catch, last_channel, last_have = POKEMON.last_attempt()
-        pokemon_dirty = self.get_pokemon(argstring)
-        pokemon_clean = self.clean_pokemon(pokemon_dirty)
-        pokemon_tier = POKEMON.pokedex.tier(pokemon_clean)
-        pokemon = POKEMON.pokedex.scan(pokemon_dirty)
-
-        catch_alternate = False
-        if pokemon.is_alternate:
-            catch_alternate = POKEMON.pokedex.need_alternate(pokemon.alt_id)
-        special = False
-        for n in POKEMON.always_catch():
-            if pokemon.name.startswith(n):
-                special = True
-                break
-
-        if last_catch == pokemon:
-            self.log(f"{YELLOWLOG}Already decided on {pokemon.name}")
-        else:
-            POKEMON.get_pokemon_type(pokemon.name)
-            mission = POKEMON.missions.check_all_missions(bst=pokemon.bst, weight=pokemon.weight, types=POKEMON.last_type)
-
-            if self.get_pokedex_status(argstring) is False:
-                self.catch_pokemon(client, pokemon)
-            elif POKEMON.catch_alternates() and catch_alternate:
-                self.log_file(f"{GREENLOG}Already have {pokemon.name} but is alternate version")
-                self.catch_pokemon(client, pokemon, True)
-            elif mission is not None:
-                mission_msg, best = POKEMON.missions.mission_message(mission)
-                self.log_file(f"{GREENLOG}Already have {pokemon.name} but {mission_msg}")
-                self.catch_pokemon(client, pokemon, True, best=best)
-            elif special:
-                self.log_file(f"{GREENLOG}Already have {pokemon.name} but is special")
-                self.catch_pokemon(client, pokemon, True)
-            elif pokemon_tier in POKEMON.always_catch_tiers():
-                self.log_file(f"{GREENLOG}Already have {pokemon.name} but is {pokemon_tier} tier")
-                self.catch_pokemon(client, pokemon, True)
-            elif POKEMON.catch_everything():
-                self.log_file(f"{GREENLOG}Already have {pokemon.name} but catching everything")
-                self.catch_pokemon(client, pokemon, True)
+        for pokemon in allpokemon:
+            if pokemon["isShiny"]:
+                shineys.append(pokemon)
             else:
-                self.log_file(f"{REDLOG}Won't catch {pokemon.name}")
-                POKEMON.last_attempt(pokemon, None, True)
-        self.check_balance(client)
+                pokedict.setdefault(pokemon["pokedexId"], []).append(pokemon)
 
-    def rechecking_results(self, client, argstring):
-        POKEMON.set_rechecking(False)
-        # pokemon = self.get_pokemon_clean(argstring)
-        last_catch, last_channel, last_have = POKEMON.last_attempt()
-        if self.get_pokedex_status(argstring):
-            self.catch_results(last_catch, "caught")
-        else:
-            self.catch_results(last_catch, "failed")
-
-    def check_balance(self, client):
-        if POKEMON.check_balance():
-            self.send_random_channel(client, "!pokepass", YELLOWLOG + "Checking balance in {channel}", wait=10)
-
-    def send_random_channel(self, client, message, logmessage=None, logtofile=False, wait=0):
-        random_channel = POKEMON.random_channel()
-        if random_channel is not None:
-            if wait > 0:
-                sleep(wait)
-            client.privmsg("#" + random_channel, message)
-            if logmessage is not None:
-                if logtofile:
-                    self.log_file(logmessage.format(channel=random_channel))
+        for pokeid in pokedict.keys():
+            ordered = sorted(pokedict[pokeid], key=lambda x: (-x["avgIV"], -x["lvl"]))
+            for index, pokemon in enumerate(ordered):
+                if index == 0:
+                    if POKEMON.pokedex.starter(pokemon["name"]):
+                        nick = CHARACTERS["starter"] + pokemon["name"]
+                    elif POKEMON.pokedex.female(pokemon["pokedexId"]):
+                        nick = pokemon["name"] + CHARACTERS["female"]
+                    elif pokemon["nickname"] is None or pokemon["nickname"].startswith("trade") is False:
+                        # if not starter and not female and has nickname, dont mess
+                        continue
+                    else:
+                        nick = ""
                 else:
-                    self.log(logmessage.format(channel=random_channel))
-        return random_channel
+                    nick = "trade" + POKEMON.pokedex.tier(pokemon["name"])
+                    if POKEMON.pokedex.starter(pokemon["name"]):
+                        nick = CHARACTERS["starter"] + nick
+                    elif POKEMON.pokedex.female(pokemon["pokedexId"]):
+                        nick = nick + CHARACTERS["female"]
+
+                if pokemon["nickname"] == nick:
+                    continue
+                changes.append((pokemon["id"], nick, pokemon["name"], pokemon["nickname"]))
+
+        for pokemon in shineys:
+            if pokemon["nickname"] is not None:
+                changes.append((pokemon["id"], "", pokemon["name"], pokemon["nickname"]))
+
+        for poke_id, new_name, real_name, old_name in changes:
+            self.pokemon_api.set_name(poke_id, new_name)
+            self.log_file(f"{YELLOWLOG}Renamed {real_name} from {old_name} to {new_name}")
+            sleep(0.5)
+
+    def check_main(self, client):
+        POKEMON.reset_timer()
+        self.log_file(f"{GREENLOG}Checking pokemon spawn in pokeping")
+        pokemon = POKEMON.get_last_spawned()
+        if (datetime.now() - pokemon.spawn).total_seconds() <= POKEMON_CHECK_LIMIT:
+            # pokemon spawned recently relax and process it
+            POKEMON.delay = POKEMON_CHECK_DELAY_RELAX
+            self.log_file(f"{GREENLOG}Pokemon spawned - processing {pokemon}")
+
+            dex = self.pokemon_api.get_pokedex()
+            POKEMON.sync_pokedex(dex)
+
+            all_pokemon = self.pokemon_api.get_all_pokemon()
+            POKEMON.sync_computer(all_pokemon)
+
+            catch_reasons, best_ball = POKEMON.need_pokemon(pokemon)
+            repeat = True
+            for reason in ["pokedex", "bag", "alt"]:
+                if reason in catch_reasons:
+                    repeat = False
+                    break
+
+            if len(catch_reasons) > 0:
+                inv = self.pokemon_api.get_inventory()
+                POKEMON.sync_inventory(inv)
+
+                ball = POKEMON.inventory.get_catch_ball(pokemon.types, repeat=repeat, best=best_ball)
+                random_channel = POKEMON.random_channel()
+                message = f"!pokecatch {ball}"
+                client.privmsg("#" + random_channel, message)
+
+                reasons_string = ", ".join([POKEMON.missions.mission_message(reason) for reason in catch_reasons])
+                self.log_file(f"{GREENLOG}Trying to catch {pokemon.name} with {ball} because {reasons_string}")
+
+                sleep(5)
+
+                all_pokemon = self.pokemon_api.get_all_pokemon()
+                POKEMON.sync_computer(all_pokemon)
+
+                # find all the pokemon that are the current one that spawned
+                filtered = POKEMON.computer.get_pokemon(pokemon)
+                caught = False
+                for poke in filtered:
+                    if (datetime.now() - parse(poke["caughtAt"][:-1])).total_seconds() < 60:
+                        caught = True
+                        break
+
+                discord_pokemon_name = pokemon.name if pokemon.is_alternate is False else pokemon.alt_name
+                if caught:
+                    self.log_file(f"{GREENLOG}Caught {pokemon.name}")
+                    msg = f"I caught a {discord_pokemon_name}! =P"
+                else:
+                    self.log_file(f"{REDLOG}Failed to catch {pokemon.name}")
+                    msg = f"I missed {discord_pokemon_name}! ='("
+
+                DISCORD.post(DISCORD_CATCH_ALERTS, msg)
+
+                self.sort_computer()
+
+            else:
+                self.log_file(f"{REDLOG}Don't need pokemon, skipping")
+                random_channel = POKEMON.random_channel()
+                client.privmsg("#" + random_channel, "!pokecheck")
+
+            self.check_wondertrade()
+        else:
+            # pokemon should be spawning soon
+            POKEMON.delay = POKEMON_CHECK_DELAY
+            self.log_file(f"{YELLOWLOG}Pokemon spawning soon")
+
+    def buy_shop(self, client, item, amount):
+        # OLD - NEEDS REWORKING
+        msg = "{color}Bought {amount} {item}{plural}".format(
+            color=GREENLOG,
+            amount=amount,
+            item=item,
+            plural="s" if amount > 0 else ""
+        )
+
+        if item.endswith("ball") and amount > 9:
+            msg = msg + " and got {amount} bonus premierball{plural}".format(
+                amount=amount // 10,
+                plural="s" if amount // 10 > 1 else ""
+            )
+
+        # self.send_random_channel(client, "!pokeshop {item} {amount}".format(item=item, amount=amount), msg, logtofile=True, wait=15)
 
 
 class ClientIRC(ClientIRCMarbles, ClientIRCPokemon):
-    def __init__(self, username, token, channel, marbles):
+    def __init__(self, username, token, channel, get_pokemoncg_token, marbles):
         ClientIRCMarbles.__init__(self, username, token, channel, marbles)
-        ClientIRCPokemon.init(self, username)
+        ClientIRCPokemon.init(self, username, get_pokemoncg_token)
 
     def on_pubmsg(self, client, message):
         ClientIRCMarbles.on_pubmsg(self, client, message)
@@ -291,12 +309,23 @@ class ClientIRC(ClientIRCMarbles, ClientIRCPokemon):
 
 
 class ThreadChat(ThreadChatO):
-    def __init__(self, username, token, channel, marbles):
+    def __init__(self, username, token, channel, channel_id, get_pokemoncg_token, marbles):
         ThreadChatO.__init__(self, username, token, channel)
         self.marbles = marbles
+        self.channel_id = channel_id
+        self.get_pokemoncg_token_func = get_pokemoncg_token
+
+    def get_pokemoncg_token(self):
+        return self.get_pokemoncg_token_func(self.channel_id)
 
     def run(self):
-        self.chat_irc = ClientIRC(self.username, self.token, self.channel, self.marbles)
+        self.chat_irc = ClientIRC(
+            self.username,
+            self.token,
+            self.channel,
+            self.get_pokemoncg_token,
+            self.marbles
+        )
         logger.info(
             f"Join IRC Chat: {self.channel}", extra={"emoji": ":speech_balloon:"}
         )

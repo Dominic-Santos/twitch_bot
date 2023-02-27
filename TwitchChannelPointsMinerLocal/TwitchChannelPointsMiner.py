@@ -219,6 +219,8 @@ class TwitchChannelPointsMiner:
                                 self.username,
                                 self.twitch.twitch_login.get_auth_token(),
                                 streamer.username,
+                                streamer.channel_id,
+                                self.twitch.get_pokemoncg_token,
                                 streamer.settings.marbles,
                             )
                         self.streamers.append(streamer)
