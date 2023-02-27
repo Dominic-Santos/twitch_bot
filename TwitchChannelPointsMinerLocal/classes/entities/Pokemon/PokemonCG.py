@@ -101,6 +101,9 @@ class PokemonComunityGame(object):
 
         return False
 
+    def check_wondertrade_left(self):
+        return datetime.utcnow() - self.wondertrade_timer
+
     def sync_inventory(self, inv):
         self.inventory.set(inv)
 
