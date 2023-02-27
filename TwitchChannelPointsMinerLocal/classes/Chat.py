@@ -160,12 +160,9 @@ class ClientIRCPokemon(ClientIRCBase):
                             if pokemon["nickname"] is None:
                                 continue
                             if looking_for in pokemon["nickname"]:
-                                print(pokemon)
-                                print("good nick")
                                 pokemon_stats = self.pokemon_api.get_pokemon(pokemon["id"])
                                 sleep(0.5)
                                 if POKEMON.missions.check_wondertrade_mission([pokemon_stats["type1"].title(), pokemon_stats["type2"].title()]) is False:
-                                    print("not type")
                                     continue
                                 pokemon_to_trade = pokemon
                                 break
