@@ -23,7 +23,7 @@ class Missions(object):
             mission_title = "".join([c for c in mission_title if c.isalnum() or c == " "]).strip()
             mission_title = " ".join([w for w in mission_title.split(" ") if w != ""])
 
-            if mission_title.startswith("wondertrade") and "type pokemon" in mission_title:
+            if mission_title.startswith("wondertrade") and mission_title.endswith("types"):
                 the_type = mission_title.split(" ")[1].title()
                 self.data.setdefault("wondertrade", []).append(the_type)
             elif mission_title == "miss catches":
