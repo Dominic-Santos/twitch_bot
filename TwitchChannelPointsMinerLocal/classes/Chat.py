@@ -207,6 +207,9 @@ class ClientIRCPokemon(ClientIRCBase):
         for pokeid in pokedict.keys():
             ordered = sorted(pokedict[pokeid], key=lambda x: (-x["avgIV"], -x["lvl"]))
             for index, pokemon in enumerate(ordered):
+                if pokemon["nickname"] is not None:
+                    if pokemon["nickname"].replace(CHARACTERS["starter"], "").replace(CHARACTERS["female"], "") != pokemon["name"]:
+                        continue
                 if index == 0:
                     if POKEMON.pokedex.starter(pokemon["name"]):
                         nick = CHARACTERS["starter"] + pokemon["name"]
