@@ -34,6 +34,7 @@ class PokemonComunityGame(object):
         self.delay = 0
         self.reset_timer()
         self.wondertrade_timer = None
+        self.last_random = None
 
         self.channel_list = []
 
