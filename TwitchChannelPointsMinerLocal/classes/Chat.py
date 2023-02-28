@@ -271,6 +271,7 @@ class ClientIRCPokemon(ClientIRCBase):
         for poke_id, new_name, real_name, old_name in changes:
             if new_name is not None and len(new_name) > 12:
                 self.log_file(f"{YELLOWLOG}Wont rename {real_name} from {old_name} to {new_name}, name too long")
+                continue
             self.pokemon_api.set_name(poke_id, new_name)
             self.log_file(f"{YELLOWLOG}Renamed {real_name} from {old_name} to {new_name}")
             sleep(0.5)
