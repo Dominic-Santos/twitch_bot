@@ -53,7 +53,7 @@ CHARACTERS = {
 
 
 def timer_thread(client, func):
-    def do():
+    def pokemon_timer():
         try:
             logger.info(f"{YELLOWLOG}Waiting for {POKEMON.delay} seconds", extra={"emoji": ":speech_balloon:"})
             sleep(POKEMON.delay)
@@ -66,11 +66,11 @@ def timer_thread(client, func):
 
             print(traceback.format_exc())
         if CLIENT_HOLDER.client is not None:
-            do()
+            pokemon_timer()
 
     if CLIENT_HOLDER.client is None:
         CLIENT_HOLDER.client = client
-        worker = Thread(target=do)
+        worker = Thread(target=pokemon_timer)
         worker.setDaemon(True)
         worker.start()
 
@@ -212,10 +212,12 @@ class ClientIRCPokemon(ClientIRCBase):
                     pokemon_received = self.pokemon_api.wondertrade(pokemon_traded["id"])
 
                     if "pokemon" in pokemon_received:
-                        pokemon_traded_tier = POKEMON.pokedex.tier(pokemon["name"])
-                        pokemon_received_tier = POKEMON.pokedex.tier(pokemon["name"])
+                        pokemon_traded_tier = POKEMON.pokedex.tier(pokemon_traded)
+                        pokemon_received_tier = POKEMON.pokedex.tier(pokemon_received)
 
-                        self.log(f"{GREENLOG}Wondertraded {pokemon_traded['name']} ({pokemon_traded_tier}) for {pokemon_received['pokemon']['name']} ({pokemon_received_tier})")
+                        wondertrade_msg = f"Wondertraded {pokemon_traded['name']} ({pokemon_traded_tier}) for {pokemon_received['pokemon']['name']} ({pokemon_received_tier})"
+                        self.log(f"{GREENLOG}{wondertrade_msg}")
+                        DISCORD.post(DISCORD_CATCH_ALERTS, wondertrade_msg)
                         POKEMON.reset_wondertrade_timer()
                     else:
                         self.log(f"{REDLOG}Wondertrade {pokemon_traded['name']} failed {pokemon_received}")
@@ -278,13 +280,13 @@ class ClientIRCPokemon(ClientIRCBase):
 
     def check_main(self, client):
         POKEMON.reset_timer()
-        self.log_file(f"{GREENLOG}Checking pokemon spawn in pokeping")
+        self.log_file(f"{YELLOWLOG}Checking pokemon spawn in pokeping")
         pokemon = POKEMON.get_last_spawned()
 
         if (datetime.utcnow() - pokemon.spawn).total_seconds() <= POKEMON_CHECK_LIMIT:
             # pokemon spawned recently relax and process it
             POKEMON.delay = POKEMON_CHECK_DELAY_RELAX
-            self.log_file(f"{GREENLOG}Pokemon spawned - processing {pokemon}")
+            self.log_file(f"{YELLOWLOG}Pokemon spawned - processing {pokemon}")
 
             # sync everything
             dex = self.pokemon_api.get_pokedex()
