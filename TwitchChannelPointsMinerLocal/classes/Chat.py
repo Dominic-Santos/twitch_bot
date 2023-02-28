@@ -3,6 +3,7 @@ from time import sleep
 from dateutil.parser import parse
 import random
 import logging
+import random
 
 from .ChatO import ClientIRC as ClientIRCO
 from .ChatO import ChatPresence as ChatPresenceO
@@ -10,7 +11,7 @@ from .ChatO import ThreadChat as ThreadChatO
 from .ChatO import logger
 
 from .entities.Pokemon import PokemonComunityGame, CGApi
-from .WinAlerts import send_alert
+# from .WinAlerts import send_alert
 from .DiscordAPI import DiscordAPI
 
 formatter = logging.Formatter('%(asctime)s %(message)s', datefmt="%Y-%m-%d %H:%M:%S")
@@ -150,48 +151,38 @@ class ClientIRCPokemon(ClientIRCBase):
                     POKEMON.wondertrade_timer = datetime.utcnow() - timedelta(minutes=minutes, hours=hours)
 
             if POKEMON.check_wondertrade():
+                tradable = [pokemon for pokemon in allpokemon if "trade" in pokemon.get("nickname", "")]
+                checks = [POKEMON.missions.have_mission("wondertrade")]
+                pokemon_to_trade = []
 
-                active = POKEMON.missions.have_mission("wondertrade")
-                pokemon_to_trade = None
+                if checks[0] == True:
+                    checks.append(False)
 
-                if active:
+                for active in checks:
                     for tier in ["A", "B", "C"]:
-                        if pokemon_to_trade is not None:
+                        if len(pokemon_to_trade) > 0:
                             break
 
                         looking_for = f"trade{tier}"
-                        for pokemon in allpokemon:
-                            if pokemon["nickname"] is None:
-                                continue
-                            if looking_for in pokemon["nickname"]:
-                                pokemon_stats = self.pokemon_api.get_pokemon(pokemon["id"])
-                                sleep(0.5)
-                                if POKEMON.missions.check_wondertrade_mission([pokemon_stats["type1"].title(), pokemon_stats["type2"].title()]) is False:
-                                    continue
-                                pokemon_to_trade = pokemon
-                                break
+                        for pokemon in tradable:
+                            if looking_for in pokemon.get("nickname", ""):
+                                if active:
+                                    pokemon_stats = self.pokemon_api.get_pokemon(pokemon["id"])
+                                    sleep(0.5)
+                                    if POKEMON.missions.check_wondertrade_mission([pokemon_stats["type1"].title(), pokemon_stats["type2"].title()]) is False:
+                                        continue
+                                pokemon_to_trade.append(pokemon)
 
-                for tier in ["A", "B", "C"]:
-                    if pokemon_to_trade is not None:
-                        break
-
-                    looking_for = f"trade{tier}"
-                    for pokemon in allpokemon:
-                        if pokemon["nickname"] is None:
-                            continue
-                        if looking_for in pokemon["nickname"]:
-                            pokemon_to_trade = pokemon
-                            break
-
-                if pokemon_to_trade is None:
+                if len(pokemon_to_trade) == 0:
                     self.log(f"{REDLOG}Could not find a pokemon to wondertrade")
                 else:
-                    pokemon_received = self.pokemon_api.wondertrade(pokemon_to_trade["id"])
+                    pokemon_traded = random.choice(pokemon_to_trade)
+                    pokemon_received = self.pokemon_api.wondertrade(pokemon_traded["id"])
                     if "pokemon" in pokemon_received:
-                        self.log(f"{GREENLOG}Wondertraded {pokemon_to_trade['name']} for {pokemon_received['pokemon']['name']}")
+                        self.log(f"{GREENLOG}Wondertraded {pokemon_traded['name']} for {pokemon_received['pokemon']['name']}")
                         POKEMON.reset_wondertrade_timer()
                     else:
-                        self.log(f"{REDLOG}Wondertrade {pokemon_to_trade['name']} failed {pokemon_received}")
+                        self.log(f"{REDLOG}Wondertrade {pokemon_traded['name']} failed {pokemon_received}")
             else:
                 time_remaining = POKEMON.check_wondertrade_left()
                 time_str = str(time_remaining).split(".")[0]
