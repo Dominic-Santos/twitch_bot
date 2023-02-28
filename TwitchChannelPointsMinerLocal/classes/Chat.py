@@ -183,6 +183,7 @@ class ClientIRCPokemon(ClientIRCBase):
                         POKEMON.reset_wondertrade_timer()
                     else:
                         self.log(f"{REDLOG}Wondertrade {pokemon_traded['name']} failed {pokemon_received}")
+                        POKEMON.wondertrade_timer = None
             else:
                 time_remaining = POKEMON.check_wondertrade_left()
                 time_str = str(time_remaining).split(".")[0]
