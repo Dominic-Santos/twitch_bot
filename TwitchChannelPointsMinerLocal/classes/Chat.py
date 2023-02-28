@@ -63,6 +63,7 @@ def timer_thread(client, func):
             str_ex = str(ex)
             logger.info(f"{REDLOG}Timer func failed - {str_ex.delay}", extra={"emoji": ":speech_balloon:"})
             CLIENT_HOLDER.client = None
+            POKEMON.delay = 5
         if CLIENT_HOLDER.client is not None:
             do()
 
