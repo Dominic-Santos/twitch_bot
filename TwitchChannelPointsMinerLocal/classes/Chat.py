@@ -4,6 +4,8 @@ from dateutil.parser import parse
 import random
 import logging
 import random
+from threading import Thread
+
 
 from .ChatO import ClientIRC as ClientIRCO
 from .ChatO import ChatPresence as ChatPresenceO
@@ -38,10 +40,37 @@ DISCORD = DiscordAPI(POKEMON.discord.data["auth"])
 DISCORD_CATCH_ALERTS = "https://discord.com/api/v9/channels/1072557550526013440/messages"
 
 
+class ClientHolder(object):
+    def __init__(self):
+        self.client = None
+
+
+CLIENT_HOLDER = ClientHolder()
+
 CHARACTERS = {
     "starter": "⭐",
     "female": "♀"
 }
+
+
+def timer_thread(client, func):
+    def do():
+        try:
+            logger.info(f"{YELLOWLOG}Waiting for {POKEMON.delay} seconds", extra={"emoji": ":speech_balloon:"})
+            sleep(POKEMON.delay)
+            func(client)
+        except Exception as ex:
+            str_ex = str(ex)
+            logger.info(f"{REDLOG}Timer func failed - {str_ex.delay}", extra={"emoji": ":speech_balloon:"})
+            CLIENT_HOLDER.client = None
+        if CLIENT_HOLDER.client is not None:
+            do()
+
+    if CLIENT_HOLDER.client is None:
+        CLIENT_HOLDER.client = client
+        worker = Thread(target=do)
+        worker.setDaemon(True)
+        worker.start()
 
 
 class ClientIRCBase(ClientIRCO):
@@ -109,8 +138,9 @@ class ClientIRCPokemon(ClientIRCBase):
             self.check_pokemon_active(client, message, argstring)
 
         if len(POKEMON.channel_list) > 0:
-            if POKEMON.check_catch():
-                self.check_main(client)
+            timer_thread(client, self.check_main)
+            # if POKEMON.check_catch():
+            #     self.check_main(client)
 
     def check_pokemon_active(self, client, message, argstring):
 
