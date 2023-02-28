@@ -35,8 +35,8 @@ class Computer(object):
         hits = []
         for pokemon in self.pokemon:
             if pokemon["name"] == pokemon_name:
-                if pokemon["pokedexId"] <= self.total or self.total == 0:
-                    hits.append(pokemon)
+                # if pokemon["pokedexId"] <= self.total or self.total == 0:
+                hits.append(pokemon)
         return hits
 
     def have(self, pokemon):
