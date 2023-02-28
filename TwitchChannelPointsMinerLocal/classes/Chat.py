@@ -107,7 +107,7 @@ class ClientIRCPokemon(ClientIRCBase):
         if "pokemoncommunitygame" in message.source:
             self.check_pokemon_active(client, message, argstring)
 
-        if self.have_pokemon():
+        if len(POKEMON.channel_list) > 0:
             if POKEMON.check_catch():
                 self.check_main(client)
 
