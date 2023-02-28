@@ -212,8 +212,8 @@ class ClientIRCPokemon(ClientIRCBase):
                     pokemon_received = self.pokemon_api.wondertrade(pokemon_traded["id"])
 
                     if "pokemon" in pokemon_received:
-                        pokemon_traded_tier = POKEMON.pokedex.tier(pokemon_traded)
-                        pokemon_received_tier = POKEMON.pokedex.tier(pokemon_received)
+                        pokemon_traded_tier = POKEMON.pokedex.tier(pokemon_traded["name"])
+                        pokemon_received_tier = POKEMON.pokedex.tier(pokemon_received["name"])
 
                         wondertrade_msg = f"Wondertraded {pokemon_traded['name']} ({pokemon_traded_tier}) for {pokemon_received['pokemon']['name']} ({pokemon_received_tier})"
                         self.log(f"{GREENLOG}{wondertrade_msg}")
