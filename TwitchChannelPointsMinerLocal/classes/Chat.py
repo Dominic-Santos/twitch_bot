@@ -3,8 +3,8 @@ from time import sleep
 from dateutil.parser import parse
 import random
 import logging
-import random
 from threading import Thread
+import traceback
 
 
 from .ChatO import ClientIRC as ClientIRCO
@@ -23,9 +23,9 @@ poke_logger = logging.getLogger(__name__ + "pokemon")
 poke_logger.setLevel(logging.DEBUG)
 poke_logger.addHandler(file_handler)
 
-POKEMON_CHECK_DELAY = 45  # seconds
+POKEMON_CHECK_DELAY = 30  # seconds
 POKEMON_CHECK_DELAY_RELAX = 60 * 14  # 14 mins
-POKEMON_CHECK_LIMIT = 60  # pokemon is valid for 60 seconds
+POKEMON_CHECK_LIMIT = 75  # pokemon is valid for 60 seconds
 
 MARBLES_DELAY = 60 * 3  # seconds
 MARBLES_TRIGGER_COUNT = 3
@@ -35,7 +35,6 @@ GREENLOG = "\x1b[32;20m"
 YELLOWLOG = "\x1b[36;20m"
 
 POKEMON = PokemonComunityGame()
-POKEMON.set_delay(POKEMON_CHECK_DELAY)
 DISCORD = DiscordAPI(POKEMON.discord.data["auth"])
 DISCORD_CATCH_ALERTS = "https://discord.com/api/v9/channels/1072557550526013440/messages"
 
@@ -61,9 +60,11 @@ def timer_thread(client, func):
             func(client)
         except Exception as ex:
             str_ex = str(ex)
-            logger.info(f"{REDLOG}Timer func failed - {str_ex.delay}", extra={"emoji": ":speech_balloon:"})
+            logger.info(f"{REDLOG}Timer func failed - {str_ex}", extra={"emoji": ":speech_balloon:"})
             CLIENT_HOLDER.client = None
             POKEMON.delay = 5
+
+            print(traceback.format_exc())
         if CLIENT_HOLDER.client is not None:
             do()
 
@@ -182,7 +183,7 @@ class ClientIRCPokemon(ClientIRCBase):
                     POKEMON.wondertrade_timer = datetime.utcnow() - timedelta(minutes=minutes, hours=hours)
 
             if POKEMON.check_wondertrade():
-                tradable = [pokemon for pokemon in allpokemon if "trade" in pokemon.get("nickname", "")]
+                tradable = [pokemon for pokemon in allpokemon if pokemon["nickname"] is not None and "trade" in pokemon["nickname"]]
                 checks = [POKEMON.missions.have_mission("wondertrade")]
                 pokemon_to_trade = []
 
@@ -196,7 +197,7 @@ class ClientIRCPokemon(ClientIRCBase):
 
                         looking_for = f"trade{tier}"
                         for pokemon in tradable:
-                            if looking_for in pokemon.get("nickname", ""):
+                            if looking_for in pokemon["nickname"]:
                                 if active:
                                     pokemon_stats = self.pokemon_api.get_pokemon(pokemon["id"])
                                     sleep(0.5)
@@ -209,8 +210,12 @@ class ClientIRCPokemon(ClientIRCBase):
                 else:
                     pokemon_traded = random.choice(pokemon_to_trade)
                     pokemon_received = self.pokemon_api.wondertrade(pokemon_traded["id"])
+
                     if "pokemon" in pokemon_received:
-                        self.log(f"{GREENLOG}Wondertraded {pokemon_traded['name']} for {pokemon_received['pokemon']['name']}")
+                        pokemon_traded_tier = POKEMON.pokedex.tier(pokemon["name"])
+                        pokemon_received_tier = POKEMON.pokedex.tier(pokemon["name"])
+
+                        self.log(f"{GREENLOG}Wondertraded {pokemon_traded['name']} ({pokemon_traded_tier}) for {pokemon_received['pokemon']['name']} ({pokemon_received_tier})")
                         POKEMON.reset_wondertrade_timer()
                     else:
                         self.log(f"{REDLOG}Wondertrade {pokemon_traded['name']} failed {pokemon_received}")
@@ -264,6 +269,8 @@ class ClientIRCPokemon(ClientIRCBase):
                 changes.append((pokemon["id"], "", pokemon["name"], pokemon["nickname"]))
 
         for poke_id, new_name, real_name, old_name in changes:
+            if new_name is not None and len(new_name) > 12:
+                self.log_file(f"{YELLOWLOG}Wont rename {real_name} from {old_name} to {new_name}, name too long")
             self.pokemon_api.set_name(poke_id, new_name)
             self.log_file(f"{YELLOWLOG}Renamed {real_name} from {old_name} to {new_name}")
             sleep(0.5)
