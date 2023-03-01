@@ -12,7 +12,7 @@ class Computer(object):
     def _have_by_id(self, pokemon_id):
         if pokemon_id != 0:
             for pokemon in self.pokemon:
-                if pokemon["id"] == pokemon_id:
+                if pokemon["pokedexId"] == pokemon_id:
                     return True
         return False
 
@@ -27,7 +27,7 @@ class Computer(object):
         hits = []
         if pokemon_id != 0:
             for pokemon in self.pokemon:
-                if pokemon["id"] == pokemon_id:
+                if pokemon["pokedexId"] == pokemon_id:
                     hits.append(pokemon)
         return hits
 
