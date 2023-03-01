@@ -21,7 +21,7 @@ class Computer(object):
             if pokemon["name"] == pokemon_name:
                 if pokemon["pokedexId"] <= self.total or self.total == 0:
                     return True
-        return
+        return False
 
     def _get_by_id(self, pokemon_id):
         hits = []
