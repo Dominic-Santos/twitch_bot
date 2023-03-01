@@ -102,7 +102,7 @@ class PokemonComunityGame(object):
         return False
 
     def check_wondertrade_left(self):
-        return timedelta(hours=3) - (datetime.utcnow() - self.wondertrade_timer)
+        return timedelta(seconds=WONDERTRADE_DELAY) - (datetime.utcnow() - self.wondertrade_timer)
 
     def sync_inventory(self, inv):
         self.inventory.set(inv)
