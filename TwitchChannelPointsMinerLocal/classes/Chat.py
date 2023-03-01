@@ -39,12 +39,13 @@ DISCORD = DiscordAPI(POKEMON.discord.data["auth"])
 DISCORD_CATCH_ALERTS = "https://discord.com/api/v9/channels/1072557550526013440/messages"
 
 
-class ClientHolder(object):
+class ThreadController(object):
     def __init__(self):
         self.client = None
+        self.wondertrade = False
 
 
-CLIENT_HOLDER = ClientHolder()
+THREADCONTROLLER = ThreadController()
 
 CHARACTERS = {
     "starter": "⭐",
@@ -61,16 +62,36 @@ def timer_thread(client, func):
         except Exception as ex:
             str_ex = str(ex)
             logger.info(f"{REDLOG}Timer func failed - {str_ex}", extra={"emoji": ":speech_balloon:"})
-            CLIENT_HOLDER.client = None
+            THREADCONTROLLER.client = None
             POKEMON.delay = 5
 
             print(traceback.format_exc())
-        if CLIENT_HOLDER.client is not None:
+        if THREADCONTROLLER.client is not None:
             pokemon_timer()
 
-    if CLIENT_HOLDER.client is None:
-        CLIENT_HOLDER.client = client
+    if THREADCONTROLLER.client is None:
+        THREADCONTROLLER.client = client
         worker = Thread(target=pokemon_timer)
+        worker.setDaemon(True)
+        worker.start()
+
+
+def wondertrade_thread(client, func):
+    def wondertrade_timer():
+        if POKEMON.wondertrade_timer is None:
+            remaining = 5
+        else:
+            remaining = POKEMON.check_wondertrade_left().total_seconds()
+
+        logger.info(f"{YELLOWLOG}Waiting for {remaining} seconds", extra={"emoji": ":speech_balloon:"})
+
+        sleep(remaining)
+        func()
+        wondertrade_timer()
+
+    if THREADCONTROLLER.wondertrade is False:
+        THREADCONTROLLER.wondertrade = True
+        worker = Thread(target=wondertrade_timer)
         worker.setDaemon(True)
         worker.start()
 
@@ -141,6 +162,7 @@ class ClientIRCPokemon(ClientIRCBase):
 
         if len(POKEMON.channel_list) > 0:
             timer_thread(client, self.check_main)
+            wondertrade_thread(client, self.wondertrade_main)
             # if POKEMON.check_catch():
             #     self.check_main(client)
 
@@ -155,6 +177,10 @@ class ClientIRCPokemon(ClientIRCBase):
             self.pokemon_active = True
             self.log(f"{YELLOWLOG}Joined Pokemon for {message.target[1:]}")
             POKEMON.add_channel(message.target[1:])
+
+    def wondertrade_main(self):
+        self.sort_computer()
+        self.check_wondertrade()
 
     def check_wondertrade(self):
         allpokemon = POKEMON.computer.pokemon
@@ -228,6 +254,10 @@ class ClientIRCPokemon(ClientIRCBase):
                 self.log(f"{YELLOWLOG}Wondertrade available in {time_str}")
 
     def sort_computer(self):
+
+        all_pokemon = self.pokemon_api.get_all_pokemon()
+        POKEMON.sync_computer(all_pokemon)
+
         allpokemon = POKEMON.computer.pokemon
         pokedict = {}
         shineys = []
@@ -344,9 +374,6 @@ class ClientIRCPokemon(ClientIRCBase):
                 self.log_file(f"{REDLOG}Don't need pokemon, skipping")
                 random_channel = POKEMON.random_channel()
                 client.privmsg("#" + random_channel, "!pokecheck")
-
-            self.sort_computer()
-            self.check_wondertrade()
         else:
             # pokemon should be spawning soon
             POKEMON.delay = POKEMON_CHECK_DELAY
