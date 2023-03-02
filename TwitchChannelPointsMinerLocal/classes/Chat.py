@@ -71,7 +71,11 @@ def timer_thread(func):
             POKEMON.delay = 5
             print(traceback.format_exc())
 
-        pokemon_timer()
+            if len(POKEMON.channel_list) == 0:
+                THREADCONTROLLER.pokecatch = False
+
+        if THREADCONTROLLER.pokecatch:
+            pokemon_timer()
 
     if THREADCONTROLLER.pokecatch is False:
         THREADCONTROLLER.pokecatch = True
