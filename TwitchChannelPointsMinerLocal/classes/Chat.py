@@ -43,6 +43,7 @@ class ThreadController(object):
     def __init__(self):
         self.client = None
         self.wondertrade = False
+        self.pokecatch = False
 
 
 THREADCONTROLLER = ThreadController()
@@ -53,30 +54,32 @@ CHARACTERS = {
 }
 
 
-def timer_thread(client, func):
+def timer_thread(func):
     def pokemon_timer():
+        logger.info(f"{YELLOWLOG}Waiting for {POKEMON.delay} seconds", extra={"emoji": ":speech_balloon:"})
+        sleep(POKEMON.delay)
         try:
-            logger.info(f"{YELLOWLOG}Waiting for {POKEMON.delay} seconds", extra={"emoji": ":speech_balloon:"})
-            sleep(POKEMON.delay)
-            func(client)
+            if THREADCONTROLLER.client is not None:
+                func(THREADCONTROLLER.client)
+        except KeyboardInterrupt:
+            return
         except Exception as ex:
             str_ex = str(ex)
             logger.info(f"{REDLOG}Timer func failed - {str_ex}", extra={"emoji": ":speech_balloon:"})
             THREADCONTROLLER.client = None
             POKEMON.delay = 5
-
             print(traceback.format_exc())
-        if THREADCONTROLLER.client is not None:
-            pokemon_timer()
 
-    if THREADCONTROLLER.client is None:
-        THREADCONTROLLER.client = client
+        pokemon_timer()
+
+    if THREADCONTROLLER.pokecatch is False:
+        THREADCONTROLLER.pokecatch = True
         worker = Thread(target=pokemon_timer)
         worker.setDaemon(True)
         worker.start()
 
 
-def wondertrade_thread(client, func):
+def wondertrade_thread(func):
     def wondertrade_timer():
         if POKEMON.wondertrade_timer is None:
             remaining = 5
@@ -160,9 +163,14 @@ class ClientIRCPokemon(ClientIRCBase):
         if "pokemoncommunitygame" in message.source:
             self.check_pokemon_active(client, message, argstring)
 
+        if THREADCONTROLLER.client is None:
+            THREADCONTROLLER.client = client
+
         if len(POKEMON.channel_list) > 0:
-            timer_thread(client, self.check_main)
-            wondertrade_thread(client, self.wondertrade_main)
+            if THREADCONTROLLER.pokecatch is False:
+                timer_thread(self.check_main)
+            if THREADCONTROLLER.wondertrade is False:
+                wondertrade_thread(self.wondertrade_main)
             # if POKEMON.check_catch():
             #     self.check_main(client)
 
