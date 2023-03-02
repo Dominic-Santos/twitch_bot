@@ -12,13 +12,7 @@ from .Computer import Computer
 SETTINGS_FILE = "pokemon.json"
 
 WONDERTRADE_DELAY = 60 * 60 * 3 + 60  # 3 hours and 1 min (just in case)
-
-"""
-Todo:
-    Mission parsing using api
-    re-implement buying balls when need
-    pokedaily
-"""
+POKEDAILY_DELAY = 60 * 60 * 20 + 60  # 20 hours and 1 min
 
 
 class PokemonComunityGame(object):
@@ -26,6 +20,7 @@ class PokemonComunityGame(object):
         self.delay = 0
         self.reset_timer()
         self.wondertrade_timer = None
+        self.pokedaily_timer = None
         self.last_random = None
 
         self.channel_list = []
@@ -55,9 +50,6 @@ class PokemonComunityGame(object):
     def reset_timer(self):
         self.catch_timer = datetime.utcnow()
 
-    def reset_wondertrade_timer(self):
-        self.wondertrade_timer = datetime.utcnow()
-
     def save_settings(self):
         with open(SETTINGS_FILE, "w") as f:
             to_write = {
@@ -82,18 +74,6 @@ class PokemonComunityGame(object):
             return True
 
         return False
-
-    def check_wondertrade(self):
-        if self.wondertrade_timer is None:
-            return False
-
-        if (datetime.utcnow() - self.wondertrade_timer).total_seconds() > WONDERTRADE_DELAY:
-            return True
-
-        return False
-
-    def check_wondertrade_left(self):
-        return timedelta(seconds=WONDERTRADE_DELAY) - (datetime.utcnow() - self.wondertrade_timer)
 
     def sync_inventory(self, inv):
         self.inventory.set(inv)
@@ -152,6 +132,8 @@ class PokemonComunityGame(object):
 
         return reasons, best_ball
 
+    # ########### Channels ############
+
     def add_channel(self, channel):
         if channel not in self.channel_list:
             self.channel_list.append(channel)
@@ -171,3 +153,37 @@ class PokemonComunityGame(object):
         else:
             self.last_random = random.choice([channel for channel in self.channel_list if channel != self.last_random])
         return self.last_random
+
+    # ########### Wondertrade ############
+
+    def reset_wondertrade_timer(self):
+        self.wondertrade_timer = datetime.utcnow()
+
+    def check_wondertrade(self):
+        if self.wondertrade_timer is None:
+            return False
+
+        if (datetime.utcnow() - self.wondertrade_timer).total_seconds() > WONDERTRADE_DELAY:
+            return True
+
+        return False
+
+    def check_wondertrade_left(self):
+        return timedelta(seconds=WONDERTRADE_DELAY) - (datetime.utcnow() - self.wondertrade_timer)
+
+    # ########### Pokedaily ############
+
+    def reset_pokedaily_timer(self):
+        self.pokedaily_timer = datetime.utcnow()
+
+    def check_pokedaily(self):
+        if self.pokedaily_timer is None:
+            return False
+
+        if (datetime.utcnow() - self.pokedaily_timer).total_seconds() > POKEDAILY_DELAY:
+            return True
+
+        return False
+
+    def check_pokedaily_left(self):
+        return timedelta(seconds=POKEDAILY_DELAY) - (datetime.utcnow() - self.pokedaily_timer)

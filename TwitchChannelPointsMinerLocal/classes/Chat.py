@@ -5,7 +5,7 @@ import random
 import logging
 from threading import Thread
 import traceback
-
+import re
 
 from .ChatO import ClientIRC as ClientIRCO
 from .ChatO import ChatPresence as ChatPresenceO
@@ -14,7 +14,7 @@ from .ChatO import logger
 
 from .entities.Pokemon import PokemonComunityGame, CGApi
 # from .WinAlerts import send_alert
-from .DiscordAPI import DiscordAPI
+# from .DiscordAPI import DiscordAPI
 
 formatter = logging.Formatter('%(asctime)s %(message)s', datefmt="%Y-%m-%d %H:%M:%S")
 file_handler = logging.FileHandler("logs/pokemoncg.txt", encoding='utf-8')
@@ -38,9 +38,17 @@ REDLOG = "\x1b[31;20m"
 GREENLOG = "\x1b[32;20m"
 YELLOWLOG = "\x1b[36;20m"
 
+ALERTS_CHANNEL = 1072557550526013440
+POKEDAILY_CHANNEL = 800433942695247872
+POKEDAILY_GUILD = 711921837503938640
+
 POKEMON = PokemonComunityGame()
-DISCORD = DiscordAPI(POKEMON.discord.data["auth"])
-DISCORD_CATCH_ALERTS = "https://discord.com/api/v9/channels/1072557550526013440/messages"
+# DISCORD = DiscordAPI(POKEMON.discord.data["auth"])
+
+DISCORD_BASE = "https://discord.com/api/v9/"
+DISCORD_ALERTS = f"{DISCORD_BASE}channels/{ALERTS_CHANNEL}/messages"
+DISCORD_POKEDAILY = f"{DISCORD_BASE}channels/{POKEDAILY_CHANNEL}/messages"
+DISCORD_POKEDAILY_SEARCH = f"{DISCORD_BASE}guilds/{POKEDAILY_GUILD}/messages/search?channel_id={POKEDAILY_CHANNEL}&mentions=" + "{discord_id}"
 
 
 class ThreadController(object):
@@ -48,6 +56,7 @@ class ThreadController(object):
         self.client = None
         self.wondertrade = False
         self.pokecatch = False
+        self.pokedaily = False
 
 
 THREADCONTROLLER = ThreadController()
@@ -103,6 +112,26 @@ def wondertrade_thread(func):
     if THREADCONTROLLER.wondertrade is False:
         THREADCONTROLLER.wondertrade = True
         worker = Thread(target=wondertrade_timer)
+        worker.setDaemon(True)
+        worker.start()
+
+
+def pokedaily_thread(func):
+    def pokedaily_timer():
+        if POKEMON.pokedaily_timer is None:
+            remaining = 5
+        else:
+            remaining = POKEMON.check_pokedaily_left().total_seconds()
+
+        logger.info(f"{YELLOWLOG}Waiting for {remaining} seconds", extra={"emoji": ":speech_balloon:"})
+
+        sleep(remaining)
+        func()
+        pokedaily_timer()
+
+    if THREADCONTROLLER.pokedaily is False:
+        THREADCONTROLLER.pokedaily = True
+        worker = Thread(target=pokedaily_timer)
         worker.setDaemon(True)
         worker.start()
 
@@ -179,8 +208,8 @@ class ClientIRCPokemon(ClientIRCBase):
                 timer_thread(self.check_main)
             if THREADCONTROLLER.wondertrade is False:
                 wondertrade_thread(self.wondertrade_main)
-            # if POKEMON.check_catch():
-            #     self.check_main(client)
+            if THREADCONTROLLER.pokedaily is False:
+                pokedaily_thread(self.pokedaily_main)
 
     def check_pokemon_active(self, client, message, argstring):
 
@@ -193,6 +222,51 @@ class ClientIRCPokemon(ClientIRCBase):
             self.pokemon_active = True
             self.log(f"{YELLOWLOG}Joined Pokemon for {message.target[1:]}")
             POKEMON.add_channel(message.target[1:])
+
+    def pokedaily_main(self):
+        POKEMON.discord.post(DISCORD_POKEDAILY, "!pokedaily")
+        sleep(5)
+
+        resp = POKEMON.discord.get(DISCORD_POKEDAILY_SEARCH.format(discord_id=POKEMON.discord.data["user"]))
+        content = resp["messages"][0][0]["content"]
+
+        if "You already have claimed" in content:
+            # already claimed this one
+            time_content = content.split("Please come back in ")[1].split(".")[0]
+            self.log(f"{REDLOG}Pokedaily cooldown, available in {time_content}")
+
+            result = re.findall(r'\d{1,}', time_content)
+            hours = 19
+            minutes = 59
+            seconds = 60
+
+            if "hour" in time_content:
+                hours = hours - int(result.pop(0))
+            if "minute" in time_content:
+                minutes = minutes - int(result.pop(0))
+            if "second" in time_content:
+                seconds = seconds - int(result.pop(0))
+
+            if seconds == 60:
+                minutes = minutes + 1
+                seconds = 0
+
+            if minutes == 60:
+                hours = hours + 1
+                minutes = 0
+
+            POKEMON.pokedaily_timer = datetime.utcnow() - timedelta(hours=hours, minutes=minutes, seconds=seconds)
+
+        else:
+            POKEMON.reset_pokedaily_timer()
+            rewards = content.split("reward:")[-1]
+            results = set(re.findall(r'<:[^:]*:\d{5,}>', rewards))
+            for result in results:
+                rewards = rewards.replace(result, "")
+            items = rewards.split("\n")
+            items = [item.strip() for item in items if item.strip() != ""]
+            POKEMON.discord.post(DISCORD_ALERTS, "Pokedaily rewards:\n" + "\n".join(items))
+            self.log(f"{GREENLOG}Pokedaily rewards " + ", ".join(items))
 
     def wondertrade_main(self):
         self.sort_computer()
@@ -259,7 +333,7 @@ class ClientIRCPokemon(ClientIRCBase):
 
                         wondertrade_msg = f"Wondertraded {pokemon_traded['name']} ({pokemon_traded_tier}) for {pokemon_received['pokemon']['name']} ({pokemon_received_tier})"
                         self.log(f"{GREENLOG}{wondertrade_msg}")
-                        DISCORD.post(DISCORD_CATCH_ALERTS, wondertrade_msg)
+                        POKEMON.discord.post(DISCORD_ALERTS, wondertrade_msg)
                         POKEMON.reset_wondertrade_timer()
                     else:
                         self.log(f"{REDLOG}Wondertrade {pokemon_traded['name']} failed {pokemon_received}")
@@ -416,7 +490,7 @@ class ClientIRCPokemon(ClientIRCBase):
                     self.log_file(f"{REDLOG}Failed to catch {pokemon.name}")
                     msg = f"I missed {discord_pokemon_name}! ='("
 
-                DISCORD.post(DISCORD_CATCH_ALERTS, msg)
+                POKEMON.discord.post(DISCORD_ALERTS, msg)
             else:
                 self.log_file(f"{REDLOG}Don't need pokemon, skipping")
                 random_channel = POKEMON.random_channel()

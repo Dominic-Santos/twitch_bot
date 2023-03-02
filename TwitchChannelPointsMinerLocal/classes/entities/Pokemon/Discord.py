@@ -6,7 +6,7 @@ class Discord(object):
         self.connected = False
         self.data = {
             "auth": None,
-            "roles": None
+            "user": None,
         }
 
     def set(self, data):
@@ -25,6 +25,10 @@ class Discord(object):
         if self.connected:
             return self.api.get(url)
         return None
+
+    def post(self, url, data):
+        if self.connected:
+            return self.api.post(url, data)
 
     def get_role(self, role):
         if self.data["roles"] is not None:
