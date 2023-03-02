@@ -2,6 +2,8 @@ import requests
 
 BASE_URL = "https://poketwitch.bframework.de/api/game/ext/"
 TRAINER_URL = f"{BASE_URL}trainer/"
+SHOP_URL = f"{BASE_URL}shop/"
+
 
 ERROR_JWT_EXPIRE = -24
 
@@ -55,14 +57,39 @@ class API(object):
         return self._do_request("POST", TRAINER_URL + f"change-nickname/{pokemon_id}/", payload={"nickname": name})
 
     def get_inventory(self):
-        return self._do_request("GET", TRAINER_URL + f"inventory/")
+        return self._do_request("GET", TRAINER_URL + "inventory/")
 
     def get_pokedex(self):
-        return self._do_request("GET", TRAINER_URL + f"pokedex/")
+        return self._do_request("GET", TRAINER_URL + "pokedex/")
 
     def wondertrade(self, pokemon_id):
         # response is {"pokemon": {the info}}
         return self._do_request("POST", TRAINER_URL + f"wonder-trade/{pokemon_id}/")
 
     def get_missions(self):
-        return self._do_request("GET", TRAINER_URL + f"mission/")
+        return self._do_request("GET", TRAINER_URL + "mission/")
+
+    def get_shop(self):
+        """
+        returns:
+        {
+            "shopItems": [
+                {
+                    "name": "ultra_ball",
+                    "price": 1000,
+                    "displayName": "Ultra Ball",
+                    "description": "An ultra-high-performance Pok\u00e9 Ball that provides a higher success rate for catching Pok\u00e9mon than a Great Ball.",
+                    "type": 2,
+                    "catchRate": "80%",
+                    "category": "ball",
+                    "tmType": null
+                }, ...
+            ]
+        }
+
+        """
+        return self._do_request("GET", SHOP_URL)
+
+    def buy_item(self, item_name, amount):
+        # returns {"cash": 123}
+        return self._do_request("POST", SHOP_URL + "purchase/", payload={"item_name": item_name, "amount": amount})

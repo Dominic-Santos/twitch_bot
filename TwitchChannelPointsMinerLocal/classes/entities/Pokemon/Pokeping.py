@@ -67,6 +67,8 @@ class Pokeping(object):
         result = re.findall(ROLE_REGEX, content)
         for role in result:
             content = content.replace(role, self.roles.get(role[3:-1], "?"))
+        # some roles die but they forget to remove @
+        content = content.replace("@", "")
 
         if self.alter_role in data["mention_roles"]:
             # must parse alt message

@@ -28,6 +28,9 @@ POKEMON_CHECK_DELAY_RELAX = 60 * 14  # 14 mins
 POKEMON_CHECK_LIMIT_MAX = 75  # pokemon is valid for 75 seconds after spawning
 POKEMON_CHECK_LIMIT_MIN = 10  # pokemon is valid 10 seconds after spawning
 
+ITEM_MIN_AMOUNT = 30
+ITEM_MIN_PURCHASE = 10
+
 MARBLES_DELAY = 60 * 3  # seconds
 MARBLES_TRIGGER_COUNT = 3
 
@@ -321,6 +324,36 @@ class ClientIRCPokemon(ClientIRCBase):
             self.log_file(f"{YELLOWLOG}Renamed {real_name} from {old_name} to {new_name}")
             sleep(0.5)
 
+    def check_inventory(self):
+        inv = self.pokemon_api.get_inventory()
+        POKEMON.sync_inventory(inv)
+
+        shop = self.pokemon_api.get_shop()
+        shop_balls = []
+        for item in shop["shopItems"]:
+            if item["category"] == "ball":
+                shop_balls.append(item)
+
+        changes = False
+        for ball in sorted(shop_balls, key=lambda x: x["price"]):
+            ball_name = ball["displayName"].lower().replace(" ", "")
+            ball_have = POKEMON.inventory.balls.get(ball_name, 0)
+            if ball_have < ITEM_MIN_AMOUNT:
+                can_afford = POKEMON.inventory.cash // ball["price"] // ITEM_MIN_PURCHASE * ITEM_MIN_PURCHASE
+                need = ((ITEM_MIN_AMOUNT - ball_have) // ITEM_MIN_PURCHASE + min((ITEM_MIN_AMOUNT - ball_have) % ITEM_MIN_PURCHASE, 1)) * ITEM_MIN_PURCHASE
+                buying = min(need, can_afford)
+
+                if buying > 0:
+                    changes = True
+                    resp = self.pokemon_api.buy_item(ball["name"], buying)
+                    if "cash" in resp:
+                        POKEMON.inventory.cash = resp["cash"]
+                        self.log(f"{GREENLOG}Purchased {buying} {ball['displayName']}s")
+
+        if changes:
+            inv = self.pokemon_api.get_inventory()
+            POKEMON.sync_inventory(inv)
+
     def check_main(self, client):
         POKEMON.reset_timer()
         self.log_file(f"{YELLOWLOG}Checking pokemon spawn in pokeping")
@@ -340,8 +373,7 @@ class ClientIRCPokemon(ClientIRCBase):
             all_pokemon = self.pokemon_api.get_all_pokemon()
             POKEMON.sync_computer(all_pokemon)
 
-            inv = self.pokemon_api.get_inventory()
-            POKEMON.sync_inventory(inv)
+            self.check_inventory()
 
             missions = self.pokemon_api.get_missions()
             POKEMON.sync_missions(missions)
@@ -397,23 +429,6 @@ class ClientIRCPokemon(ClientIRCBase):
             # pokemon should be spawning soon
             POKEMON.delay = POKEMON_CHECK_DELAY
             self.log_file(f"{YELLOWLOG}Pokemon spawning soon")
-
-    def buy_shop(self, client, item, amount):
-        # OLD - NEEDS REWORKING
-        msg = "{color}Bought {amount} {item}{plural}".format(
-            color=GREENLOG,
-            amount=amount,
-            item=item,
-            plural="s" if amount > 0 else ""
-        )
-
-        if item.endswith("ball") and amount > 9:
-            msg = msg + " and got {amount} bonus premierball{plural}".format(
-                amount=amount // 10,
-                plural="s" if amount // 10 > 1 else ""
-            )
-
-        # self.send_random_channel(client, "!pokeshop {item} {amount}".format(item=item, amount=amount), msg, logtofile=True, wait=15)
 
 
 class ClientIRC(ClientIRCMarbles, ClientIRCPokemon):

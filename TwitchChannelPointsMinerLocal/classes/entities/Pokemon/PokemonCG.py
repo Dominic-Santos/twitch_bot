@@ -12,15 +12,6 @@ from .Computer import Computer
 SETTINGS_FILE = "pokemon.json"
 
 WONDERTRADE_DELAY = 60 * 60 * 3 + 60  # 3 hours and 1 min (just in case)
-BALANCE_TRIGGER = 1
-ITEM_MIN_AMOUNT = 30
-ITEM_MIN_PURCHASE = 10
-ITEM_PRIORITY = ["pokeball", "ultraball"]
-ITEM_PRICES = {
-    "pokeball": 300,
-    "greatball": 600,
-    "ultraball": 1000,
-}
 
 """
 Todo:
