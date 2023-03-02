@@ -25,7 +25,8 @@ poke_logger.addHandler(file_handler)
 
 POKEMON_CHECK_DELAY = 30  # seconds
 POKEMON_CHECK_DELAY_RELAX = 60 * 14  # 14 mins
-POKEMON_CHECK_LIMIT = 75  # pokemon is valid for 60 seconds
+POKEMON_CHECK_LIMIT_MAX = 75  # pokemon is valid for 75 seconds after spawning
+POKEMON_CHECK_LIMIT_MIN = 10  # pokemon is valid 10 seconds after spawning
 
 MARBLES_DELAY = 60 * 3  # seconds
 MARBLES_TRIGGER_COUNT = 3
@@ -321,7 +322,9 @@ class ClientIRCPokemon(ClientIRCBase):
         self.log_file(f"{YELLOWLOG}Checking pokemon spawn in pokeping")
         pokemon = POKEMON.get_last_spawned()
 
-        if (datetime.utcnow() - pokemon.spawn).total_seconds() <= POKEMON_CHECK_LIMIT:
+        spawned_seconds = (datetime.utcnow() - pokemon.spawn).total_seconds()
+
+        if spawned_seconds <= POKEMON_CHECK_LIMIT_MAX and spawned_seconds >= POKEMON_CHECK_LIMIT_MIN:
             # pokemon spawned recently relax and process it
             POKEMON.delay = POKEMON_CHECK_DELAY_RELAX
             self.log_file(f"{YELLOWLOG}Pokemon spawned - processing {pokemon}")
@@ -382,6 +385,10 @@ class ClientIRCPokemon(ClientIRCBase):
                 self.log_file(f"{REDLOG}Don't need pokemon, skipping")
                 random_channel = POKEMON.random_channel()
                 client.privmsg("#" + random_channel, "!pokecheck")
+        elif spawned_seconds <= POKEMON_CHECK_LIMIT_MAX:
+            # pokemon spawned but its too new, make sure pokeping sends all messages
+            POKEMON.delay = POKEMON_CHECK_LIMIT_MIN
+            self.log_file(f"{YELLOWLOG}Pokemon spawed, waiting to see if is alt")
         else:
             # pokemon should be spawning soon
             POKEMON.delay = POKEMON_CHECK_DELAY
