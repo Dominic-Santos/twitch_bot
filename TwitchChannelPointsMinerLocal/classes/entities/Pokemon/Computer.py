@@ -19,8 +19,8 @@ class Computer(object):
     def _have_by_name(self, pokemon_name):
         for pokemon in self.pokemon:
             if pokemon["name"] == pokemon_name:
-                if pokemon["pokedexId"] <= self.total or self.total == 0:
-                    return True
+                # if pokemon["pokedexId"] <= self.total or self.total == 0:
+                return True
         return False
 
     def _get_by_id(self, pokemon_id):

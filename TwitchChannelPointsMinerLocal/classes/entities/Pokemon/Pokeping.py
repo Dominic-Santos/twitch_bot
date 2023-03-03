@@ -77,6 +77,10 @@ class Pokeping(object):
             poke.alt_name = content.split("| ")[2].split(" ")[0]
         else:
             # is normal pokemon message
+            # some pokemon messages have ID at start
+            if content.startswith("ID"):
+                content = ":".join(content.split(":")[1:]).strip()
+
             name, tier, types_and_bst, weight_and_garbage = content.split(" - ")[0:4]
             weight = weight_and_garbage.split("KG")[0]
             types = types_and_bst.split(" ")[:-1]

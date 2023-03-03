@@ -43,7 +43,6 @@ POKEDAILY_CHANNEL = 800433942695247872
 POKEDAILY_GUILD = 711921837503938640
 
 POKEMON = PokemonComunityGame()
-# DISCORD = DiscordAPI(POKEMON.discord.data["auth"])
 
 DISCORD_BASE = "https://discord.com/api/v9/"
 DISCORD_ALERTS = f"{DISCORD_BASE}channels/{ALERTS_CHANNEL}/messages"
@@ -225,8 +224,13 @@ class ClientIRCPokemon(ClientIRCBase):
 
     def pokedaily_main(self):
         POKEMON.discord.post(DISCORD_POKEDAILY, "!pokedaily")
-        sleep(5)
 
+        if POKEMON.discord.data["user"] is None:
+            POKEMON.discord.post(DISCORD_ALERTS, "Pokedaily, no user configured")
+            self.log(f"{GREENLOG}Pokedaily, no user configured")
+            return
+
+        sleep(60)
         resp = POKEMON.discord.get(DISCORD_POKEDAILY_SEARCH.format(discord_id=POKEMON.discord.data["user"]))
         content = resp["messages"][0][0]["content"]
 
@@ -259,7 +263,7 @@ class ClientIRCPokemon(ClientIRCBase):
 
         else:
             POKEMON.reset_pokedaily_timer()
-            rewards = content.split("reward:")[-1]
+            rewards = ":".join(content.split("reward")[-1].split(":")[1:])
             results = set(re.findall(r'<:[^:]*:\d{5,}>', rewards))
             for result in results:
                 rewards = rewards.replace(result, "")
