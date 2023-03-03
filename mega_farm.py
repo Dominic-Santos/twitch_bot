@@ -5,7 +5,7 @@ import logging
 from colorama import Fore
 from TwitchChannelPointsMinerLocal import TwitchChannelPointsMiner
 from TwitchChannelPointsMinerLocal.logger import LoggerSettings, ColorPalette
-from TwitchChannelPointsMinerLocal.classes.Chat import ChatPresence, DISCORD, DISCORD_CATCH_ALERTS
+from TwitchChannelPointsMinerLocal.classes.Chat import ChatPresence
 from TwitchChannelPointsMinerLocal.classes.Discord import Discord
 from TwitchChannelPointsMinerLocal.classes.Telegram import Telegram
 from TwitchChannelPointsMinerLocal.classes.Settings import Priority, Events, FollowersOrder
@@ -52,7 +52,7 @@ twitch_miner = TwitchChannelPointsMiner(
     streamer_settings=StreamerSettings(
         make_predictions=False,                  # If you want to Bet / Make prediction
         follow_raid=True,                       # Follow raid to obtain more points
-        claim_drops=True,                       # We can't filter rewards base on stream. Set to False for skip viewing counter increase and you will never obtain a drop reward from this script. Issue #21
+        claim_drops=False,                       # We can't filter rewards base on stream. Set to False for skip viewing counter increase and you will never obtain a drop reward from this script. Issue #21
         watch_streak=True,                      # If a streamer go online change the priority of streamers array and catch the watch screak. Issue #11
         chat=ChatPresence.ONLINE,               # Join irc chat to increase watch-time [ALWAYS, NEVER, ONLINE, OFFLINE]
         bet=BetSettings(
@@ -83,7 +83,6 @@ twitch_miner = TwitchChannelPointsMiner(
 streamers = settings["streamers"]
 streamers_ordered = sorted(streamers.keys(), key=lambda x: (streamers[x]["priority"], streamers[x]["goal"], streamers[x]["points"] * - 1))
 print(streamers_ordered)
-DISCORD.post(DISCORD_CATCH_ALERTS, "starting script")
 
 twitch_miner.mine(
     [
