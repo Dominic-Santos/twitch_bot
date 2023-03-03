@@ -86,7 +86,9 @@ def timer_thread(func):
                 THREADCONTROLLER.pokecatch = False
 
         if THREADCONTROLLER.pokecatch:
-            pokemon_timer()
+            worker = Thread(target=pokemon_timer)
+            worker.setDaemon(True)
+            worker.start()
 
     if THREADCONTROLLER.pokecatch is False:
         THREADCONTROLLER.pokecatch = True
@@ -96,6 +98,8 @@ def timer_thread(func):
 
 
 def wondertrade_thread(func):
+    max_wait = 60 * 60  # 1 hour
+
     def wondertrade_timer():
         if POKEMON.wondertrade_timer is None:
             remaining = 5
@@ -104,9 +108,13 @@ def wondertrade_thread(func):
 
         logger.info(f"{YELLOWLOG}Waiting for {remaining} seconds", extra={"emoji": ":speech_balloon:"})
 
-        sleep(remaining)
-        func()
-        wondertrade_timer()
+        sleep(min(remaining, max_wait))
+        if remaining <= max_wait:
+            func()
+
+        worker = Thread(target=wondertrade_timer)
+        worker.setDaemon(True)
+        worker.start()
 
     if THREADCONTROLLER.wondertrade is False:
         THREADCONTROLLER.wondertrade = True
@@ -116,6 +124,8 @@ def wondertrade_thread(func):
 
 
 def pokedaily_thread(func):
+    max_wait = 60 * 60  # 1 hour
+
     def pokedaily_timer():
         if POKEMON.pokedaily_timer is None:
             remaining = 5
@@ -124,9 +134,13 @@ def pokedaily_thread(func):
 
         logger.info(f"{YELLOWLOG}Waiting for {remaining} seconds", extra={"emoji": ":speech_balloon:"})
 
-        sleep(remaining)
-        func()
-        pokedaily_timer()
+        sleep(min(remaining, max_wait))
+        if remaining <= max_wait:
+            func()
+
+        worker = Thread(target=pokedaily_timer)
+        worker.setDaemon(True)
+        worker.start()
 
     if THREADCONTROLLER.pokedaily is False:
         THREADCONTROLLER.pokedaily = True
