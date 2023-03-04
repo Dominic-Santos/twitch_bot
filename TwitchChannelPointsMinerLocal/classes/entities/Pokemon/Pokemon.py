@@ -24,4 +24,5 @@ class Pokemon(object):
 
     def __str__(self):
         alt_name = "" if self.is_alternate is False else f" ({self.pokemon_id} - {self.alt_name})"
-        return f"{self.spawn} {self.name}{alt_name}, {self.bst}BST, {self.weight}KG, tier {self.tier}, types {self.types}"
+        spawn_human = str(self.spawn).split(".")[0]
+        return f"{spawn_human} {self.name}{alt_name}, {self.bst}BST, {self.weight}KG, tier {self.tier}, types {self.types}"

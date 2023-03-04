@@ -66,10 +66,19 @@ CHARACTERS = {
 }
 
 
+def create_thread(func):
+    worker = Thread(target=func)
+    worker.setDaemon(True)
+    worker.start()
+
+
 def timer_thread(func):
     def pokemon_timer():
-        logger.info(f"{YELLOWLOG}Waiting for {POKEMON.delay} seconds", extra={"emoji": ":speech_balloon:"})
+
+        remaining_human = str(timedelta(seconds=POKEMON.delay))
+        logger.info(f"{YELLOWLOG}Waiting for {remaining_human}", extra={"emoji": ":speech_balloon:"})
         sleep(POKEMON.delay)
+
         try:
             if THREADCONTROLLER.client is not None:
                 func(THREADCONTROLLER.client)
@@ -86,15 +95,11 @@ def timer_thread(func):
                 THREADCONTROLLER.pokecatch = False
 
         if THREADCONTROLLER.pokecatch:
-            worker = Thread(target=pokemon_timer)
-            worker.setDaemon(True)
-            worker.start()
+            create_thread(pokemon_timer)
 
     if THREADCONTROLLER.pokecatch is False:
         THREADCONTROLLER.pokecatch = True
-        worker = Thread(target=pokemon_timer)
-        worker.setDaemon(True)
-        worker.start()
+        create_thread(pokemon_timer)
 
 
 def wondertrade_thread(func):
@@ -106,21 +111,18 @@ def wondertrade_thread(func):
         else:
             remaining = POKEMON.check_wondertrade_left().total_seconds()
 
-        logger.info(f"{YELLOWLOG}Waiting for {remaining} seconds", extra={"emoji": ":speech_balloon:"})
+        remaining_human = str(timedelta(seconds=remaining))
+        logger.info(f"{YELLOWLOG}Waiting for {remaining_human}", extra={"emoji": ":speech_balloon:"})
 
         sleep(min(remaining, max_wait))
         if remaining <= max_wait:
             func()
 
-        worker = Thread(target=wondertrade_timer)
-        worker.setDaemon(True)
-        worker.start()
+        create_thread(wondertrade_timer)
 
     if THREADCONTROLLER.wondertrade is False:
         THREADCONTROLLER.wondertrade = True
-        worker = Thread(target=wondertrade_timer)
-        worker.setDaemon(True)
-        worker.start()
+        create_thread(wondertrade_timer)
 
 
 def pokedaily_thread(func):
@@ -132,21 +134,18 @@ def pokedaily_thread(func):
         else:
             remaining = POKEMON.check_pokedaily_left().total_seconds()
 
-        logger.info(f"{YELLOWLOG}Waiting for {remaining} seconds", extra={"emoji": ":speech_balloon:"})
+        remaining_human = str(timedelta(seconds=remaining))
+        logger.info(f"{YELLOWLOG}Waiting for {remaining_human}", extra={"emoji": ":speech_balloon:"})
 
         sleep(min(remaining, max_wait))
         if remaining <= max_wait:
             func()
 
-        worker = Thread(target=pokedaily_timer)
-        worker.setDaemon(True)
-        worker.start()
+        create_thread(pokedaily_timer)
 
     if THREADCONTROLLER.pokedaily is False:
         THREADCONTROLLER.pokedaily = True
-        worker = Thread(target=pokedaily_timer)
-        worker.setDaemon(True)
-        worker.start()
+        create_thread(pokedaily_timer)
 
 
 class ClientIRCBase(ClientIRCO):
