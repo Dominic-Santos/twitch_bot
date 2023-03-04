@@ -73,7 +73,7 @@ class Pokeping(object):
         if self.alter_role in data["mention_roles"]:
             # must parse alt message
             poke.is_alternate = True
-            poke.pokemon_id = content.split("ID: ")[1].split(" ")[0]
+            poke.pokemon_id = int(content.split("ID: ")[1].split(" ")[0])
             poke.alt_name = content.split("| ")[2].split(" ")[0]
         else:
             # is normal pokemon message

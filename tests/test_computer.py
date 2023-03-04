@@ -1,4 +1,4 @@
-TEST_INVENTORY = [{
+TEST_COMPUTER = [{
     "id": 16505571,
     "lvl": 14,
     "nickname": "Magikarp\u2640",
@@ -76,8 +76,11 @@ TEST_INVENTORY = [{
     "name": "Houndoom"
 }]
 
-from . import COMPUTER
+from . import Computer
+from . import Pokemon
 
+COMPUTER = Computer()
+ 
 
 def test_have_by_name():
     test_cases = [
@@ -87,7 +90,42 @@ def test_have_by_name():
         ("Charmander", False),
         ("Dragonite", False),
     ]
-    COMPUTER.set({"allPokemon": TEST_INVENTORY})
+    COMPUTER.set({"allPokemon": TEST_COMPUTER})
 
     for poke_name, expected in test_cases:
         assert COMPUTER.have(poke_name) == expected
+
+
+def test_get_by_name():
+    test_cases = [
+        ("Magikarp", 2),
+        ("Houndoom", 1),
+        ("Pikachu", 1),
+        ("Charmander", 0),
+        ("Dragonite", 0),
+    ]
+
+    COMPUTER.set({"allPokemon": TEST_COMPUTER})
+
+    for poke_name, expected in test_cases:
+        assert len(COMPUTER.get_pokemon(poke_name)) == expected
+
+
+def test_get_by_pokemon():
+    test_cases = [
+        ("Magikarp", 0, 2),
+        ("Magikarp", 10391, 1),
+        ("Houndoom", 10372, 1),
+        ("Pikachu", 0, 1),
+        ("Charmander", 0, 0),
+        ("Dragonite", 0, 0),
+    ]
+
+    COMPUTER.set({"allPokemon": TEST_COMPUTER})
+
+    for poke_name, poke_id, expected in test_cases:
+        poke_obj = Pokemon()
+        poke_obj.name = poke_name
+        poke_obj.pokemon_id = poke_id
+        poke_obj.is_alternate = poke_id != 0
+        assert len(COMPUTER.get_pokemon(poke_obj)) == expected

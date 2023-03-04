@@ -138,55 +138,43 @@ BST_ROLE = {
     []
 }
 
-from . import POKEMON
+from . import Pokemon, PokemonCG
+
+POKEMON = PokemonCG.PokemonComunityGame()
+# PING = Pokeping()
 
 
 def test_normal():
-    name = "Hippopotas"
-    pokemon = POKEMON(name, name)
-    pokemon.parse(NORMAL)
+    pokemon = POKEMON.pokeping.parse_pokemon(NORMAL)
 
-    assert pokemon.name == name
-    assert pokemon.dirty_name == name
+    assert isinstance(pokemon, Pokemon)
+    assert pokemon.name == "Hippopotas"
     assert pokemon.is_alternate is False
-    assert pokemon.alt_id == "0"
+    assert pokemon.pokemon_id == 0
     assert pokemon.alt_name == "NA"
     assert pokemon.bst == 330
     assert pokemon.weight == 49.5
 
 
-def test_alter():
-    name = "Hippopotas"
-    pokemon = POKEMON(name, name)
-    pokemon.parse(ALTER)
+def test_alter_half():
+    pokemon = POKEMON.pokeping.parse_pokemon(ALTER)
 
-    assert pokemon.name == name
-    assert pokemon.dirty_name == name
+    assert isinstance(pokemon, Pokemon)
+    assert pokemon.name == "NA"
     assert pokemon.is_alternate
-    assert pokemon.alt_id == "10369"
+    assert pokemon.pokemon_id == 10369
     assert pokemon.alt_name == "Hippopotas-female"
     assert pokemon.bst == 0
     assert pokemon.weight == 0
 
 
 def test_bst_role():
-    name = "Copperajah"
-    pokemon = POKEMON(name, name)
-    pokemon.parse(BST_ROLE)
+    pokemon = POKEMON.pokeping.parse_pokemon(BST_ROLE)
 
-    assert pokemon.name == name
-    assert pokemon.dirty_name == name
+    assert isinstance(pokemon, Pokemon)
+    assert pokemon.name == "Copperajah"
     assert pokemon.is_alternate is False
-    assert pokemon.alt_id == "0"
+    assert pokemon.pokemon_id == 0
     assert pokemon.alt_name == "NA"
     assert pokemon.bst == 500
     assert pokemon.weight == 650.0
-
-
-def test_special_case():
-    name = "Lycanroc"
-    pokemon = POKEMON(name, name)
-    pokemon.check_special_cases()
-    assert pokemon.is_alternate
-    assert pokemon.alt_id == name
-    assert pokemon.alt_name == name
