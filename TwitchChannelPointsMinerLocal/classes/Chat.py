@@ -66,6 +66,10 @@ CHARACTERS = {
 }
 
 
+def seconds_readable(seconds):
+    return str(timedelta(seconds=seconds)).split(".")[0]
+
+
 def create_thread(func):
     worker = Thread(target=func)
     worker.setDaemon(True)
@@ -75,7 +79,7 @@ def create_thread(func):
 def timer_thread(func):
     def pokemon_timer():
 
-        remaining_human = str(timedelta(seconds=POKEMON.delay))
+        remaining_human = seconds_readable(POKEMON.delay)
         logger.info(f"{YELLOWLOG}Waiting for {remaining_human}", extra={"emoji": ":speech_balloon:"})
         sleep(POKEMON.delay)
 
@@ -111,7 +115,7 @@ def wondertrade_thread(func):
         else:
             remaining = POKEMON.check_wondertrade_left().total_seconds()
 
-        remaining_human = str(timedelta(seconds=remaining))
+        remaining_human = seconds_readable(remaining)
         logger.info(f"{YELLOWLOG}Waiting for {remaining_human}", extra={"emoji": ":speech_balloon:"})
 
         sleep(min(remaining, max_wait))
@@ -134,7 +138,7 @@ def pokedaily_thread(func):
         else:
             remaining = POKEMON.check_pokedaily_left().total_seconds()
 
-        remaining_human = str(timedelta(seconds=remaining))
+        remaining_human = seconds_readable(remaining)
         logger.info(f"{YELLOWLOG}Waiting for {remaining_human}", extra={"emoji": ":speech_balloon:"})
 
         sleep(min(remaining, max_wait))
