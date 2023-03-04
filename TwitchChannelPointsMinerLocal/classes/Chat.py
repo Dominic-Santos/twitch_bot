@@ -12,7 +12,7 @@ from .ChatO import ChatPresence as ChatPresenceO
 from .ChatO import ThreadChat as ThreadChatO
 from .ChatO import logger
 
-from .entities.Pokemon import PokemonComunityGame, CGApi
+from .entities.Pokemon import PokemonComunityGame, CGApi, Pokedaily
 # from .WinAlerts import send_alert
 # from .DiscordAPI import DiscordAPI
 
@@ -250,44 +250,23 @@ class ClientIRCPokemon(ClientIRCBase):
         sleep(60)
         resp = POKEMON.discord.get(DISCORD_POKEDAILY_SEARCH.format(discord_id=POKEMON.discord.data["user"]))
         content = resp["messages"][0][0]["content"]
+        message = Pokedaily.parse_message(content)
 
-        if "You already have claimed" in content:
-            # already claimed this one
-            time_content = content.split("Please come back in ")[1].split(".")[0]
+        if message.repeat:
+            available_in = timedelta(
+                hours=message.next_available["hours"],
+                minutes=message.next_available["minutes"],
+                seconds=message.next_available["seconds"]
+            )
+            time_content = str(available_in)
+
             self.log(f"{REDLOG}Pokedaily cooldown, available in {time_content}")
-
-            result = re.findall(r'\d{1,}', time_content)
-            hours = 19
-            minutes = 59
-            seconds = 60
-
-            if "hour" in time_content:
-                hours = hours - int(result.pop(0))
-            if "minute" in time_content:
-                minutes = minutes - int(result.pop(0))
-            if "second" in time_content:
-                seconds = seconds - int(result.pop(0))
-
-            if seconds == 60:
-                minutes = minutes + 1
-                seconds = 0
-
-            if minutes == 60:
-                hours = hours + 1
-                minutes = 0
-
-            POKEMON.pokedaily_timer = datetime.utcnow() - timedelta(hours=hours, minutes=minutes, seconds=seconds)
+            POKEMON.pokedaily_timer = datetime.utcnow() - available_in
 
         else:
             POKEMON.reset_pokedaily_timer()
-            rewards = ":".join(content.split("reward")[-1].split(":")[1:])
-            results = set(re.findall(r'<:[^:]*:\d{5,}>', rewards))
-            for result in results:
-                rewards = rewards.replace(result, "")
-            items = rewards.split("\n")
-            items = [item.strip() for item in items if item.strip() != ""]
-            POKEMON.discord.post(DISCORD_ALERTS, "Pokedaily rewards:\n" + "\n".join(items))
-            self.log(f"{GREENLOG}Pokedaily rewards " + ", ".join(items))
+            POKEMON.discord.post(DISCORD_ALERTS, "Pokedaily rewards:\n" + "\n".join(message.rewards))
+            self.log(f"{GREENLOG}Pokedaily ({message.rarity}) rewards " + ", ".join(message.rewards))
 
     def wondertrade_main(self):
         self.sort_computer()
