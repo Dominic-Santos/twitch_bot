@@ -258,9 +258,8 @@ class ClientIRCPokemon(ClientIRCBase):
                 minutes=message.next_available["minutes"],
                 seconds=message.next_available["seconds"]
             )
-            time_content = str(available_in)
 
-            self.log(f"{REDLOG}Pokedaily cooldown, available in {time_content}")
+            self.log(f"{REDLOG}Pokedaily not ready")
             POKEMON.pokedaily_timer = datetime.utcnow() - available_in
 
         else:
