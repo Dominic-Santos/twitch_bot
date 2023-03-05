@@ -253,14 +253,14 @@ class ClientIRCPokemon(ClientIRCBase):
         message = Pokedaily.parse_message(content)
 
         if message.repeat:
-            available_in = timedelta(
-                hours=message.next_available["hours"],
-                minutes=message.next_available["minutes"],
-                seconds=message.next_available["seconds"]
+            last_redeemed = timedelta(
+                hours=message.last_redeemed["hours"],
+                minutes=message.last_redeemed["minutes"],
+                seconds=message.last_redeemed["seconds"]
             )
 
             self.log(f"{REDLOG}Pokedaily not ready")
-            POKEMON.pokedaily_timer = datetime.utcnow() - available_in
+            POKEMON.pokedaily_timer = datetime.utcnow() - last_redeemed
 
         else:
             POKEMON.reset_pokedaily_timer()
