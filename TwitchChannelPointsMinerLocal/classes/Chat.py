@@ -497,8 +497,8 @@ class ClientIRCPokemon(ClientIRCBase):
                     ivs = int(poke["avgIV"])
                     lvl = poke['lvl']
                     shiny = " Shiny" if poke["isShiny"] else ""
-                    self.log_file(f"{GREENLOG}Caught{shiny} Lvl.{lvl} {pokemon.name} Tier={pokemon.tier} IV={ivs}")
-                    msg = f"I caught a{shiny} Lvl.{lvl} {discord_pokemon_name} Tier={pokemon.tier} IV={ivs}! =P"
+                    self.log_file(f"{GREENLOG}Caught{shiny} {pokemon.name} ({pokemon.tier}) Lvl.{lvl} {ivs}IV")
+                    msg = f"I caught a{shiny} {discord_pokemon_name} ({pokemon.tier}) Lvl.{lvl} {ivs}IV! =P"
                 else:
                     self.log_file(f"{REDLOG}Failed to catch {pokemon.name}")
                     msg = f"I missed {discord_pokemon_name}! ='("
