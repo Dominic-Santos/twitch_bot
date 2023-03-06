@@ -486,16 +486,19 @@ class ClientIRCPokemon(ClientIRCBase):
 
                 # find all the pokemon that are the current one that spawned
                 filtered = POKEMON.computer.get_pokemon(pokemon)
-                caught = False
+                caught = None
                 for poke in filtered:
                     if (datetime.utcnow() - parse(poke["caughtAt"][:-1])).total_seconds() < 60:
-                        caught = True
+                        caught = poke
                         break
 
                 discord_pokemon_name = pokemon.name if pokemon.is_alternate is False else pokemon.alt_name
-                if caught:
-                    self.log_file(f"{GREENLOG}Caught {pokemon.name}")
-                    msg = f"I caught a {discord_pokemon_name}! =P"
+                if caught is not None:
+                    ivs = int(poke["avgIV"])
+                    lvl = poke['lvl']
+                    shiny = " Shiny" if poke["isShiny"] else ""
+                    self.log_file(f"{GREENLOG}Caught{shiny} Lvl.{lvl} {pokemon.name} Tier={pokemon.tier} IV={ivs}")
+                    msg = f"I caught a{shiny} Lvl.{lvl} {discord_pokemon_name} Tier={pokemon.tier} IV={ivs}! =P"
                 else:
                     self.log_file(f"{REDLOG}Failed to catch {pokemon.name}")
                     msg = f"I missed {discord_pokemon_name}! ='("
