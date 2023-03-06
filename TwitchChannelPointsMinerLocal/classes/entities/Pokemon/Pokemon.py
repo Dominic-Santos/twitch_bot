@@ -2,8 +2,8 @@
 class Pokemon(object):
     def __init__(self):
         self.name = "NA"
-        self.bst = 0
-        self.weight = 0
+        self.bst = -1
+        self.weight = -1
         self.pokemon_id = 0
         self.tier = "NA"
         self.types = []

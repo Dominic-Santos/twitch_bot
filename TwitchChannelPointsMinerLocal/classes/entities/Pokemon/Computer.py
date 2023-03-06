@@ -41,9 +41,9 @@ class Computer(object):
 
     def have(self, pokemon):
         if isinstance(pokemon, Pokemon):
-            if pokemon.is_alternate:
+            if pokemon.pokemon_id != 0:
                 return self._have_by_id(pokemon.pokemon_id)
-            return self._have_by_id(pokemon.pokemon_id) or self._have_by_name(pokemon.name)
+            return self._have_by_name(pokemon.name)
         return self._have_by_name(pokemon)
 
     def need(self, pokemon):

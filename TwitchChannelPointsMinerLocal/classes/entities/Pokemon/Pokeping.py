@@ -79,18 +79,21 @@ class Pokeping(object):
             # is normal pokemon message
             # some pokemon messages have ID at start
             if content.startswith("ID"):
+                poke.pokemon_id = int(content.split(":")[0][3:])
                 content = ":".join(content.split(":")[1:]).strip()
+            try:
+                name, tier, types_and_bst, weight_and_garbage = content.split(" - ")[0:4]
+                weight = weight_and_garbage.split("KG")[0]
+                types = types_and_bst.split(" ")[:-1]
+                bst = types_and_bst.split(" ")[-1]
 
-            name, tier, types_and_bst, weight_and_garbage = content.split(" - ")[0:4]
-            weight = weight_and_garbage.split("KG")[0]
-            types = types_and_bst.split(" ")[:-1]
-            bst = types_and_bst.split(" ")[-1]
-
-            poke.name = name
-            poke.tier = tier.split(":")[1].strip()
-            poke.types = types
-            poke.bst = int(bst.replace("BST", ""))
-            poke.weight = float(weight.strip())
+                poke.name = name
+                poke.tier = tier.split(":")[1].strip()
+                poke.types = types
+                poke.bst = int(bst.replace("BST", ""))
+                poke.weight = float(weight.strip())
+            except:
+                pass
 
         poke.spawn = parse(data["timestamp"].split("+")[0])
 

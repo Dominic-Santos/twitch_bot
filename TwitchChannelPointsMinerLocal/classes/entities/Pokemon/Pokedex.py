@@ -34,6 +34,8 @@ class Pokedex(object):
 
     def have(self, pokemon):
         poke_name = self._get_pokemon_name(pokemon)
+        if poke_name == "NA":
+            return True
         return self.pokemon.get(poke_name, False)
 
     def need(self, pokemon):
