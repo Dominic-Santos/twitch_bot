@@ -23,9 +23,16 @@ class Missions(object):
             mission_title = "".join([c for c in mission_title if c.isalnum() or c == " "]).strip()
             mission_title = " ".join([w for w in mission_title.split(" ") if w != ""])
 
-            if mission_title.startswith("wondertrade") and mission_title.endswith("types"):
-                the_type = mission_title.split(" ")[1].title()
-                self.data.setdefault("wondertrade", []).append(the_type)
+            if mission_title.startswith("wondertrade"):
+                if mission_title.endswith("types"):
+                    the_type = mission_title.split(" ")[1].title()
+                    self.data.setdefault("wondertrade_type", []).append(the_type)
+                elif mission_title.endswith("bst"):
+                    the_bst = int("".join([c for c in mission_title if c.isnumeric()]))
+                    if "less than" in mission_title:
+                        self.data.setdefault("wondertrade_bst", []).append((0, the_bst))
+                    else:
+                        self.data.setdefault("wondertrade_bst", []).append((the_bst, 9999))
             elif mission_title == "miss catches":
                 self.data["miss"] = True
             elif mission_title == "attempt catches":
@@ -57,11 +64,34 @@ class Missions(object):
 
         return False
 
+    # ##### Wondertrade Missions #####
+
+    def check_wondertrade_type_mission(self, pokemon_types):
+        return self._types_mission("wondertrade_type", pokemon_types)
+
+    def check_wondertrade_bst_mission(self, bst):
+        return self._between_mission("wondertrade_bst", bst)
+
+    def check_all_wondertrade_missions(self, pokemon):
+        reasons = []
+        if self.check_wondertrade_type_mission(pokemon.types):
+            reasons.append("type")
+
+        if self.check_wondertrade_bst_mission(pokemon.bst):
+            reasons.append("bst")
+        return reasons
+
+    def have_wondertrade_missions(self):
+        if self.have_mission("wondertrade_type"):
+            return True
+        elif self.have_mission("wondertrade_bst"):
+            return True
+        return False
+
+    # ##### Regular Missions #####
+
     def check_type_mission(self, pokemon_types):
         return self._types_mission("type", pokemon_types)
-
-    def check_wondertrade_mission(self, pokemon_types):
-        return self._types_mission("wondertrade", pokemon_types)
 
     def check_miss_mission(self):
         return self.have_mission("miss")

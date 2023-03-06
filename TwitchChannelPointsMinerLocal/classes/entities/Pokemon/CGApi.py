@@ -62,6 +62,10 @@ class API(object):
     def get_pokedex(self):
         return self._do_request("GET", TRAINER_URL + "pokedex/")
 
+    def get_pokedex_info(self, pokedex_id):
+        # response {"content": {"pokedex_id": 1, "name": "Bulbasaur", "description": "etc", "weight": 6.9, "generation": 1, "type1": "poison", "type2": "grass", "base_stats": {"hp": 45, "speed": 45, "attack": 49, "defense": 49, "special_attack": 65, "special_defense": 65}}}
+        return self._do_request("GET", TRAINER_URL + f"pokedex/info/?pokedex_id={pokedex_id}")
+
     def wondertrade(self, pokemon_id):
         # response is {"pokemon": {the info}}
         return self._do_request("POST", TRAINER_URL + f"wonder-trade/{pokemon_id}/")

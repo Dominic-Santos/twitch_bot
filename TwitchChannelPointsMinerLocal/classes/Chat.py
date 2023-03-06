@@ -12,7 +12,7 @@ from .ChatO import ChatPresence as ChatPresenceO
 from .ChatO import ThreadChat as ThreadChatO
 from .ChatO import logger
 
-from .entities.Pokemon import PokemonComunityGame, CGApi, Pokedaily
+from .entities.Pokemon import PokemonComunityGame, CGApi, Pokedaily, Pokemon
 # from .WinAlerts import send_alert
 # from .DiscordAPI import DiscordAPI
 
@@ -299,13 +299,14 @@ class ClientIRCPokemon(ClientIRCBase):
 
             if POKEMON.check_wondertrade():
                 tradable = [pokemon for pokemon in allpokemon if pokemon["nickname"] is not None and "trade" in pokemon["nickname"]]
-                checks = [POKEMON.missions.have_mission("wondertrade")]
+                checks = [POKEMON.missions.have_wondertrade_missions()]
                 pokemon_to_trade = []
+                reasons = []
 
                 if checks[0] == True:
                     checks.append(False)
 
-                for active in checks:
+                for missions_active in checks:
                     for tier in ["A", "B", "C"]:
                         if len(pokemon_to_trade) > 0:
                             break
@@ -313,12 +314,21 @@ class ClientIRCPokemon(ClientIRCBase):
                         looking_for = f"trade{tier}"
                         for pokemon in tradable:
                             if looking_for in pokemon["nickname"]:
-                                if active:
-                                    pokemon_stats = self.pokemon_api.get_pokemon(pokemon["id"])
+                                if missions_active:
+                                    pokedex_entry = self.pokemon_api.get_pokedex_info(pokemon["pokedexId"])["content"]
                                     sleep(0.5)
-                                    if POKEMON.missions.check_wondertrade_mission([pokemon_stats["type1"].title(), pokemon_stats["type2"].title()]) is False:
+
+                                    pokemon_object = POKEMON()
+                                    pokemon_object.types = [pokedex_entry["type1"].title(), pokedex_entry["type2"].title()]
+                                    pokemon_object.bst = sum([pokedex_entry["base_stats"][k] for k in pokedex_entry["base_stats"]])
+
+                                    reasons = POKEMON.missions.check_all_wondertrade_missions(pokemon_object)
+                                    if len(reasons) == 0:
                                         continue
                                 pokemon_to_trade.append(pokemon)
+                                if missions_active:
+                                    # if missions are active and find pokemon just take it to not spam api
+                                    break
 
                 if len(pokemon_to_trade) == 0:
                     self.log(f"{REDLOG}Could not find a pokemon to wondertrade")
@@ -329,8 +339,9 @@ class ClientIRCPokemon(ClientIRCBase):
                     if "pokemon" in pokemon_received:
                         pokemon_traded_tier = POKEMON.pokedex.tier(pokemon_traded["name"])
                         pokemon_received_tier = POKEMON.pokedex.tier(pokemon_received["pokemon"]["name"])
+                        reasons_string = "" if len(reasons) == 0 else " ({})".format(", ".join(reasons))
 
-                        wondertrade_msg = f"Wondertraded {pokemon_traded['name']} ({pokemon_traded_tier}) for {pokemon_received['pokemon']['name']} ({pokemon_received_tier})"
+                        wondertrade_msg = f"Wondertraded {pokemon_traded['name']} ({pokemon_traded_tier}){reasons_string} for {pokemon_received['pokemon']['name']} ({pokemon_received_tier})"
                         self.log(f"{GREENLOG}{wondertrade_msg}")
                         POKEMON.discord.post(DISCORD_ALERTS, wondertrade_msg)
                         POKEMON.reset_wondertrade_timer()

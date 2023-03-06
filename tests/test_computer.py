@@ -80,7 +80,7 @@ from . import Computer
 from . import Pokemon
 
 COMPUTER = Computer()
- 
+
 
 def test_have_by_name():
     test_cases = [
