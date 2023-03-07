@@ -373,8 +373,9 @@ class ClientIRCPokemon(ClientIRCBase):
             ordered = sorted(pokedict[pokeid], key=lambda x: (-x["avgIV"], -x["lvl"]))
             for index, pokemon in enumerate(ordered):
                 if pokemon["nickname"] is not None:
-                    if pokemon["nickname"].replace(CHARACTERS["starter"], "").replace(CHARACTERS["female"], "") != pokemon["name"]:
-                        continue
+                    if "trade" not in pokemon["nickname"]:
+                        if pokemon["nickname"].replace(CHARACTERS["starter"], "").replace(CHARACTERS["female"], "") != pokemon["name"]:
+                            continue
                 if index == 0:
                     if POKEMON.pokedex.starter(pokemon["name"]):
                         nick = CHARACTERS["starter"] + pokemon["name"]
@@ -386,7 +387,11 @@ class ClientIRCPokemon(ClientIRCBase):
                     else:
                         nick = ""
                 else:
-                    nick = "trade" + POKEMON.pokedex.tier(pokemon["name"])
+                    tier = POKEMON.pokedex.tier(pokemon["name"])
+                    if tier is None:
+                        nick = "trade?"
+                    else:
+                        nick = "trade" + POKEMON.pokedex.tier(pokemon["name"])
                     if POKEMON.pokedex.starter(pokemon["name"]):
                         nick = CHARACTERS["starter"] + nick
                     elif POKEMON.pokedex.female(pokemon["pokedexId"]):
