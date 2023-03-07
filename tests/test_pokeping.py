@@ -36,6 +36,17 @@ MISSIGNO = {
     "timestamp": "2023-02-23T06:19:16.192000+00:00"
 }
 
+ALOMARO = {
+    "content": "ID 10115: @Alolan Marowak - <@&935874381316522014> - <@&935906036550868993> <@&935906553289113730> 425 - 34.0 KG - Phantom Ball ! <@&937386564554727514> delay: 4 seconds",
+    "mention_roles": [
+        "935906036550868993",
+        "935906553289113730",
+        "937386564554727514",
+        "935874381316522014"
+    ],
+    "timestamp": "2023-03-07T00:05:06.053000+00:00",
+}
+
 from . import Pokemon, PokemonCG
 
 POKEMON = PokemonCG.PokemonComunityGame()
@@ -88,3 +99,15 @@ def test_missingno():
     assert pokemon.alt_name == "NA"
     assert pokemon.bst == -1
     assert pokemon.weight == -1
+
+
+def test_alomaro():
+    pokemon = POKEMON.pokeping.parse_pokemon(ALOMARO)
+
+    assert isinstance(pokemon, Pokemon)
+    assert pokemon.name == "Alolan Marowak"
+    assert pokemon.pokemon_id == 10115
+    assert "Fire" in pokemon.types
+    assert "Ghost" in pokemon.types
+    assert pokemon.weight == 34.0
+    assert pokemon.bst == 425

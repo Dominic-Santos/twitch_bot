@@ -51,7 +51,7 @@ class Computer(object):
 
     def get_pokemon(self, pokemon):
         if isinstance(pokemon, Pokemon):
-            if pokemon.is_alternate:
+            if pokemon.pokemon_id != 0:
                 return self._get_by_id(pokemon.pokemon_id)
             return self._get_by_name(pokemon.name)
         return self._get_by_name(pokemon)
