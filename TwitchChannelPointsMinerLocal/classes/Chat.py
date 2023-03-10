@@ -5,14 +5,13 @@ import random
 import logging
 from threading import Thread
 import traceback
-import re
 
 from .ChatO import ClientIRC as ClientIRCO
 from .ChatO import ChatPresence as ChatPresenceO
 from .ChatO import ThreadChat as ThreadChatO
 from .ChatO import logger
 
-from .entities.Pokemon import PokemonComunityGame, CGApi, Pokedaily, Pokemon
+from .entities.Pokemon import PokemonComunityGame, CGApi, Pokedaily
 # from .WinAlerts import send_alert
 # from .DiscordAPI import DiscordAPI
 
@@ -62,7 +61,8 @@ THREADCONTROLLER = ThreadController()
 
 CHARACTERS = {
     "starter": "⭐",
-    "female": "♀"
+    "female": "♀",
+    "legendary": "💪"
 }
 
 
@@ -374,11 +374,16 @@ class ClientIRCPokemon(ClientIRCBase):
             for index, pokemon in enumerate(ordered):
                 if pokemon["nickname"] is not None:
                     if "trade" not in pokemon["nickname"]:
-                        if pokemon["nickname"].replace(CHARACTERS["starter"], "").replace(CHARACTERS["female"], "") != pokemon["name"]:
+                        tempnick = pokemon["nickname"]
+                        for character in CHARACTERS:
+                            tempnick = tempnick.replace(character, "")
+                        if tempnick != pokemon["name"]:
                             continue
                 if index == 0:
                     if POKEMON.pokedex.starter(pokemon["name"]):
                         nick = CHARACTERS["starter"] + pokemon["name"]
+                    elif POKEMON.pokedex.legendary(pokemon["name"]):
+                        nick = CHARACTERS["legendary"] + pokemon["name"]
                     elif POKEMON.pokedex.female(pokemon["pokedexId"]):
                         nick = pokemon["name"] + CHARACTERS["female"]
                     elif pokemon["nickname"] is None or pokemon["nickname"].startswith("trade") is False:
@@ -394,6 +399,8 @@ class ClientIRCPokemon(ClientIRCBase):
                         nick = "trade" + tier
                     if POKEMON.pokedex.starter(pokemon["name"]):
                         nick = CHARACTERS["starter"] + nick
+                    elif POKEMON.pokedex.legendary(pokemon["name"]):
+                        nick = CHARACTERS["legendary"] + nick
                     elif POKEMON.pokedex.female(pokemon["pokedexId"]):
                         nick = nick + CHARACTERS["female"]
 
