@@ -391,7 +391,7 @@ class ClientIRCPokemon(ClientIRCBase):
                     if tier is None:
                         nick = "trade?"
                     else:
-                        nick = "trade" + POKEMON.pokedex.tier(pokemon["name"])
+                        nick = "trade" + tier
                     if POKEMON.pokedex.starter(pokemon["name"]):
                         nick = CHARACTERS["starter"] + nick
                     elif POKEMON.pokedex.female(pokemon["pokedexId"]):

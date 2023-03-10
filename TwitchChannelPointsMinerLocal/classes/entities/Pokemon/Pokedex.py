@@ -9,6 +9,13 @@ POKEMON_TIERS = {
     "C": ["Caterpie", "Metapod", "Weedle", "Kakuna", "Pidgey", "Rattata", "Spearow", "Ekans", "Sandshrew", "Nidoran-female", "Nidoran-male", "Clefairy", "Vulpix", "Jigglypuff", "Zubat", "Golbat", "Oddish", "Paras", "Venonat", "Diglett", "Meowth", "Psyduck", "Mankey", "Growlithe", "Poliwag", "Abra", "Machop", "Bellsprout", "Tentacool", "Geodude", "Ponyta", "Slowpoke", "Magnemite", "Farfetchd", "Doduo", "Seel", "Grimer", "Shellder", "Gastly", "Onix", "Drowzee", "Krabby", "Voltorb", "Exeggcute", "Cubone", "Lickitung", "Koffing", "Rhyhorn", "Chansey", "Tangela", "Kangaskhan", "Horsea", "Goldeen", "Staryu", "Mr-Mime", "Jynx", "Tauros", "Magikarp", "Ditto", "Omanyte", "Kabuto", "Sentret", "Hoothoot", "Ledyba", "Spinarak", "Chinchou", "Cleffa", "Igglybuff", "Togepi", "Natu", "Mareep", "Marill", "Sudowoodo", "Hoppip", "Aipom", "Sunkern", "Yanma", "Wooper", "Murkrow", "Misdreavus", "Unown", "Girafarig", "Pineco", "Dunsparce", "Gligar", "Snubbull", "Qwilfish", "Shuckle", "Sneasel", "Teddiursa", "Slugma", "Swinub", "Corsola", "Remoraid", "Delibird", "Mantine", "Houndour", "Phanpy", "Stantler", "Smeargle", "Tyrogue", "Smoochum", "Elekid", "Magby", "Miltank", "Poochyena", "Zigzagoon", "Wurmple", "Silcoon", "Cascoon", "Lotad", "Seedot", "Taillow", "Wingull", "Ralts", "Surskit", "Shroomish", "Slakoth", "Nincada", "Ninjask", "Whismur", "Makuhita", "Azurill", "Nosepass", "Skitty", "Sableye", "Mawile", "Aron", "Meditite", "Electrike", "Plusle", "Minun", "Volbeat", "Illumise", "Roselia", "Gulpin", "Carvanha", "Wailmer", "Numel", "Spoink", "Spinda", "Cacnea", "Swablu", "Lunatone", "Solrock", "Barboach", "Corphish", "Baltoy", "Lileep", "Anorith", "Shuppet", "Duskull", "Wynaut", "Snorunt", "Spheal", "Clamperl", "Luvdisc", "Starly", "Bidoof", "Kricketot", "Shinx", "Budew", "Cranidos", "Shieldon", "Burmy", "Combee", "Buizel", "Cherubi", "Shellos", "Drifloon", "Buneary", "Glameow", "Chingling", "Stunky", "Bronzor", "Bonsly", "Mime-jr", "Happiny", "Chatot", "Munchlax", "Hippopotas", "Skorupi", "Croagunk", "Finneon", "Mantyke", "Snover", "Patrat", "Lillipup", "Purrloin", "Pansage", "Pansear", "Panpour", "Munna", "Pidove", "Blitzle", "Roggenrola", "Woobat", "Drilbur", "Timburr", "Tympole", "Sewaddle", "Venipede", "Cottonee", "Petilil", "Basculin", "Sandile", "Darumaka", "Maractus", "Dwebble", "Scraggy", "Tirtouga", "Archen", "Trubbish", "Minccino", "Gothita", "Solosis", "Ducklett", "Vanillite", "Deerling", "Karrablast", "Foongus", "Frillish", "Joltik", "Ferroseed", "Klink", "Tynamo", "Elgyem", "Litwick", "Cubchoo", "Shelmet", "Stunfisk", "Mienfoo", "Golett", "Pawniard", "Rufflet", "Vullaby", "Bunnelby", "Fletchling", "Scatterbug", "Litleo", "Flabébé", "Skiddo", "Pancham", "Furfrou", "Espurr", "Spritzee", "Swirlix", "Inkay", "Binacle", "Barbaracle", "Skrelp", "Clauncher", "Helioptile", "Tyrunt", "Amaura", "Goomy", "Klefki", "Phantump", "Pumpkaboo", "Bergmite", "Noibat", "Pikipek", "Yungoos", "Grubbin", "Crabrawler", "Oricorio", "Cutiefly", "Rockruff", "Wishiwashi", "Mareanie", "Mudbray", "Dewpider", "Fomantis", "Morelull", "Salandit", "Stufful", "Bounsweet", "Comfey", "Wimpod", "Sandygast", "Pyukumuku", "Komala", "Togedemaru", "Skwovet", "Greedent", "Rookidee", "Corvisquire", "Blipbug", "Nickit", "Gossifleur", "Wooloo", "Chewtle", "Yamper", "Rolycoly", "Silicobra", "Cramorant", "Arrokuda", "Toxel", "Sizzlipede", "Clobbopus", "Sinistea", "Hatenna", "Impidimp", "Perrserker", "Milcery", "Falinks", "Pincurchin", "Snom", "Cufant", "Lechonk", "Tarountula", "Nymble", "Rellor", "Greavard", "Flittle", "Wiglett", "Finizen", "Smoliv", "Capsakid", "Tadbulb", "Varoom", "Tandemaus", "Cetoddle", "Frigibax", "Pawmi", "Wattrel", "Squawkabilly", "Nacli", "Glimmet", "Shroodle", "Fidough", "Maschiff", "Bramblin", "Gimmighoul", "Tinkatink", "Charcadet", "Toedscool"]
 }
 
+REGION_PREFIX = {
+    "Galarian": "Gal",
+    "Hisuian": "His",
+    "Alolan": "Alo",
+    "Sinnoh": "Sin",
+}
+
 
 class Pokedex(object):
     def __init__(self):
@@ -23,8 +30,14 @@ class Pokedex(object):
     @staticmethod
     def _get_pokemon_name(pokemon):
         if isinstance(pokemon, Pokemon):
-            return pokemon.pokedex_name
-        return pokemon
+            pokename = pokemon.pokedex_name
+        else:
+            pokename = pokemon
+
+        for prefix in REGION_PREFIX:
+            pokename = pokename.replace(prefix, REGION_PREFIX[prefix])
+
+        return pokename
 
     @staticmethod
     def _get_pokemon_id(pokemon):
@@ -65,6 +78,10 @@ class Pokedex(object):
 
     def tier(self, pokemon):
         poke_name = self.clean_name(self._get_pokemon_name(pokemon))
+
+        for prefix in REGION_PREFIX.values():
+            poke_name = poke_name.replace(f"{prefix} ", "").strip()
+
         for k in POKEMON_TIERS.keys():
             if poke_name in POKEMON_TIERS[k]:
                 return k
