@@ -107,3 +107,7 @@ class Pokedex(object):
     @property
     def legendaries(self):
         return len(LEGENDARY_POKEMON)
+
+    @property
+    def females(self):
+        return len(FEMALE_POKEMON)

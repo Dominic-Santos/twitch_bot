@@ -400,7 +400,7 @@ Shiny: {results["shiny"]}
 
 Normal Version: {results["bag_regular"]}/{POKEMON.pokedex.total}
 Alt Version: {results["bag_special"]}
-    {CHARACTERS["female"]}: {results["female"]}
+    {CHARACTERS["female"]}: {results["female"]}/{POKEMON.pokedex.females}
 
 Tradables: {tradable_total}
     A: {results["tradeA"]}
