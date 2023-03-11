@@ -55,6 +55,7 @@ class ThreadController(object):
         self.wondertrade = False
         self.pokecatch = False
         self.pokedaily = False
+        self.bag_stats = False
 
 
 THREADCONTROLLER = ThreadController()
@@ -152,6 +153,21 @@ def pokedaily_thread(func):
         create_thread(pokedaily_timer)
 
 
+def bag_stats_thread(func):
+    def bag_stats_timer():
+        previous = None
+        while True:
+            cur_date = datetime.now().date()
+            if cur_date != previous:
+                func()
+                previous = cur_date
+            sleep(60 * 15)  # 15 mins
+
+    if THREADCONTROLLER.bag_stats is False:
+        THREADCONTROLLER.bag_stats = True
+        create_thread(bag_stats_timer)
+
+
 class ClientIRCBase(ClientIRCO):
     def __init__(self, username, token, channel):
         ClientIRCO.__init__(self, username, token, channel)
@@ -226,6 +242,8 @@ class ClientIRCPokemon(ClientIRCBase):
                 wondertrade_thread(self.wondertrade_main)
             if THREADCONTROLLER.pokedaily is False:
                 pokedaily_thread(self.pokedaily_main)
+            if THREADCONTROLLER.bag_stats is False:
+                bag_stats_thread(self.stats_computer)
 
     def check_pokemon_active(self, client, message, argstring):
 
@@ -352,6 +370,45 @@ class ClientIRCPokemon(ClientIRCBase):
                 time_remaining = POKEMON.check_wondertrade_left()
                 time_str = str(time_remaining).split(".")[0]
                 self.log(f"{YELLOWLOG}Wondertrade available in {time_str}")
+
+    def stats_computer(self):
+
+        all_pokemon = self.pokemon_api.get_all_pokemon()
+        POKEMON.sync_computer(all_pokemon)
+
+        allpokemon = POKEMON.computer.pokemon
+
+        results = {
+            "shiny": len([pokemon for pokemon in allpokemon if pokemon["isShiny"]]),
+            "starter": len(set([pokemon["pokedexId"] for pokemon in allpokemon if POKEMON.pokedex.starter(pokemon["name"])])),
+            "female": len(set([pokemon["pokedexId"] for pokemon in allpokemon if POKEMON.pokedex.female(pokemon["pokedexId"])])),
+            "legendary": len(set([pokemon["pokedexId"] for pokemon in allpokemon if POKEMON.pokedex.legendary(pokemon["name"])])),
+            "bag_regular": len(set([pokemon["pokedexId"] for pokemon in allpokemon if pokemon["pokedexId"] <= POKEMON.pokedex.total])),
+            "bag_special": len(set([pokemon["pokedexId"] for pokemon in allpokemon if pokemon["pokedexId"] > POKEMON.pokedex.total])),
+        }
+
+        for tier in ["S", "A", "B", "C"]:
+            results[f"trade{tier}"] = len([pokemon for pokemon in allpokemon if pokemon["nickname"] is not None and f"trade{tier}" in pokemon["nickname"]])
+
+        tradable_total = sum([results[f"trade{tier}"] for tier in ["A", "B", "C"]])
+
+        discord_msg = f"""Bag Summary:
+
+Starters: {results["starter"]}/{POKEMON.pokedex.starters}
+Legendary: {results["legendary"]}/{POKEMON.pokedex.legendaries}
+Shiny: {results["shiny"]}
+
+Normal Version: {results["bag_regular"]}/{POKEMON.pokedex.total}
+Alt Version: {results["bag_special"]}
+    {CHARACTERS["female"]}: {results["female"]}
+
+Tradables: {tradable_total}
+    A: {results["tradeA"]}
+    B: {results["tradeB"]}
+    C: {results["tradeC"]}
+        """
+
+        POKEMON.discord.post(DISCORD_ALERTS, discord_msg)
 
     def sort_computer(self):
 

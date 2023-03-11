@@ -4,7 +4,6 @@ from .Pokemon import Pokemon
 class Computer(object):
     def __init__(self):
         self.pokemon = []
-        self.total = 0
 
     def set(self, computer):
         self.pokemon = computer["allPokemon"]
@@ -19,7 +18,6 @@ class Computer(object):
     def _have_by_name(self, pokemon_name):
         for pokemon in self.pokemon:
             if pokemon["name"] == pokemon_name:
-                # if pokemon["pokedexId"] <= self.total or self.total == 0:
                 return True
         return False
 
@@ -35,7 +33,6 @@ class Computer(object):
         hits = []
         for pokemon in self.pokemon:
             if pokemon["name"] == pokemon_name:
-                # if pokemon["pokedexId"] <= self.total or self.total == 0:
                 hits.append(pokemon)
         return hits
 

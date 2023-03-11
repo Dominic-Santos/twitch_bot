@@ -21,12 +21,10 @@ REGION_PREFIX = {
 class Pokedex(object):
     def __init__(self):
         self.pokemon = {}
-        self.total = 0
 
     def set(self, dex):
         for pokemon in dex["dex"]:
             self.pokemon[pokemon["name"]] = pokemon["c"]
-        self.total = dex["totalPkm"]
 
     @staticmethod
     def _get_pokemon_name(pokemon):
@@ -97,3 +95,15 @@ class Pokedex(object):
             if poke_name in POKEMON_TIERS[k]:
                 return k
         return None
+
+    @property
+    def total(self):
+        return 898
+
+    @property
+    def starters(self):
+        return len(STARTER_POKEMON)
+
+    @property
+    def legendaries(self):
+        return len(LEGENDARY_POKEMON)

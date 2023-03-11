@@ -25,6 +25,7 @@ def test_tiers():
         assert pokedex.tier(pokemon["name"]) != FAIL_TO_FIND
 
     assert pokedex.tier("fakepokemon") == FAIL_TO_FIND
+    assert pokedex.tier("Rotom (Mow)") != FAIL_TO_FIND
 
 
 def test_regional():
