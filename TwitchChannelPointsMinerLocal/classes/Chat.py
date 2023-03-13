@@ -393,7 +393,7 @@ class ClientIRCPokemon(ClientIRCBase):
 
         region_msg_list = []
         for region in REGION_PREFIX:
-            num = len(set([pokemon["pokedexId"] for pokemon in allpokemon if pokemon["name"].startswith(REGION_PREFIX[region]) + " "]))
+            num = len(set([pokemon["pokedexId"] for pokemon in allpokemon if pokemon["name"].startswith(REGION_PREFIX[region] + " ")]))
             if num > 0:
                 region_msg_list.append((region, num))
 
