@@ -1,8 +1,16 @@
 """
 Todo:
-    catch pokemon by weight (heavier, lighter, between?)
     catch pokemon with X ball
     confirm attemp message
+
+Done:
+    Wondertrade <Type>
+    Wondertrade <Bst>
+    Catch Attempts
+    Catch <Type>
+    Catch <Weight>
+    Miss Catches
+
 """
 
 
@@ -19,12 +27,12 @@ class Missions(object):
             if mission["progress"] >= mission["goal"]:
                 continue
 
-            mission_title = mission["name"].lower().replace("[flash]", " ").strip()
+            mission_title = mission["name"].lower().replace("[flash]", " ").replace("é", "e").replace("wonder trade", "wondertrade").strip()
             mission_title = "".join([c for c in mission_title if c.isalnum() or c == " "]).strip()
             mission_title = " ".join([w for w in mission_title.split(" ") if w != ""])
 
             if mission_title.startswith("wondertrade"):
-                if mission_title.endswith("types"):
+                if mission_title.endswith("types") or mission_title.endswith("type pokemon"):
                     the_type = mission_title.split(" ")[1].title()
                     self.data.setdefault("wondertrade_type", []).append(the_type)
                 elif mission_title.endswith("bst"):
@@ -37,9 +45,16 @@ class Missions(object):
                 self.data["miss"] = True
             elif mission_title == "attempt catches":
                 self.data["attemp"] = True
-            elif mission_title.startswith("catch") and "type pokemon" in mission_title:
-                the_type = mission_title.split(" ")[1].title()
-                self.data.setdefault("type", []).append(the_type)
+            elif mission_title.startswith("catch"):
+                if "type pokemon" in mission_title:
+                    the_type = mission_title.split(" ")[1].title()
+                    self.data.setdefault("type", []).append(the_type)
+                elif "kg" in mission_title:
+                    the_kg = int("".join([c for c in mission_title.split("kg")[0] if c.isnumeric()]))
+                    if "heavier than" in mission_title:
+                        self.data.setdefault("weight", []).append((the_kg, 9999))
+                    else:
+                        self.data.setdefault("weight", []).append((0, the_kg))
 
     def have_mission(self, mission_name):
         return mission_name in self.data

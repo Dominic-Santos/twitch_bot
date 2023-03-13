@@ -282,7 +282,7 @@ class ClientIRCPokemon(ClientIRCBase):
 
         else:
             POKEMON.reset_pokedaily_timer()
-            POKEMON.discord.post(DISCORD_ALERTS, "Pokedaily rewards:\n" + "\n".join(message.rewards))
+            POKEMON.discord.post(DISCORD_ALERTS, "Pokedaily rewards ({message.rarity}):\n" + "\n".join(message.rewards))
             self.log(f"{GREENLOG}Pokedaily ({message.rarity}) rewards " + ", ".join(message.rewards))
 
     def wondertrade_main(self):
