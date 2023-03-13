@@ -12,6 +12,7 @@ from .ChatO import ThreadChat as ThreadChatO
 from .ChatO import logger
 
 from .entities.Pokemon import PokemonComunityGame, CGApi, Pokedaily
+from .entities.Pokemon.Pokedex import REGION_PREFIX
 # from .WinAlerts import send_alert
 # from .DiscordAPI import DiscordAPI
 
@@ -282,7 +283,7 @@ class ClientIRCPokemon(ClientIRCBase):
 
         else:
             POKEMON.reset_pokedaily_timer()
-            POKEMON.discord.post(DISCORD_ALERTS, "Pokedaily rewards ({message.rarity}):\n" + "\n".join(message.rewards))
+            POKEMON.discord.post(DISCORD_ALERTS, f"Pokedaily rewards ({message.rarity}):\n" + "\n".join(message.rewards))
             self.log(f"{GREENLOG}Pokedaily ({message.rarity}) rewards " + ", ".join(message.rewards))
 
     def wondertrade_main(self):
@@ -390,6 +391,14 @@ class ClientIRCPokemon(ClientIRCBase):
         for tier in ["S", "A", "B", "C"]:
             results[f"trade{tier}"] = len([pokemon for pokemon in allpokemon if pokemon["nickname"] is not None and f"trade{tier}" in pokemon["nickname"]])
 
+        region_msg_list = []
+        for region in REGION_PREFIX:
+            num = len(set([pokemon["pokedexId"] for pokemon in allpokemon if pokemon["name"].startswith(REGION_PREFIX[region]) + " "]))
+            if num > 0:
+                region_msg_list.append((region, num))
+
+        region_msg = "".join([f"\n    {region}: {num}" for region, num in region_msg_list])
+
         tradable_total = sum([results[f"trade{tier}"] for tier in ["A", "B", "C"]])
 
         discord_msg = f"""Bag Summary:
@@ -400,7 +409,7 @@ Shiny: {results["shiny"]}
 
 Normal Version: {results["bag_regular"]}/{POKEMON.pokedex.total}
 Alt Version: {results["bag_special"]}
-    {CHARACTERS["female"]}: {results["female"]}/{POKEMON.pokedex.females}
+    {CHARACTERS["female"]}: {results["female"]}/{POKEMON.pokedex.females}{region_msg}
 
 Tradables: {tradable_total}
     A: {results["tradeA"]}

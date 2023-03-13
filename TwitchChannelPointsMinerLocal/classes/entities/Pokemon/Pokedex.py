@@ -14,7 +14,7 @@ REGION_PREFIX = {
     "Galarian": "Gal",
     "Hisuian": "His",
     "Alolan": "Alo",
-    "Sinnoh": "Sin",
+    "Sinister": "Sin",
 }
 
 
