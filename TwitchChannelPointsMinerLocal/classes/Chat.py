@@ -11,7 +11,7 @@ from .ChatO import ChatPresence as ChatPresenceO
 from .ChatO import ThreadChat as ThreadChatO
 from .ChatO import logger
 
-from .entities.Pokemon import PokemonComunityGame, CGApi, Pokedaily
+from .entities.Pokemon import PokemonComunityGame, CGApi, Pokedaily, Pokemon
 # from .WinAlerts import send_alert
 # from .DiscordAPI import DiscordAPI
 
@@ -286,12 +286,14 @@ class ClientIRCPokemon(ClientIRCBase):
             self.log(f"{GREENLOG}Pokedaily ({message.rarity}) rewards " + ", ".join(message.rewards))
 
     def wondertrade_main(self):
+        self.get_missions()
         self.sort_computer()
         self.check_wondertrade()
 
     def check_wondertrade(self):
         allpokemon = POKEMON.computer.pokemon
         if len(allpokemon) > 0:
+
             if POKEMON.wondertrade_timer is None:
                 # get the timer from a pokemon
                 pokemon = self.pokemon_api.get_pokemon(allpokemon[0]["id"])
@@ -336,7 +338,7 @@ class ClientIRCPokemon(ClientIRCBase):
                                     pokedex_entry = self.pokemon_api.get_pokedex_info(pokemon["pokedexId"])["content"]
                                     sleep(0.5)
 
-                                    pokemon_object = POKEMON()
+                                    pokemon_object = Pokemon()
                                     pokemon_object.types = [pokedex_entry["type1"].title(), pokedex_entry["type2"].title()]
                                     pokemon_object.bst = sum([pokedex_entry["base_stats"][k] for k in pokedex_entry["base_stats"]])
 
@@ -516,6 +518,10 @@ Tradables: {tradable_total}
             inv = self.pokemon_api.get_inventory()
             POKEMON.sync_inventory(inv)
 
+    def get_missions(self):
+        missions = self.pokemon_api.get_missions()
+        POKEMON.sync_missions(missions)
+
     def check_main(self, client):
         POKEMON.reset_timer()
         self.log_file(f"{YELLOWLOG}Checking pokemon spawn in pokeping")
@@ -537,8 +543,7 @@ Tradables: {tradable_total}
 
             self.check_inventory()
 
-            missions = self.pokemon_api.get_missions()
-            POKEMON.sync_missions(missions)
+            self.get_missions()
 
             # find reasons to catch the pokemon
             catch_reasons, best_ball = POKEMON.need_pokemon(pokemon)
