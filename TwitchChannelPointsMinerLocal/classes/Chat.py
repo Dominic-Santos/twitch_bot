@@ -12,7 +12,6 @@ from .ChatO import ThreadChat as ThreadChatO
 from .ChatO import logger
 
 from .entities.Pokemon import PokemonComunityGame, CGApi, Pokedaily
-from .entities.Pokemon.Pokedex import REGION_PREFIX
 # from .WinAlerts import send_alert
 # from .DiscordAPI import DiscordAPI
 
@@ -392,8 +391,9 @@ class ClientIRCPokemon(ClientIRCBase):
             results[f"trade{tier}"] = len([pokemon for pokemon in allpokemon if pokemon["nickname"] is not None and f"trade{tier}" in pokemon["nickname"]])
 
         region_msg_list = []
-        for region in REGION_PREFIX:
-            num = len(set([pokemon["pokedexId"] for pokemon in allpokemon if pokemon["name"].startswith(REGION_PREFIX[region] + " ")]))
+        prefixes = POKEMON.pokedex.prefixes
+        for region in prefixes:
+            num = len(set([pokemon["pokedexId"] for pokemon in allpokemon if pokemon["name"].startswith(prefixes[region] + " ")]))
             if num > 0:
                 region_msg_list.append((region, num))
 

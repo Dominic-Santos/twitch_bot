@@ -111,3 +111,7 @@ class Pokedex(object):
     @property
     def females(self):
         return len(FEMALE_POKEMON)
+
+    @property
+    def prefixes(self):
+        return REGION_PREFIX
