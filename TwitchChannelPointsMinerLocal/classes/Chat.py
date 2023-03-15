@@ -372,6 +372,8 @@ class ClientIRCPokemon(ClientIRCBase):
                 time_remaining = POKEMON.check_wondertrade_left()
                 time_str = str(time_remaining).split(".")[0]
                 self.log(f"{YELLOWLOG}Wondertrade available in {time_str}")
+        else:
+            POKEMON.wondertrade_timer = None
 
     def stats_computer(self):
 
@@ -443,7 +445,7 @@ Tradables: {tradable_total}
                 if pokemon["nickname"] is not None:
                     if "trade" not in pokemon["nickname"]:
                         tempnick = pokemon["nickname"]
-                        for character in CHARACTERS:
+                        for character in CHARACTERS.values():
                             tempnick = tempnick.replace(character, "")
                         if tempnick != pokemon["name"]:
                             continue
