@@ -121,7 +121,18 @@ def wondertrade_thread(func):
 
         sleep(min(remaining, max_wait))
         if remaining <= max_wait:
-            func()
+            try:
+                func()
+            except KeyboardInterrupt:
+                return
+            except Exception as ex:
+                str_ex = str(ex)
+                logger.info(f"{REDLOG}Wondertrade func failed - {str_ex}", extra={"emoji": ":speech_balloon:"})
+                POKEMON.wondertrade_timer = None
+                print(traceback.format_exc())
+
+                if len(POKEMON.channel_list) == 0:
+                    THREADCONTROLLER.wondertrade = False
 
         create_thread(wondertrade_timer)
 
