@@ -13,6 +13,91 @@ Done:
 
 """
 
+"""
+{
+    "missions": [
+        {
+            "name": "Catch Pokemon heavier than 250kg / 551 lbs",
+            "goal": 3,
+            "progress": 4,
+            "rewardItem": {
+                "id": 4,
+                "name": "Ultra Ball",
+                "description": "An ultra-high-performance Pok\u00e9 Ball that provides a higher success rate for catching Pok\u00e9mon than a Great Ball.",
+                "sprite_name": "ultra_ball",
+                "category": "ball",
+                "tmType": null,
+                "amount": 5
+            },
+            "rewardPokemon": null,
+            "endDate": "12 hours and 8 minutes"
+        },
+        {
+            "name": "Participate in public battles using a dark type",
+            "goal": 10,
+            "progress": 2,
+            "rewardItem": null,
+            "rewardPokemon": {
+                "id": 258,
+                "name": "Mudkip",
+                "description": "In water, Mudkip breathes using the gills on its cheeks. If it is faced with a tight situation in battle, this Pok\u00e9mon will unleash its amazing power\u2014it can crush rocks bigger than itself.",
+                "sprite_name": "mudkip"
+            },
+            "endDate": "12 hours and 8 minutes"
+        },
+        {
+            "name": "Use super effective moves",
+            "goal": 50,
+            "progress": 2,
+            "rewardItem": {
+                "id": 51,
+                "name": "Team enhancer",
+                "description": "Use this item to increase the amount of teams by 1! You can have up to 20 teams.",
+                "sprite_name": "team_enhancer",
+                "category": "extra",
+                "tmType": null,
+                "amount": 2
+            },
+            "rewardPokemon": null,
+            "endDate": "12 hours and 8 minutes"
+        },
+        {
+            "name": "Wonder trade ground type Pok\u00e9mon",
+            "goal": 7,
+            "progress": 25,
+            "rewardItem": {
+                "id": 80,
+                "name": "Ground Stone",
+                "description": "A stone that makes certain species of Pok\u00e9mon evolve. It is said that the stone's color determines the Pok\u00e9mon that will evolve.",
+                "sprite_name": "ground_stone",
+                "category": "evolution",
+                "tmType": null,
+                "amount": 1
+            },
+            "rewardPokemon": null,
+            "endDate": "12 hours and 8 minutes"
+        },
+        {
+            "name": "Catch ghost type Pok\u00e9mon",
+            "goal": 5,
+            "progress": 7,
+            "rewardItem": {
+                "id": 83,
+                "name": "Ghost Stone",
+                "description": "A stone that makes certain species of Pok\u00e9mon evolve. It is said that the stone's color determines the Pok\u00e9mon that will evolve.",
+                "sprite_name": "ghost_stone",
+                "category": "evolution",
+                "tmType": null,
+                "amount": 1
+            },
+            "rewardPokemon": null,
+            "endDate": "12 hours and 8 minutes"
+        }
+    ],
+    "endDate": "12 hours and 8 minutes"
+}
+"""
+
 
 class Missions(object):
     def __init__(self):
@@ -55,6 +140,12 @@ class Missions(object):
                         self.data.setdefault("weight", []).append((the_kg, 9999))
                     else:
                         self.data.setdefault("weight", []).append((0, the_kg))
+                elif "bst" in mission_title:
+                    the_bst = int("".join([c for c in mission_title if c.isnumeric()]))
+                    if "under" in mission_title:
+                        self.data.setdefault("bst", []).append((0, the_bst))
+                    else:
+                        self.data.setdefault("bst", []).append((the_bst, 9999))
 
     def have_mission(self, mission_name):
         return mission_name in self.data

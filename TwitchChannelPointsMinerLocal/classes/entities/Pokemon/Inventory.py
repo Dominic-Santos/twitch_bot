@@ -52,7 +52,7 @@ class Inventory(object):
 
         if types is not None:
             for t in sorted(types):
-                if t in self.special_balls[t]:
+                if t in self.special_balls:
                     return self.special_balls[t][0]
 
         for item in CATCH_BALL_PRIORITY[1:]:
