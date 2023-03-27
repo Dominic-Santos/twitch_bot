@@ -131,7 +131,7 @@ class Missions(object):
             elif mission_title == "miss catches":
                 self.data["miss"] = True
             elif mission_title == "attempt catches":
-                self.data["attemp"] = True
+                self.data["attempt"] = True
             elif mission_title.startswith("catch"):
                 if "kg" in mission_title:
                     the_kg = int("".join([c for c in mission_title.split("kg")[0] if c.isnumeric()]))
