@@ -70,17 +70,27 @@ class Pokeping(object):
         # some roles die but they forget to remove @
         content = content.replace("@", "")
 
-        if self.alter_role in data["mention_roles"]:
+        parse_alt = False
+
+        if self.alter_role not in data["mention_roles"]:
+            # should be normal pokemon message
+            # some pokemon messages have ID at start
+            if content.startswith("ID"):
+                try:
+                    poke.pokemon_id = int(content.split(":")[0][3:])
+                    content = ":".join(content.split(":")[1:]).strip()
+                except:
+                    parse_alt = True
+        else:
+            parse_alt = True
+
+        if parse_alt:
             # must parse alt message
             poke.is_alternate = True
             poke.pokemon_id = int(content.split("ID: ")[1].split(" ")[0])
-            poke.alt_name = content.split("| ")[2].split(" ")[0]
+            poke.alt_name = content.split("| ")[-1].split(" ")[0]
         else:
             # is normal pokemon message
-            # some pokemon messages have ID at start
-            if content.startswith("ID"):
-                poke.pokemon_id = int(content.split(":")[0][3:])
-                content = ":".join(content.split(":")[1:]).strip()
             try:
                 name, tier, types_and_bst, weight_and_garbage = content.split(" - ")[0:4]
                 weight = weight_and_garbage.split("KG")[0]
