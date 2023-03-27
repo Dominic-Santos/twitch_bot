@@ -117,24 +117,23 @@ class Missions(object):
             mission_title = " ".join([w for w in mission_title.split(" ") if w != ""])
 
             if mission_title.startswith("wondertrade"):
-                if mission_title.endswith("types") or mission_title.endswith("type pokemon"):
-                    the_type = mission_title.split(" ")[1].title()
-                    self.data.setdefault("wondertrade_type", []).append(the_type)
-                elif mission_title.endswith("bst"):
+                if "bst" in mission_title:
                     the_bst = int("".join([c for c in mission_title if c.isnumeric()]))
                     if "less than" in mission_title:
                         self.data.setdefault("wondertrade_bst", []).append((0, the_bst))
                     else:
                         self.data.setdefault("wondertrade_bst", []).append((the_bst, 9999))
+                elif "kg" in mission_title:
+                    pass
+                else:
+                    the_type = mission_title.split(" ")[1].title()
+                    self.data.setdefault("wondertrade_type", []).append(the_type)
             elif mission_title == "miss catches":
                 self.data["miss"] = True
             elif mission_title == "attempt catches":
                 self.data["attemp"] = True
             elif mission_title.startswith("catch"):
-                if "type pokemon" in mission_title:
-                    the_type = mission_title.split(" ")[1].title()
-                    self.data.setdefault("type", []).append(the_type)
-                elif "kg" in mission_title:
+                if "kg" in mission_title:
                     the_kg = int("".join([c for c in mission_title.split("kg")[0] if c.isnumeric()]))
                     if "heavier than" in mission_title:
                         self.data.setdefault("weight", []).append((the_kg, 9999))
@@ -146,6 +145,9 @@ class Missions(object):
                         self.data.setdefault("bst", []).append((0, the_bst))
                     else:
                         self.data.setdefault("bst", []).append((the_bst, 9999))
+                else:
+                    the_type = mission_title.split(" ")[1].title()
+                    self.data.setdefault("type", []).append(the_type)
 
     def have_mission(self, mission_name):
         return mission_name in self.data
