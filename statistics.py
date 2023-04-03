@@ -441,7 +441,6 @@ def read_logs():
             if "spawned" in line:
                 lastpokemon = line.split(":")[-1][3:].split(",")[0].strip()
                 lasttier = line.split("tier")[1].strip()[0]
-                print(lasttier, line)
 
             elif "Trying to catch" in line:
                 usedball = line.split("with")[1].split("because")[0].strip()
