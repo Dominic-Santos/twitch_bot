@@ -5,12 +5,17 @@ from dateutil.parser import parse
 from datetime import datetime, timedelta
 from utils import load_settings
 
+TIERS = ["S", "A", "B", "C"]
+
 DEFAULT_DICT = {
     "catch": [],
     "fail": [],
     "skip": [],
     "catch_balls": [],
-    "fail_balls": []
+    "fail_balls": [],
+    "catch_tiers": [],
+    "fail_tiers": [],
+    "skip_tiers": []
 }
 
 DIV_ZERO = "-"
@@ -250,9 +255,14 @@ def show_results(data, detailed, zeros):
         final_catch += caught
         final_total += total
         catch_rates = ball_catch_rates(final_rates, data[k]["catch_balls"], data[k]["fail_balls"])
+        tiers = {t: (
+            data[k]["catch_tiers"].count(t),
+            data[k]["fail_tiers"].count(t),
+            data[k]["skip_tiers"].count(t),
+        ) for t in TIERS}
 
         if detailed:
-            s = "{date}:\n\tcaught={caught} ({caught_str})\n\tmissed={missed} ({missed_str})\n\tskipped={skipped} ({skipped_str})\n\t(caught={c}%, skipped={s}%)\n\tCatch Rates:\n{balls}".format(
+            s = "{date}:\n\tcaught={caught} ({caught_str})\n\tmissed={missed} ({missed_str})\n\tskipped={skipped} ({skipped_str})\n\t(caught={c}%, skipped={s}%)\n\tCatch Rates:\n{balls}\n\tTiers:\n{tiers}".format(
                 date=k,
                 caught=leading(len(data[k]["catch"]), zeros),
                 missed=leading(len(data[k]["fail"]), zeros),
@@ -265,7 +275,13 @@ def show_results(data, detailed, zeros):
                 balls="\t\t--" if len(catch_rates.keys()) == 0 else "\n".join(["\t\t{ball}: {rate}".format(
                     ball=ball,
                     rate=catch_rates[ball]
-                ) for ball in catch_rates])
+                ) for ball in catch_rates]),
+                tiers="\n".join(["\t\t{tier}: {caught}/{caught_missed} ({total})".format(
+                    tier=tier,
+                    caught=tiers[tier][0],
+                    caught_missed=sum(tiers[tier][:2]),
+                    total=sum(tiers[tier])
+                ) for tier in TIERS if sum(tiers[tier]) > 0])
             )
         else:
             s = "{date}: caught={caught}/{total}  skipped={skipped}  (caught={c}%, skipped={s}%)  balls->{balls}".format(
@@ -332,6 +348,9 @@ def apply_timeframe(data, timeframe):
             final[new_k]["skip"] = final[new_k]["skip"] + data[k]["skip"]
             final[new_k]["catch_balls"] = final[new_k]["catch_balls"] + data[k]["catch_balls"]
             final[new_k]["fail_balls"] = final[new_k]["fail_balls"] + data[k]["fail_balls"]
+            final[new_k]["catch_tiers"] = final[new_k]["catch_tiers"] + data[k]["catch_tiers"]
+            final[new_k]["fail_tiers"] = final[new_k]["fail_tiers"] + data[k]["fail_tiers"]
+            final[new_k]["skip_tiers"] = final[new_k]["skip_tiers"] + data[k]["skip_tiers"]
 
     return final
 
@@ -402,7 +421,8 @@ def read_logs():
 
     mindate = parse("2023-03-10")
     usedball = "unknown"
-    lastpokemon = "unknwon"
+    lastpokemon = "unknown"
+    lasttier = "unknown"
 
     with open("logs/pokemoncg.txt", mode="rb") as file:
         for uline in file:
@@ -420,6 +440,8 @@ def read_logs():
 
             if "spawned" in line:
                 lastpokemon = line.split(":")[-1][3:].split(",")[0].strip()
+                lasttier = line.split("tier")[1].strip()[0]
+                print(lasttier, line)
 
             elif "Trying to catch" in line:
                 usedball = line.split("with")[1].split("because")[0].strip()
@@ -427,13 +449,16 @@ def read_logs():
             elif "Failed to catch" in line:
                 data[dateh]["fail"].append(lastpokemon)
                 data[dateh]["fail_balls"].append(usedball)
+                data[dateh]["fail_tiers"].append(lasttier)
 
             elif "Caught" in line:
                 data[dateh]["catch"].append(lastpokemon)
                 data[dateh]["catch_balls"].append(usedball)
+                data[dateh]["catch_tiers"].append(lasttier)
 
             elif "Don't need pokemon" in line:
                 data[dateh]["skip"].append(lastpokemon)
+                data[dateh]["skip_tiers"].append(lasttier)
 
     return data
 
