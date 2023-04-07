@@ -391,7 +391,29 @@ class ClientIRCPokemon(ClientIRCBase):
         all_pokemon = self.pokemon_api.get_all_pokemon()
         POKEMON.sync_computer(all_pokemon)
 
+        dex = self.pokemon_api.get_pokedex()
+        POKEMON.sync_pokedex(dex)
+
         allpokemon = POKEMON.computer.pokemon
+
+        spawnables = [pokemon for pokemon in POKEMON.pokedex.pokemon if (POKEMON.pokedex.starter(pokemon) or POKEMON.pokedex.legendary(pokemon)) is False]
+        spawnables_a = [pokemon for pokemon in spawnables if POKEMON.pokedex.tier(pokemon) == "A"]
+        spawnables_b = [pokemon for pokemon in spawnables if POKEMON.pokedex.tier(pokemon) == "B"]
+        spawnables_c = [pokemon for pokemon in spawnables if POKEMON.pokedex.tier(pokemon) == "C"]
+
+        spawnables_total = len(spawnables)
+        spawnables_a_total = len(spawnables_a)
+        spawnables_b_total = len(spawnables_b)
+        spawnables_c_total = len(spawnables_c)
+        spawnables_a_have = len([pokemon for pokemon in spawnables_a if POKEMON.pokedex.have(pokemon)])
+        spawnables_b_have = len([pokemon for pokemon in spawnables_b if POKEMON.pokedex.have(pokemon)])
+        spawnables_c_have = len([pokemon for pokemon in spawnables_c if POKEMON.pokedex.have(pokemon)])
+        spawnables_have = spawnables_a_have + spawnables_b_have + spawnables_c_have
+
+        spawnables_per = int(spawnables_have * 10000.0 / spawnables_total) / 100.0
+        spawnables_a_per = int(spawnables_a_have * 10000.0 / spawnables_a_total) / 100.0
+        spawnables_b_per = int(spawnables_b_have * 10000.0 / spawnables_b_total) / 100.0
+        spawnables_c_per = int(spawnables_c_have * 10000.0 / spawnables_c_total) / 100.0
 
         results = {
             "shiny": len([pokemon for pokemon in allpokemon if pokemon["isShiny"]]),
@@ -425,6 +447,11 @@ Shiny: {results["shiny"]}
 Normal Version: {results["bag_regular"]}/{POKEMON.pokedex.total}
 Alt Version: {results["bag_special"]}
     {CHARACTERS["female"]}: {results["female"]}/{POKEMON.pokedex.females}{region_msg}
+
+Spawnables: {spawnables_have}/{spawnables_total} ({spawnables_per}%)
+    A: {spawnables_a_have}/{spawnables_a_total} ({spawnables_a_per}%)
+    B: {spawnables_b_have}/{spawnables_b_total} ({spawnables_b_per}%)
+    C: {spawnables_c_have}/{spawnables_c_total} ({spawnables_c_per}%)
 
 Tradables: {tradable_total}
     A: {results["tradeA"]}
