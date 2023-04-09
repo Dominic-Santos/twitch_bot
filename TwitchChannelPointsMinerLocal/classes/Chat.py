@@ -27,7 +27,7 @@ POKEMON_CHECK_DELAY_RELAX = 60 * 14  # 14 mins
 POKEMON_CHECK_LIMIT_MAX = 75  # pokemon is valid for 75 seconds after spawning
 POKEMON_CHECK_LIMIT_MIN = 10  # pokemon is valid 10 seconds after spawning
 
-ITEM_MIN_AMOUNT = 30
+ITEM_MIN_AMOUNT = 10
 ITEM_MIN_PURCHASE = 10
 
 MARBLES_DELAY = 60 * 3  # seconds
