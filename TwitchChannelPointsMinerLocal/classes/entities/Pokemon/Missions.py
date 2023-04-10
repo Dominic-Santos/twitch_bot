@@ -111,43 +111,48 @@ class Missions(object):
         for mission in missions["missions"]:
             if mission["progress"] >= mission["goal"]:
                 continue
+            try:
+                mission_title = mission["name"].lower().replace("[flash]", " ").replace("é", "e").replace("wonder trade", "wondertrade").strip()
+                mission_title = "".join([c for c in mission_title if c.isalnum() or c == " "]).strip()
+                mission_title = " ".join([w for w in mission_title.split(" ") if w != ""])
 
-            mission_title = mission["name"].lower().replace("[flash]", " ").replace("é", "e").replace("wonder trade", "wondertrade").strip()
-            mission_title = "".join([c for c in mission_title if c.isalnum() or c == " "]).strip()
-            mission_title = " ".join([w for w in mission_title.split(" ") if w != ""])
-
-            if mission_title.startswith("wondertrade"):
-                if "bst" in mission_title:
-                    the_bst = int("".join([c for c in mission_title if c.isnumeric()]))
-                    if "less than" in mission_title:
-                        self.data.setdefault("wondertrade_bst", []).append((0, the_bst))
+                if mission_title.startswith("wondertrade"):
+                    if mission_title == "wondertrade":
+                        # just wondertrade anything does not require a mission
+                        pass
+                    elif "bst" in mission_title:
+                        the_bst = int("".join([c for c in mission_title if c.isnumeric()]))
+                        if "less than" in mission_title:
+                            self.data.setdefault("wondertrade_bst", []).append((0, the_bst))
+                        else:
+                            self.data.setdefault("wondertrade_bst", []).append((the_bst, 9999))
+                    elif "kg" in mission_title:
+                        pass
                     else:
-                        self.data.setdefault("wondertrade_bst", []).append((the_bst, 9999))
-                elif "kg" in mission_title:
-                    pass
-                else:
-                    the_type = mission_title.split(" ")[1].title()
-                    self.data.setdefault("wondertrade_type", []).append(the_type)
-            elif mission_title == "miss catches":
-                self.data["miss"] = True
-            elif mission_title == "attempt catches":
-                self.data["attempt"] = True
-            elif mission_title.startswith("catch"):
-                if "kg" in mission_title:
-                    the_kg = int("".join([c for c in mission_title.split("kg")[0] if c.isnumeric()]))
-                    if "heavier than" in mission_title:
-                        self.data.setdefault("weight", []).append((the_kg, 9999))
+                        the_type = mission_title.split(" ")[1].title()
+                        self.data.setdefault("wondertrade_type", []).append(the_type)
+                elif mission_title == "miss catches":
+                    self.data["miss"] = True
+                elif mission_title == "attempt catches":
+                    self.data["attempt"] = True
+                elif mission_title.startswith("catch"):
+                    if "kg" in mission_title:
+                        the_kg = int("".join([c for c in mission_title.split("kg")[0] if c.isnumeric()]))
+                        if "heavier than" in mission_title:
+                            self.data.setdefault("weight", []).append((the_kg, 9999))
+                        else:
+                            self.data.setdefault("weight", []).append((0, the_kg))
+                    elif "bst" in mission_title:
+                        the_bst = int("".join([c for c in mission_title if c.isnumeric()]))
+                        if "under" in mission_title:
+                            self.data.setdefault("bst", []).append((0, the_bst))
+                        else:
+                            self.data.setdefault("bst", []).append((the_bst, 9999))
                     else:
-                        self.data.setdefault("weight", []).append((0, the_kg))
-                elif "bst" in mission_title:
-                    the_bst = int("".join([c for c in mission_title if c.isnumeric()]))
-                    if "under" in mission_title:
-                        self.data.setdefault("bst", []).append((0, the_bst))
-                    else:
-                        self.data.setdefault("bst", []).append((the_bst, 9999))
-                else:
-                    the_type = mission_title.split(" ")[1].title()
-                    self.data.setdefault("type", []).append(the_type)
+                        the_type = mission_title.split(" ")[1].title()
+                        self.data.setdefault("type", []).append(the_type)
+            except Exception as e:
+                print(mission["name"], "parse fail", str(e))
 
     def have_mission(self, mission_name):
         return mission_name in self.data
