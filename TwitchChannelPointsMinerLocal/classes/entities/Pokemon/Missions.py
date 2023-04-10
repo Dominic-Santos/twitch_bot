@@ -144,7 +144,7 @@ class Missions(object):
                             self.data.setdefault("weight", []).append((0, the_kg))
                     elif "bst" in mission_title:
                         the_bst = int("".join([c for c in mission_title if c.isnumeric()]))
-                        if "under" in mission_title:
+                        if "under" in mission_title or "less" in mission_title:
                             self.data.setdefault("bst", []).append((0, the_bst))
                         else:
                             self.data.setdefault("bst", []).append((the_bst, 9999))
