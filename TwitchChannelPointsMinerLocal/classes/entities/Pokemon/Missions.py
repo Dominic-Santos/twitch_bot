@@ -131,7 +131,7 @@ class Missions(object):
                     else:
                         the_type = mission_title.split(" ")[1].title()
                         self.data.setdefault("wondertrade_type", []).append(the_type)
-                elif mission_title == "miss catches":
+                elif "miss" in mission_title and "catch" in mission_title:
                     self.data["miss"] = True
                 elif mission_title == "attempt catches":
                     self.data["attempt"] = True
