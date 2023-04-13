@@ -394,6 +394,9 @@ class ClientIRCPokemon(ClientIRCBase):
         dex = self.pokemon_api.get_pokedex()
         POKEMON.sync_pokedex(dex)
 
+        inv = self.pokemon_api.get_inventory()
+        POKEMON.sync_inventory(inv)
+
         allpokemon = POKEMON.computer.pokemon
 
         spawnables = [pokemon for pokemon in POKEMON.pokedex.pokemon if (POKEMON.pokedex.starter(pokemon) or POKEMON.pokedex.legendary(pokemon)) is False]
@@ -438,6 +441,17 @@ class ClientIRCPokemon(ClientIRCBase):
 
         tradable_total = sum([results[f"trade{tier}"] for tier in ["A", "B", "C"]])
 
+        cash = POKEMON.inventory.cash
+        pokeball = POKEMON.inventory.balls.get("pokeball", 0)
+        premierball = POKEMON.inventory.balls.get("premierball", 0)
+        greatball = POKEMON.inventory.balls.get("greatball", 0)
+        ultraball = POKEMON.inventory.balls.get("ultraball", 0)
+        otherball = sum([value for key, value in POKEMON.inventory.balls.items() if key not in ["pokeball", "premierball", "greatball", "ultraball"]])
+        coins = 0
+        for item in POKEMON.inventory.items:
+            if item["name"].lower() == "battle coin":
+                coins = item["amount"]
+                break
         discord_msg = f"""Bag Summary:
 
 Starters: {results["starter"]}/{POKEMON.pokedex.starters}
@@ -457,6 +471,13 @@ Tradables: {tradable_total}
     A: {results["tradeA"]}
     B: {results["tradeB"]}
     C: {results["tradeC"]}
+
+Inventory: {cash}$ {coins} Battle Coins
+    pokeball: {pokeball}
+    premierball: {premierball}
+    greatball: {greatball}
+    ultraball: {ultraball}
+    other: {otherball}
         """
 
         POKEMON.discord.post(DISCORD_ALERTS, discord_msg)
