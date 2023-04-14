@@ -18,9 +18,11 @@ def load_pokedex():
     return data
 
 
-def test_tiers():
-    dex_json = load_pokedex()
+dex_json = load_pokedex()
+pokedex.set(dex_json)
 
+
+def test_tiers():
     for pokemon in dex_json["dex"]:
         assert pokedex.tier(pokemon["name"]) != FAIL_TO_FIND
 
@@ -41,3 +43,10 @@ def test_starter():
 def test_legendary():
     for pokemon in LEGENDARY_POKEMON:
         assert pokedex.tier(pokemon) != FAIL_TO_FIND
+
+
+def test_have():
+    assert pokedex.have("Castform-Rainy") == True
+    assert pokedex.have("Wormadam-Sandy") == True
+    pokedex.pokemon["Wormadam"] = False
+    assert pokedex.have("Wormadam-Sandy") == False
