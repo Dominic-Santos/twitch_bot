@@ -28,12 +28,9 @@ class Pokedex(object):
 
     @staticmethod
     def _clean_pokedex_name(pokemon):
-        if pokemon.lower().startswith("castform"):
-            return pokemon.split("-")[0]
-        return pokemon
+        return pokemon.split("-")[0]
 
-    @staticmethod
-    def _get_pokemon_name(pokemon):
+    def _get_pokemon_name(self, pokemon):
         if isinstance(pokemon, Pokemon):
             pokename = pokemon.pokedex_name
         else:
