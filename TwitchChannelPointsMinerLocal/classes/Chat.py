@@ -329,6 +329,9 @@ class ClientIRCPokemon(ClientIRCBase):
                     POKEMON.wondertrade_timer = datetime.utcnow() - timedelta(minutes=minutes, hours=hours)
 
             if POKEMON.check_wondertrade():
+                dex = self.pokemon_api.get_pokedex()
+                POKEMON.sync_pokedex(dex)
+
                 tradable = [pokemon for pokemon in allpokemon if pokemon["nickname"] is not None and "trade" in pokemon["nickname"]]
                 checks = [POKEMON.missions.have_wondertrade_missions()]
                 pokemon_to_trade = []
@@ -370,9 +373,10 @@ class ClientIRCPokemon(ClientIRCBase):
                     if "pokemon" in pokemon_received:
                         pokemon_traded_tier = POKEMON.pokedex.tier(pokemon_traded["name"])
                         pokemon_received_tier = POKEMON.pokedex.tier(pokemon_received["pokemon"]["name"])
+                        pokemon_received_need = "" if POKEMON.pokedex.have(pokemon_received["pokemon"]["name"]) else " - needed"
                         reasons_string = "" if len(reasons) == 0 else " ({})".format(", ".join(reasons))
 
-                        wondertrade_msg = f"Wondertraded {pokemon_traded['name']} ({pokemon_traded_tier}){reasons_string} for {pokemon_received['pokemon']['name']} ({pokemon_received_tier})"
+                        wondertrade_msg = f"Wondertraded {pokemon_traded['name']} ({pokemon_traded_tier}){reasons_string} for {pokemon_received['pokemon']['name']} ({pokemon_received_tier}){pokemon_received_need}"
                         self.log(f"{GREENLOG}{wondertrade_msg}")
                         POKEMON.discord.post(DISCORD_ALERTS, wondertrade_msg)
                         POKEMON.reset_wondertrade_timer()
