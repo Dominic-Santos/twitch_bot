@@ -27,11 +27,17 @@ class Pokedex(object):
             self.pokemon[pokemon["name"]] = pokemon["c"]
 
     @staticmethod
+    def _clean_pokedex_name(pokemon):
+        if pokemon.lower().startswith("castform"):
+            return pokemon.split("-")[0]
+        return pokemon
+
+    @staticmethod
     def _get_pokemon_name(pokemon):
         if isinstance(pokemon, Pokemon):
             pokename = pokemon.pokedex_name
         else:
-            pokename = pokemon
+            pokename = self._clean_pokedex_name(pokemon)
 
         for prefix in REGION_PREFIX:
             pokename = pokename.replace(prefix, REGION_PREFIX[prefix])
