@@ -30,6 +30,8 @@ class Pokedex(object):
     def _clean_pokedex_name(pokemon):
         if pokemon.lower().split("-")[0] in ["castform", "wormadam"]:
             return pokemon.split("-")[0]
+        elif "(Blade)" in pokemon:
+            return pokemon.replace("Blade", "Shield")
         return pokemon
 
     def _get_pokemon_name(self, pokemon):
