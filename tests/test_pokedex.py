@@ -50,3 +50,8 @@ def test_have():
     assert pokedex.have("Wormadam-Sandy") == True
     pokedex.pokemon["Wormadam"] = False
     assert pokedex.have("Wormadam-Sandy") == False
+    assert pokedex.have("Aegislash (Blade)") == True
+    assert pokedex.have("Aegislash (Shield)") == True
+    pokedex.pokemon["Aegislash (Shield)"] = False
+    assert pokedex.have("Aegislash (Blade)") == False
+    assert pokedex.have("Aegislash (Shield)") == False

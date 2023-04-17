@@ -47,6 +47,18 @@ ALOMARO = {
     "timestamp": "2023-03-07T00:05:06.053000+00:00",
 }
 
+VIVILLON = [
+    {
+        "content": "@Vivillon - @Tier : B - @Bug @Flying 411 - 17.0 KG - Net Ball ! @Generation : 6",
+        "mention_roles": [],
+        "timestamp": "2023-03-07T00:05:06.053000+00:00",
+    }, {
+        "content": "ID: 10127 | Vivillon-modern",
+        "mention_roles": [],
+        "timestamp": "2023-03-07T00:05:06.053000+00:00",
+    },
+]
+
 from . import Pokemon, PokemonCG
 
 POKEMON = PokemonCG.PokemonComunityGame()
@@ -111,3 +123,14 @@ def test_alomaro():
     assert "Ghost" in pokemon.types
     assert pokemon.weight == 34.0
     assert pokemon.bst == 425
+
+
+def test_vivillon():
+    pokemon = POKEMON.pokeping.parse_pokemon(VIVILLON[1])
+    assert pokemon.is_alternate
+
+    pokemon = POKEMON.pokeping.parse_pokemon(VIVILLON[0], pokemon)
+    assert pokemon.name == "Vivillon"
+    assert "Bug" in pokemon.types
+    assert "Flying" in pokemon.types
+    assert pokemon.pokemon_id == 10127

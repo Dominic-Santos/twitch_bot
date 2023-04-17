@@ -106,8 +106,6 @@ class PokemonComunityGame(object):
         if self.settings["catch_alternates"]:
             if pokemon.is_alternate and self.computer.need(pokemon):
                 reasons.append("alt")
-            elif pokemon.name == "Vivillon":
-                reasons.append("alt")
 
         missions = self.missions.check_all_missions(pokemon)
         for mission in missions:
