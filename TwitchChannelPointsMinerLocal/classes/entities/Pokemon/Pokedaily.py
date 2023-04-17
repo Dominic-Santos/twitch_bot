@@ -33,7 +33,6 @@ def parse_message(content):
         message.valid = True
 
         time_content = content.split("Please come back in ")[1].split(".")[0]
-        print("TIME CONTENT", time_content)
 
         result = re.findall(r'\d{1,}', time_content)
         hours = 19
