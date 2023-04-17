@@ -33,6 +33,7 @@ def parse_message(content):
         message.valid = True
 
         time_content = content.split("Please come back in ")[1].split(".")[0]
+        print("TIME CONTENT", time_content)
 
         result = re.findall(r'\d{1,}', time_content)
         hours = 19
@@ -61,11 +62,17 @@ def parse_message(content):
         message.rarity = content.split("rarity_")[1].split(":")[0]
 
         rewards = ":".join(content.split("reward")[-1].split(":")[1:])
+
+        # get rid of roles
         results = set(re.findall(r'<:[^:]*:\d{5,}>', rewards))
         for result in results:
             rewards = rewards.replace(result, "")
+
+        # get rid of rarity
+        rewards = rewards.replace(":rarity_{}:".format(message.rarity), "")
+
         items = rewards.split("\n")
-        items = [item.strip() for item in items if item.strip() != ""]
+        items = [item.strip().split(":")[-1].strip() for item in items if item.strip() != ""]
         message.rewards = items
 
     return message

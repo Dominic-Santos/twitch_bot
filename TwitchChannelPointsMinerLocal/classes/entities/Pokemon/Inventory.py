@@ -1,4 +1,4 @@
-CATCH_BALL_PRIORITY = ["ultraball", "greatball", "premierball", "pokeball"]
+CATCH_BALL_PRIORITY = ["ultraball", "greatball", "pokeball", "premierball"]
 POKEMON_TYPES = ["Normal", "Fighting", "Flying", "Poison", "Ground", "Rock", "Bug", "Ghost", "Steel", "Fire", "Water", "Grass", "Electric", "Psychic", "Ice", "Dragon", "Dark", "Fairy"]
 
 
