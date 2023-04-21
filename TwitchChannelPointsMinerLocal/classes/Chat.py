@@ -404,17 +404,30 @@ class ClientIRCPokemon(ClientIRCBase):
         allpokemon = POKEMON.computer.pokemon
 
         spawnables = [pokemon for pokemon in POKEMON.pokedex.pokemon if (POKEMON.pokedex.starter(pokemon) or POKEMON.pokedex.legendary(pokemon)) is False]
-        spawnables_a = [pokemon for pokemon in spawnables if POKEMON.pokedex.tier(pokemon) == "A"]
-        spawnables_b = [pokemon for pokemon in spawnables if POKEMON.pokedex.tier(pokemon) == "B"]
-        spawnables_c = [pokemon for pokemon in spawnables if POKEMON.pokedex.tier(pokemon) == "C"]
+        spawnables_a = []
+        spawnables_b = []
+        spawnables_c = []
+
+        for pokemon in spawnables:
+            t = POKEMON.pokedex.tier(pokemon)
+            if t == "A":
+                spawnables_a.append(pokemon)
+            elif t == "B":
+                spawnables_b.append(pokemon)
+            elif t == "C":
+                spawnables_c.append(pokemon)
 
         spawnables_total = len(spawnables)
         spawnables_a_total = len(spawnables_a)
         spawnables_b_total = len(spawnables_b)
         spawnables_c_total = len(spawnables_c)
+
         spawnables_a_have = len([pokemon for pokemon in spawnables_a if POKEMON.pokedex.have(pokemon)])
         spawnables_b_have = len([pokemon for pokemon in spawnables_b if POKEMON.pokedex.have(pokemon)])
         spawnables_c_have = len([pokemon for pokemon in spawnables_c if POKEMON.pokedex.have(pokemon)])
+        spawnables_a_dont_have = [pokemon for pokemon in spawnables_a if POKEMON.pokedex.have(pokemon) is False]
+        spawnables_b_dont_have = [pokemon for pokemon in spawnables_b if POKEMON.pokedex.have(pokemon) is False]
+        spawnables_c_dont_have = [pokemon for pokemon in spawnables_c if POKEMON.pokedex.have(pokemon) is False]
         spawnables_have = spawnables_a_have + spawnables_b_have + spawnables_c_have
 
         spawnables_per = int(spawnables_have * 10000.0 / spawnables_total) / 100.0
@@ -456,6 +469,11 @@ class ClientIRCPokemon(ClientIRCBase):
             if item["name"].lower() == "battle coin":
                 coins = item["amount"]
                 break
+
+        missing_a_string = "missing: " + ", ".join(spawnables_a_dont_have) if len(spawnables_a_dont_have) in range(0, 10) else ""
+        missing_b_string = "missing: " + ", ".join(spawnables_b_dont_have) if len(spawnables_b_dont_have) in range(0, 10) else ""
+        missing_c_string = "missing: " + ", ".join(spawnables_c_dont_have) if len(spawnables_c_dont_have) in range(0, 10) else ""
+
         discord_msg = f"""Bag Summary:
 
 Starters: {results["starter"]}/{POKEMON.pokedex.starters}
@@ -467,9 +485,9 @@ Alt Version: {results["bag_special"]}
     {CHARACTERS["female"]}: {results["female"]}/{POKEMON.pokedex.females}{region_msg}
 
 Spawnables: {spawnables_have}/{spawnables_total} ({spawnables_per}%)
-    A: {spawnables_a_have}/{spawnables_a_total} ({spawnables_a_per}%)
-    B: {spawnables_b_have}/{spawnables_b_total} ({spawnables_b_per}%)
-    C: {spawnables_c_have}/{spawnables_c_total} ({spawnables_c_per}%)
+    A: {spawnables_a_have}/{spawnables_a_total} ({spawnables_a_per}%) {missing_a_string}
+    B: {spawnables_b_have}/{spawnables_b_total} ({spawnables_b_per}%) {missing_b_string}
+    C: {spawnables_c_have}/{spawnables_c_total} ({spawnables_c_per}%) {missing_c_string}
 
 Tradables: {tradable_total}
     A: {results["tradeA"]}
