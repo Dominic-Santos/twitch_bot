@@ -664,12 +664,12 @@ Inventory: {cash}$ {coins} Battle Coins
                     lvl = poke['lvl']
                     shiny = " Shiny" if poke["isShiny"] else ""
                     self.log_file(f"{GREENLOG}Caught{shiny} {pokemon.name} ({pokemon.tier}) Lvl.{lvl} {ivs}IV")
-                    msg = f"I caught a{shiny} {discord_pokemon_name} ({pokemon.tier}) Lvl.{lvl} {ivs}IV! =P"
+                    msg = f"I caught a{shiny} {discord_pokemon_name} ({pokemon.tier}) Lvl.{lvl} {ivs}IV!"
                 else:
                     self.log_file(f"{REDLOG}Failed to catch {pokemon.name}")
-                    msg = f"I missed {discord_pokemon_name}! ='("
+                    msg = f"I missed {discord_pokemon_name}!"
 
-                msg = msg + f" (ball: {ball}, reasons: {reasons_string})"
+                msg = msg + f" {ball}, because {reasons_string}"
 
                 POKEMON.discord.post(DISCORD_ALERTS, msg)
             else:
