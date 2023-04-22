@@ -669,6 +669,8 @@ Inventory: {cash}$ {coins} Battle Coins
                     self.log_file(f"{REDLOG}Failed to catch {pokemon.name}")
                     msg = f"I missed {discord_pokemon_name}! ='("
 
+                msg = msg + " (ball: {ball}, reasons: {reasons_string})"
+
                 POKEMON.discord.post(DISCORD_ALERTS, msg)
             else:
                 self.log_file(f"{REDLOG}Don't need pokemon, skipping")
