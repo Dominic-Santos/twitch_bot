@@ -54,8 +54,10 @@ def test_fish():
 def test_have():
     assert pokedex.have("Castform-Rainy") == True
     assert pokedex.have("Wormadam-Sandy") == True
+    assert pokedex.have("Wormadam (Sandy)") == True
     pokedex.pokemon["Wormadam"] = False
     assert pokedex.have("Wormadam-Sandy") == False
+    assert pokedex.have("Wormadam (Sandy)") == False
     assert pokedex.have("Aegislash (Blade)") == True
     assert pokedex.have("Aegislash (Shield)") == True
     pokedex.pokemon["Aegislash (Shield)"] = False

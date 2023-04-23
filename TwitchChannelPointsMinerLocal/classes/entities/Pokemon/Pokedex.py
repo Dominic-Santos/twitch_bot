@@ -43,9 +43,6 @@ class Pokedex(object):
         if "Null" in new_name:
             return "Silvally"
 
-        if new_name.startswith("Rotom"):
-            return "Rotom"
-
         if "(Blade)" in new_name:
             new_name = new_name.replace("Blade", "Shield")
             if Pokedex._check_valid(new_name):
@@ -56,10 +53,11 @@ class Pokedex(object):
             if Pokedex._check_valid(new_name):
                 return new_name
 
-        while "-" in new_name:
-            new_name = "-".join(new_name.split("-")[0:-1])
-            if Pokedex._check_valid(new_name):
-                return new_name
+        for split_char in ["(", "-"]:
+            while split_char in new_name:
+                new_name = "-".join(new_name.split(split_char)[0:-1]).strip()
+                if Pokedex._check_valid(new_name):
+                    return new_name
 
         return None
 
