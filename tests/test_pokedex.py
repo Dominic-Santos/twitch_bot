@@ -68,3 +68,4 @@ def test_have():
     assert pokedex.have("Pikachu-female") == True
     assert pokedex.have("Pikachu-female-soemthingelse-idunno") == True
     assert pokedex.have("garbage") == FAIL_TO_FIND
+    assert pokedex.have("Mime Jr.") == True
