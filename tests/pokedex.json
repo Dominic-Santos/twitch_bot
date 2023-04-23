@@ -1746,7 +1746,7 @@
         {
             "name": "Ho-Oh",
             "id": 250,
-            "c": false,
+            "c": true,
             "order": 250,
             "pokedexId": 250
         },

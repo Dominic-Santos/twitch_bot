@@ -55,3 +55,8 @@ def test_have():
     pokedex.pokemon["Aegislash (Shield)"] = False
     assert pokedex.have("Aegislash (Blade)") == False
     assert pokedex.have("Aegislash (Shield)") == False
+    assert pokedex.have("Ho-Oh") == True
+    assert pokedex.have("Ho-Oh-yo") == True
+    assert pokedex.have("Indeedee") == True
+    assert pokedex.have("Indeedee-female") == True
+    assert pokedex.have("Pikachu-female") == True
