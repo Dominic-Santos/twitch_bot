@@ -105,6 +105,10 @@ class Pokeping(object):
             except:
                 pass
 
+        # check if its a fish
+        if ":fish:" in content:
+            poke.is_fish = True
+
         poke.spawn = parse(data["timestamp"].split("+")[0])
 
         return poke

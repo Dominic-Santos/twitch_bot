@@ -95,7 +95,8 @@ class PokemonComunityGame(object):
 
     def get_last_spawned(self):
         pokemon = self.pokeping.get_pokemon()
-        pokemon.is_fish = self.pokedex.fish(pokemon)
+        # dont need this for now because getting from pokeping
+        # pokemon.is_fish = self.pokedex.fish(pokemon)
         return pokemon
 
     def need_pokemon(self, pokemon):
