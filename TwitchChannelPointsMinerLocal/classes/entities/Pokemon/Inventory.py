@@ -34,7 +34,7 @@ class Inventory(object):
                 if "Fish" in item["description"]:
                     if "Fish" not in self.other_balls:
                         self.other_balls["Fish"] = []
-                    self.special_balls["Fish"].append(ball)
+                    self.other_balls["Fish"].append(ball)
 
             else:
                 self.items.append(item)
