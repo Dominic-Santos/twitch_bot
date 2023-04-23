@@ -116,7 +116,9 @@ class Missions(object):
                 mission_title = "".join([c for c in mission_title if c.isalnum() or c == " "]).strip()
                 mission_title = " ".join([w for w in mission_title.split(" ") if w != ""])
 
-                if mission_title.startswith("wondertrade"):
+                if "fish" in mission_title:
+                    self.data["fish"] = True
+                elif mission_title.startswith("wondertrade"):
                     if mission_title == "wondertrade":
                         # just wondertrade anything does not require a mission
                         pass
@@ -206,6 +208,9 @@ class Missions(object):
     def check_type_mission(self, pokemon_types):
         return self._types_mission("type", pokemon_types)
 
+    def check_fish_mission(self):
+        return self.have_mission("fish")
+
     def check_miss_mission(self):
         return self.have_mission("miss")
 
@@ -234,6 +239,9 @@ class Missions(object):
 
         if self.check_attempt_mission():
             reasons.append("attempt")
+
+        if self.check_fish_mission():
+            reasons.append("fish")
 
         return reasons
 

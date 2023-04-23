@@ -637,7 +637,8 @@ Inventory: {cash}$ {coins} Battle Coins
                     break
 
             if len(catch_reasons) > 0:
-                ball = POKEMON.inventory.get_catch_ball(pokemon.types, repeat=repeat, best=best_ball)
+                pokemon_is_fish = POKEMON.pokedex.fish(pokemon)
+                ball = POKEMON.inventory.get_catch_ball(pokemon.types, repeat=repeat, best=best_ball, fish=pokemon_is_fish)
                 random_channel = POKEMON.random_channel()
                 message = f"!pokecatch {ball}"
                 client.privmsg("#" + random_channel, message)

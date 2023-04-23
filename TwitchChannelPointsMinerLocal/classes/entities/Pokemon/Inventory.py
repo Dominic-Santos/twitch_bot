@@ -11,6 +11,7 @@ class Inventory(object):
         self.balls = {}
         self.items = []
         self.special_balls = {}
+        self.other_balls = {}
 
     def __str__(self):
         return "Balance: $" + str(self.cash) + " " + ", ".join(["{item}: {amount}".format(item=item["name"], amount=item["amount"]) for item in self.items])
@@ -29,12 +30,18 @@ class Inventory(object):
                             self.special_balls[pokemon_type] = []
                         self.special_balls[pokemon_type].append(ball)
 
+                # Balls for fish pokemon
+                if "Fish" in item["description"]:
+                    if "Fish" not in self.other_balls:
+                        self.other_balls["Fish"] = []
+                    self.special_balls["Fish"].append(ball)
+
             else:
                 self.items.append(item)
 
-    def get_catch_ball(self, types=[], repeat=False, best=True):
+    def get_catch_ball(self, types=[], repeat=False, best=True, fish=False):
         if best:
-            return self.get_catch_best_ball(types, repeat)
+            return self.get_catch_best_ball(types, repeat, fish)
         return self.get_catch_ball_worst()
 
     def get_catch_ball_worst(self):
@@ -42,7 +49,7 @@ class Inventory(object):
             if self.have_ball(item):
                 return item
 
-    def get_catch_best_ball(self, types=[], repeat=False):
+    def get_catch_best_ball(self, types=[], repeat=False, fish=False):
         if repeat:
             if self.have_ball("repeatball"):
                 return "repeatball"
@@ -54,6 +61,9 @@ class Inventory(object):
             for t in sorted(types):
                 if t in self.special_balls:
                     return self.special_balls[t][0]
+
+        if fish and "Fish" in self.other_balls:
+            return self.other_balls["Fish"][0]
 
         for item in CATCH_BALL_PRIORITY[1:]:
             if self.have_ball(item):

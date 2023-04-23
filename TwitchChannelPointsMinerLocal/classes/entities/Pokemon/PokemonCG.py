@@ -30,7 +30,8 @@ class PokemonComunityGame(object):
             "catch_alternates": False,
             "complete_bag": False,
             "catch": [],
-            "catch_tiers": []
+            "catch_tiers": [],
+            "catch_types": []
         }
 
         self.discord = Discord()
@@ -118,6 +119,11 @@ class PokemonComunityGame(object):
         for catch in self.settings["catch"]:
             if pokemon.name.startswith(catch):
                 reasons.append("catch")
+
+        for poke_type in pokemon.types:
+            if poke_type in self.settings["catch_types"]:
+                reasons.append("type")
+                break
 
         if pokemon.tier in self.settings["catch_tiers"]:
             reasons.append("tiers")
