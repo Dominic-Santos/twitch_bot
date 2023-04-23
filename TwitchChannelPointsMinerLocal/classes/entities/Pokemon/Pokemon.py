@@ -10,6 +10,7 @@ class Pokemon(object):
         self.spawn = None
 
         self.is_alternate = False
+        self.is_fish = False
         self.alt_name = "NA"
 
     @property

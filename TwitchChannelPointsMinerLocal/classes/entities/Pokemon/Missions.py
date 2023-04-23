@@ -234,14 +234,14 @@ class Missions(object):
         if self.check_bst_mission(pokemon.bst):
             reasons.append("bst")
 
+        if pokemon.is_fish and self.check_fish_mission():
+            reasons.append("fish")
+
         if self.check_miss_mission():
             reasons.append("miss")
 
         if self.check_attempt_mission():
             reasons.append("attempt")
-
-        if self.check_fish_mission():
-            reasons.append("fish")
 
         return reasons
 

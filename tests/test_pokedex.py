@@ -49,6 +49,7 @@ def test_legendary():
 def test_fish():
     for pokemon in FISH_POKEMON:
         assert pokedex.fish(pokemon) == True
+    assert pokedex.fish("Pidgey") == False
 
 
 def test_have():

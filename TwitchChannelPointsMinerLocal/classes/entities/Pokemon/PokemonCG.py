@@ -28,6 +28,7 @@ class PokemonComunityGame(object):
         self.settings = {
             "catch_everything": False,
             "catch_alternates": False,
+            "catch_fish": False,
             "complete_bag": False,
             "catch": [],
             "catch_tiers": [],
@@ -93,7 +94,9 @@ class PokemonComunityGame(object):
         self.delay = delay
 
     def get_last_spawned(self):
-        return self.pokeping.get_pokemon()
+        pokemon = self.pokeping.get_pokemon()
+        pokemon.is_fish = self.pokedex.fish(pokemon)
+        return pokemon
 
     def need_pokemon(self, pokemon):
         reasons = []
@@ -122,11 +125,14 @@ class PokemonComunityGame(object):
 
         for poke_type in pokemon.types:
             if poke_type in self.settings["catch_types"]:
-                reasons.append("type")
+                reasons.append("all_type")
                 break
 
         if pokemon.tier in self.settings["catch_tiers"]:
             reasons.append("tiers")
+
+        if self.settings["catch_fish"] and pokemon.is_fish:
+            reasons.append("all_fish")
 
         if self.settings["catch_everything"]:
             # catch anything:
