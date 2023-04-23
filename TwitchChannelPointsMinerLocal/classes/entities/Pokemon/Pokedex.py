@@ -71,9 +71,9 @@ class Pokedex(object):
 
     def have(self, pokemon):
         poke_name = self._get_pokemon_name(pokemon)
-        if poke_name == "NA":
-            return True
-        return self.pokemon.get(poke_name, False)
+        if poke_name is None:
+            return None
+        return self.pokemon.get(poke_name, None)
 
     def need(self, pokemon):
         return self.have(pokemon) is False

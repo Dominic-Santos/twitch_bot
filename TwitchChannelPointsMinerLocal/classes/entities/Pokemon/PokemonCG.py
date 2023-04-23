@@ -96,8 +96,12 @@ class PokemonComunityGame(object):
 
     def need_pokemon(self, pokemon):
         reasons = []
-        if self.pokedex.need(pokemon):
+
+        dexneed = self.pokedex.need(pokemon)
+        if dexneed in [True, None]:
             reasons.append("pokedex")
+            if dexneed is None:
+                reasons.append("pokedex_error")
 
         if self.settings["complete_bag"]:
             if self.computer.need(pokemon):

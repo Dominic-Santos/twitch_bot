@@ -60,3 +60,4 @@ def test_have():
     assert pokedex.have("Indeedee") == True
     assert pokedex.have("Indeedee-female") == True
     assert pokedex.have("Pikachu-female") == True
+    assert pokedex.have("garbage") == True
