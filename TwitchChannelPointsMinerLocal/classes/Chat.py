@@ -48,6 +48,7 @@ DISCORD_ALERTS = f"{DISCORD_BASE}channels/{ALERTS_CHANNEL}/messages"
 DISCORD_POKEDAILY = f"{DISCORD_BASE}channels/{POKEDAILY_CHANNEL}/messages"
 DISCORD_POKEDAILY_SEARCH = f"{DISCORD_BASE}guilds/{POKEDAILY_GUILD}/messages/search?channel_id={POKEDAILY_CHANNEL}&mentions=" + "{discord_id}"
 
+FISH_EVENT = True
 
 class ThreadController(object):
     def __init__(self):
@@ -665,6 +666,10 @@ Inventory: {cash}$ {coins} Battle Coins
                     shiny = " Shiny" if poke["isShiny"] else ""
                     self.log_file(f"{GREENLOG}Caught{shiny} {pokemon.name} ({pokemon.tier}) Lvl.{lvl} {ivs}IV")
                     msg = f"I caught a{shiny} {discord_pokemon_name} ({pokemon.tier}) Lvl.{lvl} {ivs}IV!"
+                    if pokemon.is_fish and FISH_EVENT:
+                        caught_pokemon = self.pokemon_api.get_pokemon(poke["id"])
+                        if "🐟" in caught_pokemon["description"]:
+                            msg += "\n" + caught_pokemon["description"].split("Your fish is ")[-1]
                 else:
                     self.log_file(f"{REDLOG}Failed to catch {pokemon.name}")
                     msg = f"I missed {discord_pokemon_name}!"
