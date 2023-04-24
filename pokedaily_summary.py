@@ -14,7 +14,7 @@ def main():
         for message in resp["messages"]:
             message_obj = Pokedaily.parse_message(message[0]["content"])
 
-            if message_obj.valid:
+            if message_obj.valid and message_obj.repeat is False:
                 rarities[message_obj.rarity] = rarities.get(message_obj.rarity, 0) + 1
 
         offset += 25
