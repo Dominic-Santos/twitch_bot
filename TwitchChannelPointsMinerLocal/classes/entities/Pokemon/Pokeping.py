@@ -27,7 +27,7 @@ class Pokeping(object):
     def get_pokemon(self):
         messages = self.get_messages(2)
         pokemon = self.parse_pokemon(messages[0])
-        if pokemon.is_alternate:
+        if pokemon.is_alternate or pokemon.name == "NA":
             self.parse_pokemon(messages[1], pokemon=pokemon)
         pokemon.check_name()
         return pokemon

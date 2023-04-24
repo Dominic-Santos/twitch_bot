@@ -53,6 +53,11 @@ def test_fish():
 
 
 def test_have():
+    for pokemon in dex_json["dex"]:
+        assert pokedex.have(pokemon["name"]) == True
+
+
+def test_have_extra():
     assert pokedex.have("Castform-Rainy") == True
     assert pokedex.have("Wormadam-Sandy") == True
     assert pokedex.have("Wormadam (Sandy)") == True

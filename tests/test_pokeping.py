@@ -59,10 +59,34 @@ VIVILLON = [
     },
 ]
 
+BASCULEGION = [
+    {
+        "content": "Basculegion - <@&935874381316522014> - <@&935906085276119040> <@&935906553289113730> 530 - 110.0 KG - Net & Phantom Ball :o <@&1082369332505481266> :fish: <@&1099744172287742122>",
+        "mention_roles": ["935906085276119040", "935906553289113730", "1099744172287742122", "1082369332505481266", "935874381316522014"],
+        "timestamp": "2023-04-24T09:23:18.326000+00:00"
+    },
+    {
+        "content": "ID 86320: @MissingNo. <@&1082369284912722041>",
+        "mention_roles": ["1082369284912722041"],
+        "timestamp": "2023-04-24T09:23:22.330000+00:00",
+    }
+]
+
 from . import Pokemon, PokemonCG
 
 POKEMON = PokemonCG.PokemonComunityGame()
 # PING = Pokeping()
+
+
+def mock_data(to_return):
+    def wrapped(limit=1):
+        return to_return
+
+    return wrapped
+
+
+def set_mock_data(mock):
+    POKEMON.pokeping.get_messages = mock_data(mock[::-1])
 
 
 def test_normal():
@@ -126,11 +150,19 @@ def test_alomaro():
 
 
 def test_vivillon():
-    pokemon = POKEMON.pokeping.parse_pokemon(VIVILLON[1])
+    set_mock_data(VIVILLON)
+    pokemon = POKEMON.pokeping.get_pokemon()
     assert pokemon.is_alternate
-
-    pokemon = POKEMON.pokeping.parse_pokemon(VIVILLON[0], pokemon)
     assert pokemon.name == "Vivillon"
     assert "Bug" in pokemon.types
     assert "Flying" in pokemon.types
     assert pokemon.pokemon_id == 10127
+
+
+def test_basculegion():
+    set_mock_data(BASCULEGION)
+    pokemon = POKEMON.pokeping.get_pokemon()
+    assert pokemon.name == "Basculegion"
+    assert "Water" in pokemon.types
+    assert "Ghost" in pokemon.types
+    assert pokemon.pokemon_id == 86320

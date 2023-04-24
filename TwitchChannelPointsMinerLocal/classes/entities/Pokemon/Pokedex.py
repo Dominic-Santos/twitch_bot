@@ -25,19 +25,18 @@ class Pokedex(object):
 
     def set(self, dex):
         for pokemon in dex["dex"]:
-            self.pokemon[pokemon["name"]] = pokemon["c"]
+            pokename = self._clean_pokedex_name(pokemon["name"])
+            self.pokemon[pokename] = pokemon["c"]
 
-    @staticmethod
-    def _check_valid(pokemon):
-        for tier in POKEMON_TIERS.keys():
-            if pokemon in POKEMON_TIERS[tier]:
+    def _check_valid(self, pokemon):
+        for k in POKEMON_TIERS.keys():
+            if pokemon in POKEMON_TIERS[k]:
                 return True
         return False
 
-    @staticmethod
-    def _clean_pokedex_name(pokemon):
+    def _clean_pokedex_name(self, pokemon):
         new_name = pokemon.replace("’", "").replace("'", "")
-        if Pokedex._check_valid(new_name):
+        if self._check_valid(new_name):
             return new_name
 
         if "Null" in new_name:
@@ -45,18 +44,18 @@ class Pokedex(object):
 
         if "(Blade)" in new_name:
             new_name = new_name.replace("Blade", "Shield")
-            if Pokedex._check_valid(new_name):
+            if self._check_valid(new_name):
                 return new_name
 
         if new_name.startswith("Nidoran"):
             new_name = "Nidoran-{sex}".format(sex="male" if "♂" in new_name else "female")
-            if Pokedex._check_valid(new_name):
+            if self._check_valid(new_name):
                 return new_name
 
         for split_char in ["(", "-"]:
             while split_char in new_name:
                 new_name = "-".join(new_name.split(split_char)[0:-1]).strip()
-                if Pokedex._check_valid(new_name):
+                if self._check_valid(new_name):
                     return new_name
 
         return None
@@ -126,6 +125,10 @@ class Pokedex(object):
     @property
     def total(self):
         return 898
+
+    @property
+    def spawnables(self):
+        return self.total - self.starters - self.legendaries
 
     @property
     def starters(self):

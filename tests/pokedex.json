@@ -10,14 +10,14 @@
         {
             "name": "Ivysaur",
             "id": 2,
-            "c": false,
+            "c": true,
             "order": 2,
             "pokedexId": 2
         },
         {
             "name": "Venusaur",
             "id": 3,
-            "c": false,
+            "c": true,
             "order": 3,
             "pokedexId": 3
         },
@@ -31,14 +31,14 @@
         {
             "name": "Charmeleon",
             "id": 5,
-            "c": false,
+            "c": true,
             "order": 5,
             "pokedexId": 5
         },
         {
             "name": "Charizard",
             "id": 6,
-            "c": false,
+            "c": true,
             "order": 6,
             "pokedexId": 6
         },
@@ -52,14 +52,14 @@
         {
             "name": "Wartortle",
             "id": 8,
-            "c": false,
+            "c": true,
             "order": 8,
             "pokedexId": 8
         },
         {
             "name": "Blastoise",
             "id": 9,
-            "c": false,
+            "c": true,
             "order": 9,
             "pokedexId": 9
         },
@@ -1004,21 +1004,21 @@
         {
             "name": "Articuno",
             "id": 144,
-            "c": false,
+            "c": true,
             "order": 144,
             "pokedexId": 144
         },
         {
             "name": "Zapdos",
             "id": 145,
-            "c": false,
+            "c": true,
             "order": 145,
             "pokedexId": 145
         },
         {
             "name": "Moltres",
             "id": 146,
-            "c": false,
+            "c": true,
             "order": 146,
             "pokedexId": 146
         },
@@ -1046,14 +1046,14 @@
         {
             "name": "Mewtwo",
             "id": 150,
-            "c": false,
+            "c": true,
             "order": 150,
             "pokedexId": 150
         },
         {
             "name": "Mew",
             "id": 151,
-            "c": false,
+            "c": true,
             "order": 151,
             "pokedexId": 151
         },
@@ -1067,35 +1067,35 @@
         {
             "name": "Bayleef",
             "id": 153,
-            "c": false,
+            "c": true,
             "order": 153,
             "pokedexId": 153
         },
         {
             "name": "Meganium",
             "id": 154,
-            "c": false,
+            "c": true,
             "order": 154,
             "pokedexId": 154
         },
         {
             "name": "Cyndaquil",
             "id": 155,
-            "c": false,
+            "c": true,
             "order": 155,
             "pokedexId": 155
         },
         {
             "name": "Quilava",
             "id": 156,
-            "c": false,
+            "c": true,
             "order": 156,
             "pokedexId": 156
         },
         {
             "name": "Typhlosion",
             "id": 157,
-            "c": false,
+            "c": true,
             "order": 157,
             "pokedexId": 157
         },
@@ -1109,14 +1109,14 @@
         {
             "name": "Croconaw",
             "id": 159,
-            "c": false,
+            "c": true,
             "order": 159,
             "pokedexId": 159
         },
         {
             "name": "Feraligatr",
             "id": 160,
-            "c": false,
+            "c": true,
             "order": 160,
             "pokedexId": 160
         },
@@ -1697,21 +1697,21 @@
         {
             "name": "Raikou",
             "id": 243,
-            "c": false,
+            "c": true,
             "order": 243,
             "pokedexId": 243
         },
         {
             "name": "Entei",
             "id": 244,
-            "c": false,
+            "c": true,
             "order": 244,
             "pokedexId": 244
         },
         {
             "name": "Suicune",
             "id": 245,
-            "c": false,
+            "c": true,
             "order": 245,
             "pokedexId": 245
         },
@@ -1739,7 +1739,7 @@
         {
             "name": "Lugia",
             "id": 249,
-            "c": false,
+            "c": true,
             "order": 249,
             "pokedexId": 249
         },
@@ -1753,7 +1753,7 @@
         {
             "name": "Celebi",
             "id": 251,
-            "c": false,
+            "c": true,
             "order": 251,
             "pokedexId": 251
         },
@@ -1767,14 +1767,14 @@
         {
             "name": "Grovyle",
             "id": 253,
-            "c": false,
+            "c": true,
             "order": 253,
             "pokedexId": 253
         },
         {
             "name": "Sceptile",
             "id": 254,
-            "c": false,
+            "c": true,
             "order": 254,
             "pokedexId": 254
         },
@@ -1788,14 +1788,14 @@
         {
             "name": "Combusken",
             "id": 256,
-            "c": false,
+            "c": true,
             "order": 256,
             "pokedexId": 256
         },
         {
             "name": "Blaziken",
             "id": 257,
-            "c": false,
+            "c": true,
             "order": 257,
             "pokedexId": 257
         },
@@ -1809,14 +1809,14 @@
         {
             "name": "Marshtomp",
             "id": 259,
-            "c": false,
+            "c": true,
             "order": 259,
             "pokedexId": 259
         },
         {
             "name": "Swampert",
             "id": 260,
-            "c": false,
+            "c": true,
             "order": 260,
             "pokedexId": 260
         },
@@ -2446,7 +2446,7 @@
         {
             "name": "Milotic",
             "id": 350,
-            "c": false,
+            "c": true,
             "order": 350,
             "pokedexId": 350
         },
@@ -2656,56 +2656,56 @@
         {
             "name": "Latias",
             "id": 380,
-            "c": false,
+            "c": true,
             "order": 380,
             "pokedexId": 380
         },
         {
             "name": "Latios",
             "id": 381,
-            "c": false,
+            "c": true,
             "order": 381,
             "pokedexId": 381
         },
         {
             "name": "Kyogre",
             "id": 382,
-            "c": false,
+            "c": true,
             "order": 382,
             "pokedexId": 382
         },
         {
             "name": "Groudon",
             "id": 383,
-            "c": false,
+            "c": true,
             "order": 383,
             "pokedexId": 383
         },
         {
             "name": "Rayquaza",
             "id": 384,
-            "c": false,
+            "c": true,
             "order": 384,
             "pokedexId": 384
         },
         {
             "name": "Jirachi",
             "id": 385,
-            "c": false,
+            "c": true,
             "order": 385,
             "pokedexId": 385
         },
         {
             "name": "Deoxys",
             "id": 386,
-            "c": false,
+            "c": true,
             "order": 386,
             "pokedexId": 386
         },
         {
             "name": "Turtwig",
             "id": 387,
-            "c": false,
+            "c": true,
             "order": 387,
             "pokedexId": 387
         },
@@ -2719,28 +2719,28 @@
         {
             "name": "Torterra",
             "id": 389,
-            "c": false,
+            "c": true,
             "order": 389,
             "pokedexId": 389
         },
         {
             "name": "Chimchar",
             "id": 390,
-            "c": false,
+            "c": true,
             "order": 390,
             "pokedexId": 390
         },
         {
             "name": "Monferno",
             "id": 391,
-            "c": false,
+            "c": true,
             "order": 391,
             "pokedexId": 391
         },
         {
             "name": "Infernape",
             "id": 392,
-            "c": false,
+            "c": true,
             "order": 392,
             "pokedexId": 392
         },
@@ -2754,14 +2754,14 @@
         {
             "name": "Prinplup",
             "id": 394,
-            "c": false,
+            "c": true,
             "order": 394,
             "pokedexId": 394
         },
         {
             "name": "Empoleon",
             "id": 395,
-            "c": false,
+            "c": true,
             "order": 395,
             "pokedexId": 395
         },
@@ -3279,7 +3279,7 @@
         {
             "name": "Yanmega",
             "id": 469,
-            "c": false,
+            "c": true,
             "order": 469,
             "pokedexId": 469
         },
@@ -3356,105 +3356,105 @@
         {
             "name": "Uxie",
             "id": 480,
-            "c": false,
+            "c": true,
             "order": 480,
             "pokedexId": 480
         },
         {
             "name": "Mesprit",
             "id": 481,
-            "c": false,
+            "c": true,
             "order": 481,
             "pokedexId": 481
         },
         {
             "name": "Azelf",
             "id": 482,
-            "c": false,
+            "c": true,
             "order": 482,
             "pokedexId": 482
         },
         {
             "name": "Dialga",
             "id": 483,
-            "c": false,
+            "c": true,
             "order": 483,
             "pokedexId": 483
         },
         {
             "name": "Palkia",
             "id": 484,
-            "c": false,
+            "c": true,
             "order": 484,
             "pokedexId": 484
         },
         {
             "name": "Heatran",
             "id": 485,
-            "c": false,
+            "c": true,
             "order": 485,
             "pokedexId": 485
         },
         {
             "name": "Regigigas",
             "id": 486,
-            "c": false,
+            "c": true,
             "order": 486,
             "pokedexId": 486
         },
         {
             "name": "Giratina",
             "id": 487,
-            "c": false,
+            "c": true,
             "order": 487,
             "pokedexId": 487
         },
         {
             "name": "Cresselia",
             "id": 488,
-            "c": false,
+            "c": true,
             "order": 488,
             "pokedexId": 488
         },
         {
             "name": "Phione",
             "id": 489,
-            "c": false,
+            "c": true,
             "order": 489,
             "pokedexId": 489
         },
         {
             "name": "Manaphy",
             "id": 490,
-            "c": false,
+            "c": true,
             "order": 490,
             "pokedexId": 490
         },
         {
             "name": "Darkrai",
             "id": 491,
-            "c": false,
+            "c": true,
             "order": 491,
             "pokedexId": 491
         },
         {
             "name": "Shaymin",
             "id": 492,
-            "c": false,
+            "c": true,
             "order": 492,
             "pokedexId": 492
         },
         {
             "name": "Arceus",
             "id": 493,
-            "c": false,
+            "c": true,
             "order": 493,
             "pokedexId": 493
         },
         {
             "name": "Victini",
             "id": 494,
-            "c": false,
+            "c": true,
             "order": 494,
             "pokedexId": 494
         },
@@ -3468,14 +3468,14 @@
         {
             "name": "Servine",
             "id": 496,
-            "c": false,
+            "c": true,
             "order": 496,
             "pokedexId": 496
         },
         {
             "name": "Serperior",
             "id": 497,
-            "c": false,
+            "c": true,
             "order": 497,
             "pokedexId": 497
         },
@@ -3496,7 +3496,7 @@
         {
             "name": "Emboar",
             "id": 500,
-            "c": false,
+            "c": true,
             "order": 500,
             "pokedexId": 500
         },
@@ -3510,14 +3510,14 @@
         {
             "name": "Dewott",
             "id": 502,
-            "c": false,
+            "c": true,
             "order": 502,
             "pokedexId": 502
         },
         {
             "name": "Samurott",
             "id": 503,
-            "c": false,
+            "c": true,
             "order": 503,
             "pokedexId": 503
         },
@@ -4462,126 +4462,126 @@
         {
             "name": "Cobalion",
             "id": 638,
-            "c": false,
+            "c": true,
             "order": 638,
             "pokedexId": 638
         },
         {
             "name": "Terrakion",
             "id": 639,
-            "c": false,
+            "c": true,
             "order": 639,
             "pokedexId": 639
         },
         {
             "name": "Virizion",
             "id": 640,
-            "c": false,
+            "c": true,
             "order": 640,
             "pokedexId": 640
         },
         {
             "name": "Tornadus",
             "id": 641,
-            "c": false,
+            "c": true,
             "order": 641,
             "pokedexId": 641
         },
         {
             "name": "Thundurus",
             "id": 642,
-            "c": false,
+            "c": true,
             "order": 642,
             "pokedexId": 642
         },
         {
             "name": "Reshiram",
             "id": 643,
-            "c": false,
+            "c": true,
             "order": 643,
             "pokedexId": 643
         },
         {
             "name": "Zekrom",
             "id": 644,
-            "c": false,
+            "c": true,
             "order": 644,
             "pokedexId": 644
         },
         {
             "name": "Landorus",
             "id": 645,
-            "c": false,
+            "c": true,
             "order": 645,
             "pokedexId": 645
         },
         {
             "name": "Kyurem",
             "id": 646,
-            "c": false,
+            "c": true,
             "order": 646,
             "pokedexId": 646
         },
         {
             "name": "Keldeo",
             "id": 647,
-            "c": false,
+            "c": true,
             "order": 647,
             "pokedexId": 647
         },
         {
             "name": "Meloetta",
             "id": 648,
-            "c": false,
+            "c": true,
             "order": 648,
             "pokedexId": 648
         },
         {
             "name": "Genesect",
             "id": 649,
-            "c": false,
+            "c": true,
             "order": 649,
             "pokedexId": 649
         },
         {
             "name": "Chespin",
             "id": 650,
-            "c": false,
+            "c": true,
             "order": 650,
             "pokedexId": 650
         },
         {
             "name": "Quilladin",
             "id": 651,
-            "c": false,
+            "c": true,
             "order": 651,
             "pokedexId": 651
         },
         {
             "name": "Chesnaught",
             "id": 652,
-            "c": false,
+            "c": true,
             "order": 652,
             "pokedexId": 652
         },
         {
             "name": "Fennekin",
             "id": 653,
-            "c": false,
+            "c": true,
             "order": 653,
             "pokedexId": 653
         },
         {
             "name": "Braixen",
             "id": 654,
-            "c": false,
+            "c": true,
             "order": 654,
             "pokedexId": 654
         },
         {
             "name": "Delphox",
             "id": 655,
-            "c": false,
+            "c": true,
             "order": 655,
             "pokedexId": 655
         },
@@ -4595,14 +4595,14 @@
         {
             "name": "Frogadier",
             "id": 657,
-            "c": false,
+            "c": true,
             "order": 657,
             "pokedexId": 657
         },
         {
             "name": "Greninja",
             "id": 658,
-            "c": false,
+            "c": true,
             "order": 658,
             "pokedexId": 658
         },
@@ -5008,7 +5008,7 @@
         {
             "name": "Xerneas",
             "id": 716,
-            "c": false,
+            "c": true,
             "order": 716,
             "pokedexId": 716
         },
@@ -5022,35 +5022,35 @@
         {
             "name": "Zygarde",
             "id": 718,
-            "c": false,
+            "c": true,
             "order": 718,
             "pokedexId": 718
         },
         {
             "name": "Diancie",
             "id": 719,
-            "c": false,
+            "c": true,
             "order": 719,
             "pokedexId": 719
         },
         {
             "name": "Hoopa",
             "id": 720,
-            "c": false,
+            "c": true,
             "order": 720,
             "pokedexId": 720
         },
         {
             "name": "Volcanion",
             "id": 721,
-            "c": false,
+            "c": true,
             "order": 721,
             "pokedexId": 721
         },
         {
             "name": "Rowlet",
             "id": 722,
-            "c": false,
+            "c": true,
             "order": 722,
             "pokedexId": 722
         },
@@ -5078,35 +5078,35 @@
         {
             "name": "Torracat",
             "id": 726,
-            "c": false,
+            "c": true,
             "order": 726,
             "pokedexId": 726
         },
         {
             "name": "Incineroar",
             "id": 727,
-            "c": false,
+            "c": true,
             "order": 727,
             "pokedexId": 727
         },
         {
             "name": "Popplio",
             "id": 728,
-            "c": false,
+            "c": true,
             "order": 728,
             "pokedexId": 728
         },
         {
             "name": "Brionne",
             "id": 729,
-            "c": false,
+            "c": true,
             "order": 729,
             "pokedexId": 729
         },
         {
             "name": "Primarina",
             "id": 730,
-            "c": false,
+            "c": true,
             "order": 730,
             "pokedexId": 730
         },
@@ -5400,7 +5400,7 @@
         {
             "name": "Type: Null",
             "id": 772,
-            "c": false,
+            "c": true,
             "order": 772,
             "pokedexId": 772
         },
@@ -5491,7 +5491,7 @@
         {
             "name": "Tapu Koko",
             "id": 785,
-            "c": false,
+            "c": true,
             "order": 785,
             "pokedexId": 785
         },
@@ -5505,63 +5505,63 @@
         {
             "name": "Tapu Bulu",
             "id": 787,
-            "c": false,
+            "c": true,
             "order": 787,
             "pokedexId": 787
         },
         {
             "name": "Tapu Fini",
             "id": 788,
-            "c": false,
+            "c": true,
             "order": 788,
             "pokedexId": 788
         },
         {
             "name": "Cosmog",
             "id": 789,
-            "c": false,
+            "c": true,
             "order": 789,
             "pokedexId": 789
         },
         {
             "name": "Cosmoem",
             "id": 790,
-            "c": false,
+            "c": true,
             "order": 790,
             "pokedexId": 790
         },
         {
             "name": "Solgaleo",
             "id": 791,
-            "c": false,
+            "c": true,
             "order": 791,
             "pokedexId": 791
         },
         {
             "name": "Lunala",
             "id": 792,
-            "c": false,
+            "c": true,
             "order": 792,
             "pokedexId": 792
         },
         {
             "name": "Nihilego",
             "id": 793,
-            "c": false,
+            "c": true,
             "order": 793,
             "pokedexId": 793
         },
         {
             "name": "Buzzwole",
             "id": 794,
-            "c": false,
+            "c": true,
             "order": 794,
             "pokedexId": 794
         },
         {
             "name": "Pheromosa",
             "id": 795,
-            "c": false,
+            "c": true,
             "order": 795,
             "pokedexId": 795
         },
@@ -5575,133 +5575,133 @@
         {
             "name": "Celesteela",
             "id": 797,
-            "c": false,
+            "c": true,
             "order": 797,
             "pokedexId": 797
         },
         {
             "name": "Kartana",
             "id": 798,
-            "c": false,
+            "c": true,
             "order": 798,
             "pokedexId": 798
         },
         {
             "name": "Guzzlord",
             "id": 799,
-            "c": false,
+            "c": true,
             "order": 799,
             "pokedexId": 799
         },
         {
             "name": "Necrozma",
             "id": 800,
-            "c": false,
+            "c": true,
             "order": 800,
             "pokedexId": 800
         },
         {
             "name": "Magearna",
             "id": 801,
-            "c": false,
+            "c": true,
             "order": 801,
             "pokedexId": 801
         },
         {
             "name": "Marshadow",
             "id": 802,
-            "c": false,
+            "c": true,
             "order": 802,
             "pokedexId": 802
         },
         {
             "name": "Poipole",
             "id": 803,
-            "c": false,
+            "c": true,
             "order": 803,
             "pokedexId": 803
         },
         {
             "name": "Naganadel",
             "id": 804,
-            "c": false,
+            "c": true,
             "order": 804,
             "pokedexId": 804
         },
         {
             "name": "Stakataka",
             "id": 805,
-            "c": false,
+            "c": true,
             "order": 805,
             "pokedexId": 805
         },
         {
             "name": "Blacephalon",
             "id": 806,
-            "c": false,
+            "c": true,
             "order": 806,
             "pokedexId": 806
         },
         {
             "name": "Zeraora",
             "id": 807,
-            "c": false,
+            "c": true,
             "order": 807,
             "pokedexId": 807
         },
         {
             "name": "Meltan",
             "id": 808,
-            "c": false,
+            "c": true,
             "order": 808,
             "pokedexId": 808
         },
         {
             "name": "Melmetal",
             "id": 809,
-            "c": false,
+            "c": true,
             "order": 809,
             "pokedexId": 809
         },
         {
             "name": "Grookey",
             "id": 810,
-            "c": false,
+            "c": true,
             "order": 810,
             "pokedexId": 810
         },
         {
             "name": "Thwackey",
             "id": 811,
-            "c": false,
+            "c": true,
             "order": 811,
             "pokedexId": 811
         },
         {
             "name": "Rillaboom",
             "id": 812,
-            "c": false,
+            "c": true,
             "order": 812,
             "pokedexId": 812
         },
         {
             "name": "Scorbunny",
             "id": 813,
-            "c": false,
+            "c": true,
             "order": 813,
             "pokedexId": 813
         },
         {
             "name": "Raboot",
             "id": 814,
-            "c": false,
+            "c": true,
             "order": 814,
             "pokedexId": 814
         },
         {
             "name": "Cinderace",
             "id": 815,
-            "c": false,
+            "c": true,
             "order": 815,
             "pokedexId": 815
         },
@@ -5715,14 +5715,14 @@
         {
             "name": "Drizzile",
             "id": 817,
-            "c": false,
+            "c": true,
             "order": 817,
             "pokedexId": 817
         },
         {
             "name": "Inteleon",
             "id": 818,
-            "c": false,
+            "c": true,
             "order": 818,
             "pokedexId": 818
         },
@@ -6044,7 +6044,7 @@
         {
             "name": "Cursola",
             "id": 864,
-            "c": false,
+            "c": true,
             "order": 864,
             "pokedexId": 864
         },
@@ -6212,77 +6212,77 @@
         {
             "name": "Zacian",
             "id": 888,
-            "c": false,
+            "c": true,
             "order": 888,
             "pokedexId": 888
         },
         {
             "name": "Zamazenta",
             "id": 889,
-            "c": false,
+            "c": true,
             "order": 889,
             "pokedexId": 889
         },
         {
             "name": "Eternatus",
             "id": 890,
-            "c": false,
+            "c": true,
             "order": 890,
             "pokedexId": 890
         },
         {
             "name": "Kubfu",
             "id": 891,
-            "c": false,
+            "c": true,
             "order": 891,
             "pokedexId": 891
         },
         {
             "name": "Urshifu",
             "id": 892,
-            "c": false,
+            "c": true,
             "order": 892,
             "pokedexId": 892
         },
         {
             "name": "Zarude",
             "id": 893,
-            "c": false,
+            "c": true,
             "order": 893,
             "pokedexId": 893
         },
         {
             "name": "Regieleki",
             "id": 894,
-            "c": false,
+            "c": true,
             "order": 894,
             "pokedexId": 894
         },
         {
             "name": "Regidrago",
             "id": 895,
-            "c": false,
+            "c": true,
             "order": 895,
             "pokedexId": 895
         },
         {
             "name": "Glastrier",
             "id": 896,
-            "c": false,
+            "c": true,
             "order": 896,
             "pokedexId": 896
         },
         {
             "name": "Spectrier",
             "id": 897,
-            "c": false,
+            "c": true,
             "order": 897,
             "pokedexId": 897
         },
         {
             "name": "Calyrex",
             "id": 898,
-            "c": false,
+            "c": true,
             "order": 898,
             "pokedexId": 898
         }
