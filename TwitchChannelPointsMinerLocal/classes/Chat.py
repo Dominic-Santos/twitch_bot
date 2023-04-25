@@ -630,7 +630,7 @@ Inventory: {cash}$ {coins} Battle Coins
             self.get_missions()
 
             # find reasons to catch the pokemon
-            catch_reasons, best_ball = POKEMON.need_pokemon(pokemon)
+            catch_reasons, strategy = POKEMON.need_pokemon(pokemon)
             repeat = True
             for reason in ["pokedex", "bag", "alt"]:
                 if reason in catch_reasons:
@@ -638,45 +638,48 @@ Inventory: {cash}$ {coins} Battle Coins
                     break
 
             if len(catch_reasons) > 0:
-                ball = POKEMON.inventory.get_catch_ball(pokemon.types, repeat=repeat, best=best_ball, fish=pokemon.is_fish)
-                random_channel = POKEMON.random_channel()
-                message = f"!pokecatch {ball}"
-                client.privmsg("#" + random_channel, message)
-
-                reasons_string = ", ".join(catch_reasons)
-                self.log_file(f"{GREENLOG}Trying to catch {pokemon.name} with {ball} because {reasons_string}")
-
-                sleep(5)
-
-                all_pokemon = self.pokemon_api.get_all_pokemon()
-                POKEMON.sync_computer(all_pokemon)
-
-                # find all the pokemon that are the current one that spawned
-                filtered = POKEMON.computer.get_pokemon(pokemon)
-                caught = None
-                for poke in filtered:
-                    if (datetime.utcnow() - parse(poke["caughtAt"][:-1])).total_seconds() < 60:
-                        caught = poke
-                        break
-
-                discord_pokemon_name = pokemon.name if pokemon.is_alternate is False else pokemon.alt_name
-                if caught is not None:
-                    ivs = int(poke["avgIV"])
-                    lvl = poke['lvl']
-                    shiny = " Shiny" if poke["isShiny"] else ""
-                    self.log_file(f"{GREENLOG}Caught{shiny} {pokemon.name} ({pokemon.tier}) Lvl.{lvl} {ivs}IV")
-                    msg = f"I caught a{shiny} {discord_pokemon_name} ({pokemon.tier}) Lvl.{lvl} {ivs}IV!"
-                    if pokemon.is_fish and FISH_EVENT:
-                        caught_pokemon = self.pokemon_api.get_pokemon(poke["id"])
-                        if "🐟" in caught_pokemon["description"]:
-                            msg += "\n" + caught_pokemon["description"].split("Your fish is ")[-1]
+                ball = POKEMON.inventory.get_catch_ball(pokemon, repeat=repeat, strategy=strategy)
+                if ball is None:
+                    self.log_file(f"{REDLOG}Won't catch {pokemon.name} ran out of balls (strategy: {strategy})")
                 else:
-                    self.log_file(f"{REDLOG}Failed to catch {pokemon.name}")
-                    msg = f"I missed {discord_pokemon_name}!"
+                    random_channel = POKEMON.random_channel()
+                    message = f"!pokecatch {ball}"
+                    client.privmsg("#" + random_channel, message)
 
-                msg = msg + f" {ball}, because {reasons_string}"
+                    reasons_string = ", ".join(catch_reasons)
+                    self.log_file(f"{GREENLOG}Trying to catch {pokemon.name} with {ball} because {reasons_string}")
 
-                POKEMON.discord.post(DISCORD_ALERTS, msg)
+                    sleep(5)
+
+                    all_pokemon = self.pokemon_api.get_all_pokemon()
+                    POKEMON.sync_computer(all_pokemon)
+
+                    # find all the pokemon that are the current one that spawned
+                    filtered = POKEMON.computer.get_pokemon(pokemon)
+                    caught = None
+                    for poke in filtered:
+                        if (datetime.utcnow() - parse(poke["caughtAt"][:-1])).total_seconds() < 60:
+                            caught = poke
+                            break
+
+                    discord_pokemon_name = pokemon.name if pokemon.is_alternate is False else pokemon.alt_name
+                    if caught is not None:
+                        ivs = int(poke["avgIV"])
+                        lvl = poke['lvl']
+                        shiny = " Shiny" if poke["isShiny"] else ""
+                        self.log_file(f"{GREENLOG}Caught{shiny} {pokemon.name} ({pokemon.tier}) Lvl.{lvl} {ivs}IV")
+                        msg = f"I caught a{shiny} {discord_pokemon_name} ({pokemon.tier}) Lvl.{lvl} {ivs}IV!"
+                        if pokemon.is_fish and FISH_EVENT:
+                            caught_pokemon = self.pokemon_api.get_pokemon(poke["id"])
+                            if "🐟" in caught_pokemon["description"]:
+                                msg += "\n" + caught_pokemon["description"].split("Your fish is ")[-1]
+                    else:
+                        self.log_file(f"{REDLOG}Failed to catch {pokemon.name}")
+                        msg = f"I missed {discord_pokemon_name}!"
+
+                    msg = msg + f" {ball}, because {reasons_string}"
+
+                    POKEMON.discord.post(DISCORD_ALERTS, msg)
             else:
                 self.log_file(f"{REDLOG}Don't need pokemon, skipping")
                 random_channel = POKEMON.random_channel()

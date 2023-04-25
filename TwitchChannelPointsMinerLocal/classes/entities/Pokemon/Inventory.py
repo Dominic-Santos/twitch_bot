@@ -1,4 +1,5 @@
 CATCH_BALL_PRIORITY = ["ultraball", "greatball", "pokeball", "premierball"]
+CATCH_BALL_TIERS = ["S", "A", "B", "C", "C"]
 POKEMON_TYPES = ["Normal", "Fighting", "Flying", "Poison", "Ground", "Rock", "Bug", "Ghost", "Steel", "Fire", "Water", "Grass", "Electric", "Psychic", "Ice", "Dragon", "Dark", "Fairy"]
 
 
@@ -39,9 +40,13 @@ class Inventory(object):
             else:
                 self.items.append(item)
 
-    def get_catch_ball(self, types=[], repeat=False, best=True, fish=False):
-        if best:
-            return self.get_catch_best_ball(types, repeat, fish)
+    def get_catch_ball(self, pokemon, repeat=False, strategy="best"):
+        if strategy == "best":
+            return self.get_catch_best_ball(pokemon.types, repeat, pokemon.is_fish)
+
+        if strategy == "save":
+            return self.get_catch_save_ball(pokemon, repeat)
+
         return self.get_catch_ball_worst()
 
     def get_catch_ball_worst(self):
@@ -68,6 +73,33 @@ class Inventory(object):
         for item in CATCH_BALL_PRIORITY[1:]:
             if self.have_ball(item):
                 return item
+
+        return None
+
+    def get_catch_save_ball(self, pokemon, repeat=False):
+        if repeat:
+            if self.have_ball("repeatball"):
+                return "repeatball"
+
+        if pokemon.tier in ["A", "S"] and self.have_ball("ultraball"):
+            return "ultraball"
+
+        if pokemon.types is not None:
+            for t in sorted(pokemon.types):
+                if t in self.special_balls:
+                    return self.special_balls[t][0]
+
+        if pokemon.is_fish and "Fish" in self.other_balls:
+            return self.other_balls["Fish"][0]
+
+        for i in range(1, len(CATCH_BALL_PRIORITY) + 1):
+            tiers = CATCH_BALL_TIERS[0: i + 2]
+            print("tiers", tiers, pokemon.tier)
+            if pokemon.tier in tiers:
+                item = CATCH_BALL_PRIORITY[i]
+                print("item", item)
+                if self.have_ball(item):
+                    return item
 
         return None
 

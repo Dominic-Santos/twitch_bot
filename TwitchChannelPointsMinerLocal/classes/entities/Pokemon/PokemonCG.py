@@ -30,6 +30,7 @@ class PokemonComunityGame(object):
             "catch_alternates": False,
             "catch_fish": False,
             "complete_bag": False,
+            "money_saving": 0,
             "catch": [],
             "catch_tiers": [],
             "catch_types": []
@@ -139,13 +140,16 @@ class PokemonComunityGame(object):
             # catch anything:
             reasons.append("everthing")
 
-        best_ball = False
-        for reason in reasons:
-            if self.missions.mission_best_ball(reason):
-                best_ball = True
-                break
+        strategy = "worst"
+        if self.inventory.cash < self.settings["money_saving"]:
+            strategy = "save"
+        else:
+            for reason in reasons:
+                if self.missions.mission_best_ball(reason):
+                    strategy = "best"
+                    break
 
-        return reasons, best_ball
+        return reasons, strategy
 
     # ########### Channels ############
 
