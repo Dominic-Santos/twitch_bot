@@ -141,13 +141,13 @@ class PokemonComunityGame(object):
             reasons.append("everthing")
 
         strategy = "worst"
-        if self.inventory.cash < self.settings["money_saving"]:
-            strategy = "save"
-        else:
-            for reason in reasons:
-                if self.missions.mission_best_ball(reason):
-                    strategy = "best"
-                    break
+        for reason in reasons:
+            if self.missions.mission_best_ball(reason):
+                strategy = "best"
+                break
+        if strategy == "best":
+            if self.inventory.cash < self.settings["money_saving"]:
+                strategy = "save"
 
         return reasons, strategy
 
