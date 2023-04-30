@@ -356,6 +356,7 @@ class ClientIRCPokemon(ClientIRCBase):
                                     pokemon_object = Pokemon()
                                     pokemon_object.types = [pokedex_entry["type1"].title(), pokedex_entry["type2"].title()]
                                     pokemon_object.bst = sum([pokedex_entry["base_stats"][k] for k in pokedex_entry["base_stats"]])
+                                    pokemon_object.is_fish = POKEMON.pokedex.fish(pokemon["name"])
 
                                     reasons = POKEMON.missions.check_all_wondertrade_missions(pokemon_object)
                                     if len(reasons) == 0:

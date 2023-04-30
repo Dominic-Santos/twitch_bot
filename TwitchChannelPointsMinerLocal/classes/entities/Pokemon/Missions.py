@@ -1,103 +1,7 @@
 """
 Todo:
     catch pokemon with X ball
-    confirm attemp message
-
-Done:
-    Wondertrade <Type>
-    Wondertrade <Bst>
-    Catch Attempts
-    Catch <Type>
-    Catch <Weight>
-    Miss Catches
-
 """
-
-"""
-{
-    "missions": [
-        {
-            "name": "Catch Pokemon heavier than 250kg / 551 lbs",
-            "goal": 3,
-            "progress": 4,
-            "rewardItem": {
-                "id": 4,
-                "name": "Ultra Ball",
-                "description": "An ultra-high-performance Pok\u00e9 Ball that provides a higher success rate for catching Pok\u00e9mon than a Great Ball.",
-                "sprite_name": "ultra_ball",
-                "category": "ball",
-                "tmType": null,
-                "amount": 5
-            },
-            "rewardPokemon": null,
-            "endDate": "12 hours and 8 minutes"
-        },
-        {
-            "name": "Participate in public battles using a dark type",
-            "goal": 10,
-            "progress": 2,
-            "rewardItem": null,
-            "rewardPokemon": {
-                "id": 258,
-                "name": "Mudkip",
-                "description": "In water, Mudkip breathes using the gills on its cheeks. If it is faced with a tight situation in battle, this Pok\u00e9mon will unleash its amazing power\u2014it can crush rocks bigger than itself.",
-                "sprite_name": "mudkip"
-            },
-            "endDate": "12 hours and 8 minutes"
-        },
-        {
-            "name": "Use super effective moves",
-            "goal": 50,
-            "progress": 2,
-            "rewardItem": {
-                "id": 51,
-                "name": "Team enhancer",
-                "description": "Use this item to increase the amount of teams by 1! You can have up to 20 teams.",
-                "sprite_name": "team_enhancer",
-                "category": "extra",
-                "tmType": null,
-                "amount": 2
-            },
-            "rewardPokemon": null,
-            "endDate": "12 hours and 8 minutes"
-        },
-        {
-            "name": "Wonder trade ground type Pok\u00e9mon",
-            "goal": 7,
-            "progress": 25,
-            "rewardItem": {
-                "id": 80,
-                "name": "Ground Stone",
-                "description": "A stone that makes certain species of Pok\u00e9mon evolve. It is said that the stone's color determines the Pok\u00e9mon that will evolve.",
-                "sprite_name": "ground_stone",
-                "category": "evolution",
-                "tmType": null,
-                "amount": 1
-            },
-            "rewardPokemon": null,
-            "endDate": "12 hours and 8 minutes"
-        },
-        {
-            "name": "Catch ghost type Pok\u00e9mon",
-            "goal": 5,
-            "progress": 7,
-            "rewardItem": {
-                "id": 83,
-                "name": "Ghost Stone",
-                "description": "A stone that makes certain species of Pok\u00e9mon evolve. It is said that the stone's color determines the Pok\u00e9mon that will evolve.",
-                "sprite_name": "ghost_stone",
-                "category": "evolution",
-                "tmType": null,
-                "amount": 1
-            },
-            "rewardPokemon": null,
-            "endDate": "12 hours and 8 minutes"
-        }
-    ],
-    "endDate": "12 hours and 8 minutes"
-}
-"""
-
 
 class Missions(object):
     def __init__(self):
@@ -116,12 +20,12 @@ class Missions(object):
                 mission_title = "".join([c for c in mission_title if c.isalnum() or c == " "]).strip()
                 mission_title = " ".join([w for w in mission_title.split(" ") if w != ""])
 
-                if "fish" in mission_title:
-                    self.data["fish"] = True
-                elif mission_title.startswith("wondertrade"):
+                if mission_title.startswith("wondertrade"):
                     if mission_title == "wondertrade":
                         # just wondertrade anything does not require a mission
                         pass
+                    elif "fish" in mission_title:
+                        self.data["wondertrade_fish"] = True
                     elif "bst" in mission_title:
                         the_bst = int("".join([c for c in mission_title if c.isnumeric()]))
                         if "less than" in mission_title:
@@ -133,6 +37,8 @@ class Missions(object):
                     else:
                         the_type = mission_title.split(" ")[1].title()
                         self.data.setdefault("wondertrade_type", []).append(the_type)
+                elif "fish" in mission_title:
+                    self.data["fish"] = True
                 elif "miss" in mission_title and "catch" in mission_title:
                     self.data["miss"] = True
                 elif mission_title == "attempt catches":
@@ -180,7 +86,6 @@ class Missions(object):
         return False
 
     # ##### Wondertrade Missions #####
-
     def check_wondertrade_type_mission(self, pokemon_types):
         return self._types_mission("wondertrade_type", pokemon_types)
 
@@ -194,12 +99,17 @@ class Missions(object):
 
         if self.check_wondertrade_bst_mission(pokemon.bst):
             reasons.append("bst")
+
+        if pokemon.is_fish and self.have_mission("wondertrade_fish"):
+            reasons.append("fish")
         return reasons
 
     def have_wondertrade_missions(self):
         if self.have_mission("wondertrade_type"):
             return True
         elif self.have_mission("wondertrade_bst"):
+            return True
+        elif self.have_mission("wondertrade_fish"):
             return True
         return False
 

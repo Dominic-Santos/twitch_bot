@@ -55,6 +55,9 @@ class Inventory(object):
                 return item
 
     def get_catch_best_ball(self, types=[], repeat=False, fish=False):
+        if fish and "Fish" in self.other_balls:
+            return self.other_balls["Fish"][0]
+
         if repeat:
             if self.have_ball("repeatball"):
                 return "repeatball"
@@ -67,9 +70,6 @@ class Inventory(object):
                 if t in self.special_balls:
                     return self.special_balls[t][0]
 
-        if fish and "Fish" in self.other_balls:
-            return self.other_balls["Fish"][0]
-
         for item in CATCH_BALL_PRIORITY[1:]:
             if self.have_ball(item):
                 return item
@@ -77,6 +77,9 @@ class Inventory(object):
         return None
 
     def get_catch_save_ball(self, pokemon, repeat=False):
+        if pokemon.is_fish and "Fish" in self.other_balls:
+            return self.other_balls["Fish"][0]
+
         if repeat:
             if self.have_ball("repeatball"):
                 return "repeatball"
@@ -88,9 +91,6 @@ class Inventory(object):
             for t in sorted(pokemon.types):
                 if t in self.special_balls:
                     return self.special_balls[t][0]
-
-        if pokemon.is_fish and "Fish" in self.other_balls:
-            return self.other_balls["Fish"][0]
 
         for i in range(1, len(CATCH_BALL_PRIORITY) + 1):
             tiers = CATCH_BALL_TIERS[0: i + 2]
