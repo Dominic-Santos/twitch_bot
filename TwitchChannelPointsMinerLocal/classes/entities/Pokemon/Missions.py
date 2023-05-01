@@ -157,7 +157,7 @@ class Missions(object):
         if self.check_miss_mission():
             reasons.append("miss")
 
-        if self.check_miss_type_mission():
+        if self.check_miss_type_mission(pokemon.types):
             reasons.append("miss_type")
 
         if self.check_attempt_mission():
