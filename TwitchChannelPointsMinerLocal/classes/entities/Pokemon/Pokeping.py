@@ -2,6 +2,7 @@ import re
 from dateutil.parser import parse
 
 from .Pokemon import Pokemon
+from .Utils import save_to_json
 
 POKEPING_CHANNEL = "935704401954349196"
 GUILD_ID = 935702835771883620
@@ -32,6 +33,7 @@ class Pokeping(object):
         pokemon.check_name()
         return pokemon
 
+    @save_to_json
     def get_messages(self, limit=1):
         url = f"https://discord.com/api/v9/channels/{POKEPING_CHANNEL}/messages?limit={limit}"
         data = self.discord.get(url)

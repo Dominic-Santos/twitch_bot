@@ -5,6 +5,7 @@ POKEMON_TYPES = ["Normal", "Fighting", "Flying", "Poison", "Ground", "Rock", "Bu
 
 class Inventory(object):
     def __init__(self):
+        self.use_special_balls = True
         self.reset()
 
     def reset(self):
@@ -42,66 +43,76 @@ class Inventory(object):
 
     def get_catch_ball(self, pokemon, repeat=False, strategy="best"):
         if strategy == "best":
-            return self.get_catch_best_ball(pokemon.types, repeat, pokemon.is_fish)
+            return self.get_catch_best_ball(pokemon, repeat)
 
-        if strategy == "save":
+        elif strategy == "save":
             return self.get_catch_save_ball(pokemon, repeat)
 
-        return self.get_catch_ball_worst()
-
-    def get_catch_ball_worst(self):
-        for item in CATCH_BALL_PRIORITY[::-1]:
-            if self.have_ball(item):
-                return item
-
-    def get_catch_best_ball(self, types=[], repeat=False, fish=False):
-        if fish and "Fish" in self.other_balls:
-            return self.other_balls["Fish"][0]
-
-        if repeat:
-            if self.have_ball("repeatball"):
-                return "repeatball"
-
-        if self.have_ball("ultraball"):
-            return "ultraball"
-
-        if types is not None:
-            for t in sorted(types):
-                if t in self.special_balls:
-                    return self.special_balls[t][0]
-
-        for item in CATCH_BALL_PRIORITY[1:]:
-            if self.have_ball(item):
-                return item
+        elif strategy == "worst":
+            return self.get_catch_ball_worst(pokemon, repeat)
 
         return None
+
+    def get_catch_ball_worst(self, pokemon, repeat):
+        ball_iter = self._recomended_balls_iter(pokemon, repeat)
+        balls = [x for x in ball_iter]
+        if len(balls) == 0:
+            return None
+        return balls[-1]
+
+    def get_catch_best_ball(self, pokemon, repeat=False):
+        ball_iter = self._recomended_balls_iter(pokemon, repeat)
+        ball = self._get_next_ball(ball_iter)
+        return ball
 
     def get_catch_save_ball(self, pokemon, repeat=False):
-        if pokemon.is_fish and "Fish" in self.other_balls:
-            return self.other_balls["Fish"][0]
+        ball_iter = self._recomended_balls_iter(pokemon, repeat)
+        ball = self._get_next_ball(ball_iter)
 
-        if repeat:
-            if self.have_ball("repeatball"):
-                return "repeatball"
+        while ball is not None:
+            if ball not in CATCH_BALL_PRIORITY:
+                return ball
 
-        if pokemon.tier in ["A", "S"] and self.have_ball("ultraball"):
-            return "ultraball"
-
-        if pokemon.types is not None:
-            for t in sorted(pokemon.types):
-                if t in self.special_balls:
-                    return self.special_balls[t][0]
-
-        for i in range(1, len(CATCH_BALL_PRIORITY) + 1):
+            i = CATCH_BALL_PRIORITY.index(ball)
             tiers = CATCH_BALL_TIERS[0: i + 2]
-            print("tiers", tiers, pokemon.tier)
             if pokemon.tier in tiers:
-                item = CATCH_BALL_PRIORITY[i]
-                print("item", item)
-                if self.have_ball(item):
-                    return item
+                return ball
+
+            ball = self._get_next_ball(ball_iter)
 
         return None
+
+    @staticmethod
+    def _get_next_ball(ball_iter):
+        try:
+            return next(ball_iter)
+        except:
+            pass
+        return None
+
+    def _recomended_balls_iter(self, pokemon, repeat=False):
+        if self.use_special_balls:
+            if pokemon.is_fish and "Fish" in self.other_balls:
+                for ball in self.other_balls["Fish"]:
+                    yield ball
+
+            if repeat:
+                if self.have_ball("repeatball"):
+                    yield "repeatball"
+
+        if self.have_ball("ultraball"):
+            yield "ultraball"
+
+        if self.use_special_balls:
+            if pokemon.types is not None:
+                for t in sorted(pokemon.types):
+                    if t in self.special_balls:
+                        for ball in self.special_balls[t]:
+                            yield ball
+
+        for ball in CATCH_BALL_PRIORITY[1:]:
+            if self.have_ball(ball):
+                yield ball
 
     def have_ball(self, ball):
         return self.balls.get(ball, 0) > 0

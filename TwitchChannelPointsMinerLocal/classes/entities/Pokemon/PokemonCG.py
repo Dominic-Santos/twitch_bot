@@ -30,6 +30,7 @@ class PokemonComunityGame(object):
             "catch_alternates": False,
             "catch_fish": False,
             "complete_bag": False,
+            "use_special_balls": True,
             "money_saving": 0,
             "catch": [],
             "catch_tiers": [],
@@ -49,6 +50,7 @@ class PokemonComunityGame(object):
 
         self.discord.connect()
         self.pokeping.get_roles()
+        self.inventory.use_special_balls = self.settings["use_special_balls"]
 
     def reset_timer(self):
         self.catch_timer = datetime.utcnow()

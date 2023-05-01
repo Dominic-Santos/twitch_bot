@@ -3,6 +3,7 @@ Todo:
     catch pokemon with X ball
 """
 
+
 class Missions(object):
     def __init__(self):
         self.reset()
@@ -39,6 +40,9 @@ class Missions(object):
                         self.data.setdefault("wondertrade_type", []).append(the_type)
                 elif "fish" in mission_title:
                     self.data["fish"] = True
+                elif "miss" in mission_title and "type" in mission_title:
+                    the_type = mission_title.split(" ")[1].title()
+                    self.data.setdefault("miss_type", []).append(the_type)
                 elif "miss" in mission_title and "catch" in mission_title:
                     self.data["miss"] = True
                 elif mission_title == "attempt catches":
@@ -124,6 +128,9 @@ class Missions(object):
     def check_miss_mission(self):
         return self.have_mission("miss")
 
+    def check_miss_type_mission(self, pokemon_types):
+        return self._types_mission("miss_type", pokemon_types)
+
     def check_attempt_mission(self):
         return self.have_mission("attempt")
 
@@ -150,10 +157,13 @@ class Missions(object):
         if self.check_miss_mission():
             reasons.append("miss")
 
+        if self.check_miss_type_mission():
+            reasons.append("miss_type")
+
         if self.check_attempt_mission():
             reasons.append("attempt")
 
         return reasons
 
     def mission_best_ball(self, mission):
-        return mission not in ["attempt", "miss"]
+        return mission not in ["attempt", "miss", "miss_type"]

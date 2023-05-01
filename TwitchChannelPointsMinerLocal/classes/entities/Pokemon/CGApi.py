@@ -1,5 +1,7 @@
 import requests
 
+from .Utils import save_to_json
+
 BASE_URL = "https://poketwitch.bframework.de/api/game/ext/"
 TRAINER_URL = f"{BASE_URL}trainer/"
 SHOP_URL = f"{BASE_URL}shop/"
@@ -47,32 +49,41 @@ class API(object):
 
         return data
 
+    @save_to_json
     def get_pokemon(self, pokemon_id):
         return self._do_request("GET", TRAINER_URL + f"pokemon/{pokemon_id}/")
 
+    @save_to_json
     def get_all_pokemon(self):
         return self._do_request("GET", TRAINER_URL + "pokemon/")
 
+    @save_to_json
     def set_name(self, pokemon_id, name):
         return self._do_request("POST", TRAINER_URL + f"change-nickname/{pokemon_id}/", payload={"nickname": name})
 
+    @save_to_json
     def get_inventory(self):
         return self._do_request("GET", TRAINER_URL + "inventory/")
 
+    @save_to_json
     def get_pokedex(self):
         return self._do_request("GET", TRAINER_URL + "pokedex/")
 
+    @save_to_json
     def get_pokedex_info(self, pokedex_id):
         # response {"content": {"pokedex_id": 1, "name": "Bulbasaur", "description": "etc", "weight": 6.9, "generation": 1, "type1": "poison", "type2": "grass", "base_stats": {"hp": 45, "speed": 45, "attack": 49, "defense": 49, "special_attack": 65, "special_defense": 65}}}
         return self._do_request("GET", TRAINER_URL + f"pokedex/info/?pokedex_id={pokedex_id}")
 
+    @save_to_json
     def wondertrade(self, pokemon_id):
         # response is {"pokemon": {the info}}
         return self._do_request("POST", TRAINER_URL + f"wonder-trade/{pokemon_id}/")
 
+    @save_to_json
     def get_missions(self):
         return self._do_request("GET", TRAINER_URL + "mission/")
 
+    @save_to_json
     def get_shop(self):
         """
         returns:
@@ -94,6 +105,7 @@ class API(object):
         """
         return self._do_request("GET", SHOP_URL)
 
+    @save_to_json
     def buy_item(self, item_name, amount):
         # returns {"cash": 123}
         return self._do_request("POST", SHOP_URL + "purchase/", payload={"item_name": item_name, "amount": amount})
