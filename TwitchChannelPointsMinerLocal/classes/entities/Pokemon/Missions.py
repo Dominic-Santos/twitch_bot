@@ -18,7 +18,7 @@ class Missions(object):
     @staticmethod
     def get_reward(mission):
         if mission["rewardItem"] is not None:
-            amount = "" if mission["rewardItem"]["amount"] > 0 else " %s" % mission["rewardItem"]["amount"]
+            amount = "" if mission["rewardItem"]["amount"] == 0 else "%s " % mission["rewardItem"]["amount"]
             item = mission["rewardItem"]["name"]
             reward = f"{amount}{item}"
         else:
@@ -43,7 +43,7 @@ class Missions(object):
         completed = []
         for progress_title, progress_data in self.progress.items():
             # check if mission is done
-            if progress_data["goal"] < progress_data["progress"]:
+            if progress_data["goal"] > progress_data["progress"]:
                 continue
 
             # check if had the mission before
@@ -52,10 +52,10 @@ class Missions(object):
                 continue
 
             # check if mission was done before
-            if previous_data["goal"] >= previous_data["progress"]:
+            if previous_data["goal"] <= previous_data["progress"]:
                 continue
 
-            completed.append((previous_data["title"], previous_data["reward"]))
+            completed.append((progress_data["title"], progress_data["reward"]))
 
         return completed
 

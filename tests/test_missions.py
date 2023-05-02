@@ -29,6 +29,26 @@ def test_check_missions_case1():
     assert MISSIONS.have_wondertrade_missions()
 
 
+def test_check_missions_completed():
+    MISSIONS.set(MISSIONS_JSON)
+    tmp_missions = {"missions": []}
+    mission_title = "Wondertrade normal types"
+
+    for mission in MISSIONS_JSON["missions"]:
+        if mission["name"] == mission_title:
+            mission["progress"] = mission["goal"]
+            reward = mission["rewardItem"]["name"]
+            reward_amount = mission["rewardItem"]["amount"]
+        tmp_missions["missions"].append(mission)
+
+    MISSIONS.set(tmp_missions)
+
+    completed = MISSIONS.get_completed()
+    assert len(completed) == 1
+    assert completed[0][0] == mission_title
+    assert completed[0][1] == f"{reward_amount} {reward}"
+
+
 def test_check_missions_case2():
     MISSIONS.set(MISSIONS_JSON_2)
     pokemon = Pokemon()
