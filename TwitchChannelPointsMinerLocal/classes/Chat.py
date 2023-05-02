@@ -301,6 +301,7 @@ class ClientIRCPokemon(ClientIRCBase):
         self.get_missions()
         self.sort_computer()
         self.check_wondertrade()
+        self.get_missions()
 
     def check_wondertrade(self):
         allpokemon = POKEMON.computer.pokemon
@@ -607,6 +608,12 @@ Inventory: {cash}$ {coins} Battle Coins
         missions = self.pokemon_api.get_missions()
         POKEMON.sync_missions(missions)
 
+        completed = POKEMON.missions.get_completed()
+        for title, reward in completed:
+            mission_msg = "Completed mission - {title} - reward: {reward}"
+            self.log(f"{GREENLOG}{mission_msg}")
+            POKEMON.discord.post(DISCORD_ALERTS, mission_msg)
+
     def check_main(self, client):
         POKEMON.reset_timer()
         self.log_file(f"{YELLOWLOG}Checking pokemon spawn in pokeping")
@@ -685,6 +692,8 @@ Inventory: {cash}$ {coins} Battle Coins
                 self.log_file(f"{REDLOG}Don't need pokemon, skipping")
                 random_channel = POKEMON.random_channel()
                 client.privmsg("#" + random_channel, "!pokecheck")
+
+            self.get_missions()
         elif spawned_seconds <= POKEMON_CHECK_LIMIT_MAX:
             # pokemon spawned but its too new, make sure pokeping sends all messages
             POKEMON.delay = POKEMON_CHECK_LIMIT_MIN

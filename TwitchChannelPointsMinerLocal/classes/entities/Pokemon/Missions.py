@@ -6,14 +6,64 @@ Todo:
 
 class Missions(object):
     def __init__(self):
-        self.reset()
+        self.data = {}
+        self.prev_progress = {}
+        self.progress = {}
 
     def reset(self):
         self.data = {}
+        self.prev_progress = self.progress
+        self.progress = {}
+
+    @staticmethod
+    def get_reward(mission):
+        if mission["rewardItem"] is not None:
+            amount = "" if mission["rewardItem"]["amount"] > 0 else " %s" % mission["rewardItem"]["amount"]
+            item = mission["rewardItem"]["name"]
+            reward = f"{amount}{item}"
+        else:
+            reward = mission["rewardPokemon"]["name"]
+        return reward
+
+    def add_progress(self, mission):
+        reward = self.get_reward(mission)
+        goal = mission["goal"]
+        title = mission["name"]
+        progress = mission["progress"]
+        progress_key = f"{goal}:{title}"
+
+        self.progress[progress_key] = {
+            "title": title,
+            "goal": goal,
+            "progress": progress,
+            "reward": reward
+        }
+
+    def get_completed(self):
+        completed = []
+        for progress_title, progress_data in self.progress.items():
+            # check if mission is done
+            if progress_data["goal"] < progress_data["progress"]:
+                continue
+
+            # check if had the mission before
+            previous_data = self.prev_progress.get(progress_title, None)
+            if previous_data is None:
+                continue
+
+            # check if mission was done before
+            if previous_data["goal"] >= previous_data["progress"]:
+                continue
+
+            completed.append((previous_data["title"], previous_data["reward"]))
+
+        return completed
 
     def set(self, missions):
         self.reset()
         for mission in missions["missions"]:
+            self.add_progress(mission)
+
             if mission["progress"] >= mission["goal"]:
                 continue
             try:
