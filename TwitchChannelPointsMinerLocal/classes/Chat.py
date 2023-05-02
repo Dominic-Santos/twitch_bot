@@ -673,7 +673,7 @@ Inventory: {cash}$ {coins} Battle Coins
                         if pokemon.is_fish and FISH_EVENT:
                             caught_pokemon = self.pokemon_api.get_pokemon(poke["id"])
                             if "🐟" in caught_pokemon["description"]:
-                                msg += "\n" + caught_pokemon["description"].split("Your fish is ")[-1]
+                                msg += "\n" + caught_pokemon["description"].split("Your fish is ")[-1].split("Your fish has ")[-1]
                     else:
                         self.log_file(f"{REDLOG}Failed to catch {pokemon.name}")
                         msg = f"I missed {discord_pokemon_name}!"
