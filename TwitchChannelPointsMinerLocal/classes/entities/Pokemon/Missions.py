@@ -33,7 +33,7 @@ class Missions(object):
         progress_key = f"{goal}:{title}"
 
         self.progress[progress_key] = {
-            "title": title,
+            "title": f"{title} ({goal})",
             "goal": goal,
             "progress": progress,
             "reward": reward
