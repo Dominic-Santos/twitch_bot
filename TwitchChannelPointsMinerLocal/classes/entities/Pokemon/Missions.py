@@ -20,9 +20,17 @@ class Missions(object):
         if mission["rewardItem"] is not None:
             amount = "" if mission["rewardItem"]["amount"] == 0 else "%s " % mission["rewardItem"]["amount"]
             item = mission["rewardItem"]["name"]
-            reward = f"{amount}{item}"
+            reward = {
+                "reward_type": mission["rewardItem"]["category"],
+                "reward_name": mission["rewardItem"]["sprite_name"],
+                "reward": f"{amount}{item}"
+            }
         else:
-            reward = mission["rewardPokemon"]["name"]
+            reward = {
+                "reward_type": "pokemon",
+                "reward_name": mission["rewardPokemon"]["id"],
+                "reward": mission["rewardPokemon"]["name"]
+            }
         return reward
 
     def add_progress(self, mission):

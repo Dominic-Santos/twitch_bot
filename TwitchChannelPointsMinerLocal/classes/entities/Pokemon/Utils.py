@@ -1,5 +1,9 @@
 import os
 import json
+import base64
+import requests
+from bs4 import BeautifulSoup
+from PIL import Image
 
 
 def check_output_folder(folder):
@@ -24,3 +28,51 @@ def save_to_json(func):
 
         return result
     return wrapped
+
+
+def get_sprite(sprite_type, sprite_name):
+    check_output_folder(f"sprites/{sprite_type}")
+
+    file_path = f"sprites/{sprite_type}/{sprite_name}.png"
+
+    if os.path.isfile(file_path):
+        return open(file_path, "rb")
+
+    get_png = True
+
+    if sprite_type == "pokemon":
+        url = f"https://poketwitch.bframework.de/static/pokedex/png-sprites/pokemon/{sprite_name}.png"
+        size = 128
+    else:
+        url = f"https://poketwitch.bframework.de/static/twitchextension/items/{sprite_type}/{sprite_name}"
+        size = 32
+        try:
+            res = requests.get(url + ".svg")
+            soup = BeautifulSoup(res.text, "html.parser")
+            svg = soup.find("image")
+
+            href = svg["href"]
+
+            s = href.split("base64,")[1]
+
+            img_data = s.encode()
+            content = base64.b64decode(img_data)
+            get_png = False
+        except:
+            url = url + ".png"
+
+    if get_png:
+        res = requests.get(url)
+        content = res.content
+
+        if res.status_code != 200:
+            return None
+
+    with open(file_path, "wb") as o:
+        o.write(content)
+
+    im = Image.open(file_path)
+    im = im.resize((size, size))
+    im.save(file_path)
+
+    return open(file_path, "rb")

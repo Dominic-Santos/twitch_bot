@@ -11,7 +11,7 @@ from .ChatO import ChatPresence as ChatPresenceO
 from .ChatO import ThreadChat as ThreadChatO
 from .ChatO import logger
 
-from .entities.Pokemon import PokemonComunityGame, CGApi, Pokedaily, Pokemon
+from .entities.Pokemon import PokemonComunityGame, CGApi, Pokedaily, Pokemon, get_sprite
 # from .WinAlerts import send_alert
 # from .DiscordAPI import DiscordAPI
 
@@ -49,6 +49,7 @@ DISCORD_POKEDAILY = f"{DISCORD_BASE}channels/{POKEDAILY_CHANNEL}/messages"
 DISCORD_POKEDAILY_SEARCH = f"{DISCORD_BASE}guilds/{POKEDAILY_GUILD}/messages/search?channel_id={POKEDAILY_CHANNEL}&mentions=" + "{discord_id}"
 
 FISH_EVENT = True
+
 
 class ThreadController(object):
     def __init__(self):
@@ -277,7 +278,7 @@ class ClientIRCPokemon(ClientIRCBase):
             self.log(f"{GREENLOG}Pokedaily, no user configured")
             return
 
-        sleep(60)
+        sleep(60 * 2)
         resp = POKEMON.discord.get(DISCORD_POKEDAILY_SEARCH.format(discord_id=POKEMON.discord.data["user"]))
         content = resp["messages"][0][0]["content"]
         message = Pokedaily.parse_message(content)
@@ -610,9 +611,13 @@ Inventory: {cash}$ {coins} Battle Coins
 
         completed = POKEMON.missions.get_completed()
         for title, reward in completed:
-            mission_msg = f"Completed mission - {title} - reward: {reward}"
+            readable_reward = reward["reward"]
+            reward_sprite = get_sprite(reward["reward_type"], reward["reward_name"])
+            mission_msg = f"Completed mission - {title} - reward: {readable_reward}"
             self.log(f"{GREENLOG}{mission_msg}")
-            POKEMON.discord.post(DISCORD_ALERTS, mission_msg)
+            POKEMON.discord.post(DISCORD_ALERTS, mission_msg, file=reward_sprite)
+            if reward_sprite is not None:
+                reward_sprite.close()
 
     def check_main(self, client):
         POKEMON.reset_timer()
@@ -681,13 +686,19 @@ Inventory: {cash}$ {coins} Battle Coins
                             caught_pokemon = self.pokemon_api.get_pokemon(poke["id"])
                             if "🐟" in caught_pokemon["description"]:
                                 msg += "\n" + caught_pokemon["description"].split("Your fish is ")[-1].split("Your fish has ")[-1]
+
+                        sprite = str(poke["pokedexId"])
+                        if poke["isShiny"]:
+                            sprite = "shiny/" + sprite
+                        pokemon_sprite = get_sprite("pokemon", sprite)
                     else:
                         self.log_file(f"{REDLOG}Failed to catch {pokemon.name}")
                         msg = f"I missed {discord_pokemon_name}!"
+                        pokemon_sprite = None
 
                     msg = msg + f" {ball}, because {reasons_string}"
 
-                    POKEMON.discord.post(DISCORD_ALERTS, msg)
+                    POKEMON.discord.post(DISCORD_ALERTS, msg, file=pokemon_sprite)
             else:
                 self.log_file(f"{REDLOG}Don't need pokemon, skipping")
                 random_channel = POKEMON.random_channel()

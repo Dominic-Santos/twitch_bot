@@ -26,9 +26,9 @@ class Discord(object):
             return self.api.get(url)
         return None
 
-    def post(self, url, data):
+    def post(self, url, data, file=None):
         if self.connected:
-            return self.api.post(url, data)
+            return self.api.post(url, data, file)
 
     def get_role(self, role):
         if self.data["roles"] is not None:

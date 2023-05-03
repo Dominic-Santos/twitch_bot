@@ -8,9 +8,12 @@ class DiscordAPI(object):
     def get_headers(self):
         return {"Authorization": self.auth_token}
 
-    def post(self, url, content):
+    def post(self, url, content, file=None):
         if self.auth_token is not None:
-            requests.post(url, headers=self.get_headers(), data={"content": content})
+            if file is None:
+                requests.post(url, headers=self.get_headers(), data={"content": content})
+            else:
+                requests.post(url, headers=self.get_headers(), data={"content": content}, files={'file': file})
 
     def get(self, url):
         if self.auth_token is not None:
