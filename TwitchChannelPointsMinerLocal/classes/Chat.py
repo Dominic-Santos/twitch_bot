@@ -610,7 +610,7 @@ Inventory: {cash}$ {coins} Battle Coins
 
         completed = POKEMON.missions.get_completed()
         for title, reward in completed:
-            mission_msg = "Completed mission - {title} - reward: {reward}"
+            mission_msg = f"Completed mission - {title} - reward: {reward}"
             self.log(f"{GREENLOG}{mission_msg}")
             POKEMON.discord.post(DISCORD_ALERTS, mission_msg)
 
