@@ -371,7 +371,10 @@ class ClientIRCPokemon(ClientIRCBase):
                 if len(pokemon_to_trade) == 0:
                     self.log(f"{REDLOG}Could not find a pokemon to wondertrade")
                 else:
-                    pokemon_traded = random.choice(pokemon_to_trade)
+                    sorted_pokemon_to_trade = sorted(pokemon_to_trade, key=lambda x: x["sellPrice"])
+
+                    # pokemon_traded = random.choice(pokemon_to_trade)
+                    pokemon_traded = sorted_pokemon_to_trade[0]
                     pokemon_received = self.pokemon_api.wondertrade(pokemon_traded["id"])
 
                     if "pokemon" in pokemon_received:
