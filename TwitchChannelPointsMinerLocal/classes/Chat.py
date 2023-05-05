@@ -380,12 +380,22 @@ class ClientIRCPokemon(ClientIRCBase):
                     if "pokemon" in pokemon_received:
                         pokemon_traded_tier = POKEMON.pokedex.tier(pokemon_traded["name"])
                         pokemon_received_tier = POKEMON.pokedex.tier(pokemon_received["pokemon"]["name"])
-                        pokemon_received_need = "" if POKEMON.pokedex.have(pokemon_received["pokemon"]["name"]) else " - needed"
+
+                        if POKEMON.pokedex.have(pokemon_received["pokemon"]["name"]):
+                            pokemon_received_need = ""
+                            pokemon_sprite = None
+                        else:
+                            pokemon_received_need = " - needed"
+                            sprite = str(pokemon_received["pokedexId"])
+                            if pokemon_received["isShiny"]:
+                                sprite = "shiny/" + sprite
+                            pokemon_sprite = get_sprite("pokemon", sprite)
+
                         reasons_string = "" if len(reasons) == 0 else " ({})".format(", ".join(reasons))
 
                         wondertrade_msg = f"Wondertraded {pokemon_traded['name']} ({pokemon_traded_tier}){reasons_string} for {pokemon_received['pokemon']['name']} ({pokemon_received_tier}){pokemon_received_need}"
                         self.log(f"{GREENLOG}{wondertrade_msg}")
-                        POKEMON.discord.post(DISCORD_ALERTS, wondertrade_msg)
+                        POKEMON.discord.post(DISCORD_ALERTS, wondertrade_msg, file=pokemon_sprite)
                         POKEMON.reset_wondertrade_timer()
                     else:
                         self.log(f"{REDLOG}Wondertrade {pokemon_traded['name']} failed {pokemon_received}")
