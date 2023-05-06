@@ -4,7 +4,6 @@ import base64
 import requests
 from bs4 import BeautifulSoup
 from PIL import Image
-import traceback
 from svglib.svglib import svg2rlg
 from reportlab.graphics import renderPM
 
@@ -56,9 +55,8 @@ def get_sprite(sprite_type, sprite_name, shiny=False):
         if sprite_type == "pokemon":
             return get_pokemon_sprite(sprite_name, shiny)
         return get_item_sprite(sprite_type, sprite_name)
-    except Exception as e:
-        print("outer", e)
-        print(traceback.format_exc())
+    except:
+        pass
     return None
 
 

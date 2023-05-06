@@ -31,6 +31,8 @@ class PokemonComunityGame(object):
             "catch_fish": False,
             "complete_bag": False,
             "use_special_balls": True,
+            "catch_starters": True,
+            "catch_legendaries": True,
             "money_saving": 0,
             "catch": [],
             "catch_tiers": [],
@@ -132,6 +134,12 @@ class PokemonComunityGame(object):
             if poke_type in self.settings["catch_types"]:
                 reasons.append("all_type")
                 break
+
+        if self.settings["catch_legendaries"] and self.pokedex.legendary(pokemon):
+            reasons.append("legendary")
+
+        if self.settings["catch_starters"] and self.pokedex.starter(pokemon):
+            reasons.append("starter")
 
         if pokemon.tier in self.settings["catch_tiers"]:
             reasons.append("tiers")
