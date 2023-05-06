@@ -141,7 +141,7 @@ class PokemonComunityGame(object):
 
         if self.settings["catch_everything"]:
             # catch anything:
-            reasons.append("everthing")
+            reasons.append("everything")
 
         strategy = "worst"
         for reason in reasons:
