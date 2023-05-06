@@ -684,7 +684,7 @@ Inventory: {cash}$ {coins} Battle Coins
                     filtered = POKEMON.computer.get_pokemon(pokemon)
                     caught = None
                     for poke in filtered:
-                        if (datetime.utcnow() - parse(poke["caughtAt"][:-1])).total_seconds() < 60:
+                        if (datetime.utcnow() - parse(poke["caughtAt"][:-1])).total_seconds() < 60 * 5:
                             caught = poke
                             break
 

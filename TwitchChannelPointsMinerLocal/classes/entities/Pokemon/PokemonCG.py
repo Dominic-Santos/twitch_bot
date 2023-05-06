@@ -34,7 +34,8 @@ class PokemonComunityGame(object):
             "money_saving": 0,
             "catch": [],
             "catch_tiers": [],
-            "catch_types": []
+            "catch_types": [],
+            "channel_priority": [],
         }
 
         self.discord = Discord()
@@ -168,6 +169,10 @@ class PokemonComunityGame(object):
 
         if nr_channels == 0:
             return None
+
+        for channel in self.settings["channel_priority"]:
+            if channel in self.channel_list:
+                return channel
 
         if nr_channels == 1:
             self.last_random = self.channel_list[0]

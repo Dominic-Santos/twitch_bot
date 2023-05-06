@@ -30,22 +30,30 @@ def save_to_json(func):
     return wrapped
 
 
-def get_sprite(sprite_type, sprite_name):
+def get_sprite(sprite_type, sprite_name, shiny=False):
     check_output_folder(f"sprites/{sprite_type}")
 
-    file_path = f"sprites/{sprite_type}/{sprite_name}.png"
+    if sprite_type == "pokemon":
+        extension = "gif"
+    else:
+        extension = "png"
+
+    file_path = f"sprites/{sprite_type}/{sprite_name}.{extension}"
 
     if os.path.isfile(file_path):
         return open(file_path, "rb")
 
-    get_png = True
-
     if sprite_type == "pokemon":
-        url = f"https://poketwitch.bframework.de/static/pokedex/png-sprites/pokemon/{sprite_name}.png"
-        size = 128
+        if shiny:
+            url = f"https://dev.bframework.de/static/pokedex/sprites/front-shiny/{sprite_name}.gif"
+        else:
+            url = f"https://dev.bframework.de/static/pokedex/sprites/front/{sprite_name}.gif"
+
+        res = requests.get(url)
+        content = res.content
     else:
+        get_png = True
         url = f"https://poketwitch.bframework.de/static/twitchextension/items/{sprite_type}/{sprite_name}"
-        size = 32
         try:
             res = requests.get(url + ".svg")
             soup = BeautifulSoup(res.text, "html.parser")
@@ -61,18 +69,19 @@ def get_sprite(sprite_type, sprite_name):
         except:
             url = url + ".png"
 
-    if get_png:
-        res = requests.get(url)
-        content = res.content
+        if get_png:
+            res = requests.get(url)
+            content = res.content
 
-        if res.status_code != 200:
-            return None
+            if res.status_code != 200:
+                return None
 
     with open(file_path, "wb") as o:
         o.write(content)
 
-    im = Image.open(file_path)
-    im = im.resize((size, size))
-    im.save(file_path)
+    if sprite_type != "pokemon":
+        im = Image.open(file_path)
+        im = im.resize((32, 32))
+        im.save(file_path)
 
     return open(file_path, "rb")
