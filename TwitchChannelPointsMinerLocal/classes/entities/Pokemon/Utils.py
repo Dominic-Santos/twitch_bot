@@ -4,6 +4,9 @@ import base64
 import requests
 from bs4 import BeautifulSoup
 from PIL import Image
+import traceback
+from svglib.svglib import svg2rlg
+from reportlab.graphics import renderPM
 
 
 def check_output_folder(folder):
@@ -30,58 +33,84 @@ def save_to_json(func):
     return wrapped
 
 
+def get_pokemon_sprite(sprite_name, shiny=False):
+    check_output_folder(f"sprites/pokemon/shiny")
+
+    is_shiny = "-shiny" if shiny else ""
+    url = f"https://dev.bframework.de/static/pokedex/sprites/front{is_shiny}/{sprite_name}.gif"
+
+    res = requests.get(url)
+    content = res.content
+
+    shiny_prefix = "/shiny" if shiny else ""
+    file_path = f"sprites/pokemon/{shiny_prefix}{sprite_name}.gif"
+
+    with open(file_path, "wb") as o:
+        o.write(content)
+
+    return open(file_path, "rb")
+
+
 def get_sprite(sprite_type, sprite_name, shiny=False):
+    try:
+        if sprite_type == "pokemon":
+            return get_pokemon_sprite(sprite_name, shiny)
+        return get_item_sprite(sprite_type, sprite_name)
+    except Exception as e:
+        print("outer", e)
+        print(traceback.format_exc())
+    return None
+
+
+def get_item_sprite(sprite_type, sprite_name):
     check_output_folder(f"sprites/{sprite_type}")
 
-    if sprite_type == "pokemon":
-        extension = "gif"
-    else:
-        extension = "png"
+    file_path = f"sprites/{sprite_type}/{sprite_name}"
 
-    file_path = f"sprites/{sprite_type}/{sprite_name}.{extension}"
+    if os.path.isfile(file_path + ".png"):
+        return open(file_path + ".png", "rb")
 
-    if os.path.isfile(file_path):
-        return open(file_path, "rb")
+    url = f"https://poketwitch.bframework.de/static/twitchextension/items/{sprite_type}/{sprite_name}"
+    try:
 
-    if sprite_type == "pokemon":
-        if shiny:
-            url = f"https://dev.bframework.de/static/pokedex/sprites/front-shiny/{sprite_name}.gif"
+        res = requests.get(url + ".svg")
+
+        soup = BeautifulSoup(res.text, "html.parser")
+        svg = soup.find("image")
+
+        if svg is None:
+            with open(file_path + ".svg", "wb") as o:
+                o.write(res.content)
+
+            drawing = svg2rlg(file_path + ".svg")
+            renderPM.drawToFile(drawing, file_path + ".png", fmt="PNG")
+
         else:
-            url = f"https://dev.bframework.de/static/pokedex/sprites/front/{sprite_name}.gif"
-
-        res = requests.get(url)
-        content = res.content
-    else:
-        get_png = True
-        url = f"https://poketwitch.bframework.de/static/twitchextension/items/{sprite_type}/{sprite_name}"
-        try:
-            res = requests.get(url + ".svg")
-            soup = BeautifulSoup(res.text, "html.parser")
-            svg = soup.find("image")
-
             href = svg["href"]
 
             s = href.split("base64,")[1]
 
             img_data = s.encode()
             content = base64.b64decode(img_data)
-            get_png = False
-        except:
-            url = url + ".png"
+            with open(file_path + ".png", "wb") as o:
+                o.write(content)
+    except:
+        url = url + ".png"
 
-        if get_png:
-            res = requests.get(url)
-            content = res.content
+        res = requests.get(url)
+        content = res.content
 
-            if res.status_code != 200:
-                return None
+        if res.status_code != 200:
+            return None
 
-    with open(file_path, "wb") as o:
-        o.write(content)
+        with open(file_path + ".png", "wb") as o:
+            o.write(content)
+
+    file_path = file_path + ".png"
 
     if sprite_type != "pokemon":
         im = Image.open(file_path)
-        im = im.resize((32, 32))
+        im = im.resize((64, 64))
         im.save(file_path)
 
     return open(file_path, "rb")

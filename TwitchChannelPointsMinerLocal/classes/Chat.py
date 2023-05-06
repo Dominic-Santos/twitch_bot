@@ -387,9 +387,7 @@ class ClientIRCPokemon(ClientIRCBase):
                         else:
                             pokemon_received_need = " - needed"
                             sprite = str(pokemon_received["pokedexId"])
-                            if pokemon_received["isShiny"]:
-                                sprite = "shiny/" + sprite
-                            pokemon_sprite = get_sprite("pokemon", sprite)
+                            pokemon_sprite = get_sprite("pokemon", sprite, shiny=pokemon_received["isShiny"])
 
                         reasons_string = "" if len(reasons) == 0 else " ({})".format(", ".join(reasons))
 
@@ -701,9 +699,7 @@ Inventory: {cash}$ {coins} Battle Coins
                                 msg += "\n" + caught_pokemon["description"].split("Your fish is ")[-1].split("Your fish has ")[-1]
 
                         sprite = str(poke["pokedexId"])
-                        if poke["isShiny"]:
-                            sprite = "shiny/" + sprite
-                        pokemon_sprite = get_sprite("pokemon", sprite)
+                        pokemon_sprite = get_sprite("pokemon", sprite, shiny=poke["isShiny"])
                     else:
                         self.log_file(f"{REDLOG}Failed to catch {pokemon.name}")
                         msg = f"I missed {discord_pokemon_name}!"
