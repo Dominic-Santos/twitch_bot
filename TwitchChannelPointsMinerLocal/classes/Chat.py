@@ -701,6 +701,7 @@ Inventory: {cash}$ {coins} Battle Coins
 
                     discord_pokemon_name = pokemon.name if pokemon.is_alternate is False else pokemon.alt_name
                     rewards = None
+                    self.log(f"{GREENLOG}Trying to catch in {twitch_channel}")
                     if caught is not None:
                         ivs = int(poke["avgIV"])
                         lvl = poke['lvl']
@@ -734,8 +735,10 @@ Inventory: {cash}$ {coins} Battle Coins
                         POKEMON.discord.post(DISCORD_ALERTS, rewards_msg)
             else:
                 self.log_file(f"{REDLOG}Don't need pokemon, skipping")
+
                 twitch_channel = POKEMON.get_channel()
                 client.privmsg("#" + twitch_channel, "!pokecheck")
+                self.log(f"{GREENLOG}Pokecheck in {twitch_channel}")
 
             self.get_missions()
         elif spawned_seconds <= POKEMON_CHECK_LIMIT_MAX:

@@ -10,6 +10,7 @@ from .Pokeping import Pokeping
 from .Computer import Computer
 
 SETTINGS_FILE = "pokemon.json"
+LOYALTY_FILE = "pokemon_loyalty.txt"
 
 WONDERTRADE_DELAY = 60 * 60 * 3 + 60  # 3 hours and 1 min (just in case)
 POKEDAILY_DELAY = 60 * 60 * 20 + 60  # 20 hours and 1 min
@@ -247,6 +248,8 @@ class PokemonComunityGame(object):
         return all_channels[-1]
 
     def increment_loyalty(self, channel):
+        to_return = None
+
         if channel in self.loyalty_data:
             self.loyalty_data[channel]["points"] = self.loyalty_data[channel]["points"] + 1
             if self.loyalty_data[channel]["points"] == self.loyalty_data[channel]["limit"]:
@@ -261,10 +264,24 @@ class PokemonComunityGame(object):
                 else:
                     self.loyalty_data[channel]["limit"] = None
                     next_reward = None
+                to_return = [current_reward, next_reward]
 
-                return current_reward, next_reward
+            self.output_loyalty()
 
-        return None
+        return to_return
+
+    def output_loyalty(self):
+        to_output = sorted(
+            [(key, values) for key, values in self.loyalty_data.items()],
+            key=lambda x: (not x[1]["featured"], 0 - x[1]["points"])
+        )
+        with open(LOYALTY_FILE, "w") as output:
+            for channel, data in to_output:
+                featured = "*" if data["featured"] else ""
+                level = data["level"]
+                points = data["points"]
+                limit = data["limit"]
+                output.write(f"{featured}{channel} - level {level} - {points}/{limit}\n")
 
     # ########### Wondertrade ############
 
