@@ -14,6 +14,23 @@ SETTINGS_FILE = "pokemon.json"
 WONDERTRADE_DELAY = 60 * 60 * 3 + 60  # 3 hours and 1 min (just in case)
 POKEDAILY_DELAY = 60 * 60 * 20 + 60  # 20 hours and 1 min
 
+FEATURED_LOYALTY = {
+    1: {"limit": 25, "reward": "Earn additional 5% $"},
+    2: {"limit": 50, "reward": "Chance to obtain a golden ticket"},
+    3: {"limit": 100, "reward": "Catch Pokemon up to level 25"},
+    4: {"limit": 200, "reward": "Increased stone drop chance by 5%"},
+    5: {"limit": 300, "reward": "Chance to find rare Candy when attempting to catch Pokemon"},
+    6: {"limit": 500, "reward": "+3% Higher catch chance"},
+    7: {"limit": 750, "reward": "5% increased shiny chance"},
+    8: {"limit": 1000, "reward": "Earn additional 5% $"},
+}
+LOYALTY = {
+    1: {"limit": 100, "reward": "Increased stone drop chance by 5%"},
+    2: {"limit": 250, "reward": "Catch Pokemon up to level 25"},
+    3: {"limit": 500, "reward": "Chance to find rare Candy when attempting to catch"},
+    4: {"limit": 1000, "reward": "3% increased shiny chance"}
+}
+
 
 class PokemonComunityGame(object):
     def __init__(self):
@@ -24,6 +41,7 @@ class PokemonComunityGame(object):
         self.last_random = None
 
         self.channel_list = []
+        self.loyalty_data = {}
 
         self.settings = {
             "catch_everything": False,
@@ -172,21 +190,81 @@ class PokemonComunityGame(object):
         if channel in self.channel_list:
             self.channel_list.remove(channel)
 
-    def random_channel(self):
-        nr_channels = len(self.channel_list)
-
-        if nr_channels == 0:
+    def get_channel(self):
+        if len(self.channel_list) == 0:
             return None
 
         for channel in self.settings["channel_priority"]:
             if channel in self.channel_list:
                 return channel
 
+        return self.get_highest_loyalty_channel
+
+    def random_channel(self):
+        nr_channels = len(self.channel_list)
         if nr_channels == 1:
             self.last_random = self.channel_list[0]
         else:
             self.last_random = random.choice([channel for channel in self.channel_list if channel != self.last_random])
         return self.last_random
+
+    # ########### Channel Loyalty ############
+
+    def set_loyalty(self, channel, loyalty_level, current_points, level_points):
+        if (
+            level_points == 250
+        ) or (
+            level_points == 100 and loyalty_level == 1
+        ) or (
+            level_points == 500 and loyalty_level == 3
+        ) or (
+            level_points == 1000 and loyalty_level == 4
+        ):
+            featured_channel = False
+        else:
+            featured_channel = True
+
+        self.loyalty_data[channel] = {
+            "featured": featured_channel,
+            "level": loyalty_level,
+            "points": current_points,
+            "limit": level_points
+        }
+
+    def get_loyalty(self, level, featured):
+        loyalty_data = FEATURED_LOYALTY if featured else LOYALTY
+        return loyalty_data.get(level, None)
+
+    def get_highest_loyalty_channel(self):
+        if len(self.loyalty_data.keys()) == 0:
+            return None
+
+        featured_channels = sorted([(channel, data["points"]) for channel, data in self.loyalty_data.items() if data["featured"]], key=lambda x: x[1])
+        if len(featured_channels) > 0:
+            return featured_channels[-1]
+
+        all_channels = sorted([(channel, data["points"]) for channel, data in self.loyalty_data.items()], key=lambda x: x[1])
+        return all_channels[-1]
+
+    def increment_loyalty(self, channel):
+        if channel in self.loyalty_data:
+            self.loyalty_data[channel]["points"] = self.loyalty_data[channel]["points"] + 1
+            if self.loyalty_data[channel]["points"] == self.loyalty_data[channel]["limit"]:
+                loyalty = FEATURED_LOYALTY if self.loyalty_data[channel]["featured"] else LOYALTY
+                current_reward = loyalty[self.loyalty_data[channel]["level"]]["reward"]
+
+                self.loyalty_data[channel]["level"] = self.loyalty_data[channel]["level"] + 1
+                if self.loyalty_data[channel]["level"] in loyalty:
+                    next_level = loyalty[self.loyalty_data[channel]["level"]]
+                    self.loyalty_data[channel]["limit"] = next_level["limit"]
+                    next_reward = next_level["reward"]
+                else:
+                    self.loyalty_data[channel]["limit"] = None
+                    next_reward = None
+
+                return current_reward, next_reward
+
+        return None
 
     # ########### Wondertrade ############
 

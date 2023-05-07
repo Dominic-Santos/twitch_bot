@@ -244,6 +244,7 @@ class ClientIRCPokemon(ClientIRCBase):
 
         if "pokemoncommunitygame" in message.source:
             self.check_pokemon_active(client, message, argstring)
+            self.check_loyalty_info(client, message, argstring)
 
         if THREADCONTROLLER.client is None:
             THREADCONTROLLER.client = client
@@ -258,6 +259,17 @@ class ClientIRCPokemon(ClientIRCBase):
             if THREADCONTROLLER.bag_stats is False:
                 bag_stats_thread(self.stats_computer)
 
+    def check_loyalty_info(self, client, message, argstring):
+        if self.username in argstring and "Your loyalty level" in argstring:
+            channel = message.target[1:]
+            loyalty_level = int(argstring.split("Your loyalty level: ")[1][0])
+            loyalty_limits = argstring.split("(")[1].split(")")[0]
+            current_points = int(loyalty_limits.split("/")[0])
+            level_points = int(loyalty_limits.split("/")[1])
+            self.log(f"{YELLOWLOG}{channel} loyalty {current_points}/{level_points}, level {loyalty_level}")
+
+            POKEMON.set_loyalty(channel, loyalty_level, current_points, level_points)
+
     def check_pokemon_active(self, client, message, argstring):
 
         if "Spawns and payouts are disabled" in argstring:
@@ -268,6 +280,7 @@ class ClientIRCPokemon(ClientIRCBase):
         elif self.pokemon_active is False and self.pokemon_disabled is False:
             self.pokemon_active = True
             self.log(f"{YELLOWLOG}Joined Pokemon for {message.target[1:]}")
+            client.privmsg("#" + message.target[1:], "!pokeloyalty")
             POKEMON.add_channel(message.target[1:])
 
     def pokedaily_main(self):
@@ -666,9 +679,9 @@ Inventory: {cash}$ {coins} Battle Coins
                 if ball is None:
                     self.log_file(f"{REDLOG}Won't catch {pokemon.name} ran out of balls (strategy: {strategy})")
                 else:
-                    random_channel = POKEMON.random_channel()
+                    twitch_channel = POKEMON.get_channel()
                     message = f"!pokecatch {ball}"
-                    client.privmsg("#" + random_channel, message)
+                    client.privmsg("#" + twitch_channel, message)
 
                     reasons_string = ", ".join(catch_reasons)
                     self.log_file(f"{GREENLOG}Trying to catch {pokemon.name} with {ball} because {reasons_string}")
@@ -687,6 +700,7 @@ Inventory: {cash}$ {coins} Battle Coins
                             break
 
                     discord_pokemon_name = pokemon.name if pokemon.is_alternate is False else pokemon.alt_name
+                    rewards = None
                     if caught is not None:
                         ivs = int(poke["avgIV"])
                         lvl = poke['lvl']
@@ -700,6 +714,7 @@ Inventory: {cash}$ {coins} Battle Coins
 
                         sprite = str(poke["pokedexId"])
                         pokemon_sprite = get_sprite("pokemon", sprite, shiny=poke["isShiny"])
+                        rewards = POKEMON.increment_loyalty(twitch_channel)
                     else:
                         self.log_file(f"{REDLOG}Failed to catch {pokemon.name}")
                         msg = f"I missed {discord_pokemon_name}!"
@@ -708,10 +723,19 @@ Inventory: {cash}$ {coins} Battle Coins
                     msg = msg + f" {ball}, because {reasons_string}"
 
                     POKEMON.discord.post(DISCORD_ALERTS, msg, file=pokemon_sprite)
+
+                    if rewards is not None:
+                        reward, next_reward = rewards
+                        rewards_msg = f"Loyalty tier completed in {twitch_channel}, new reward: {reward}"
+                        self.log(f"{GREENLOG}{rewards_msg}")
+                        if next_reward is not None:
+                            rewards_msg = rewards_msg + f"\n next reward: {next_reward}"
+                            self.log(f"{GREENLOG}next reward: {next_reward}")
+                        POKEMON.discord.post(DISCORD_ALERTS, rewards_msg)
             else:
                 self.log_file(f"{REDLOG}Don't need pokemon, skipping")
-                random_channel = POKEMON.random_channel()
-                client.privmsg("#" + random_channel, "!pokecheck")
+                twitch_channel = POKEMON.get_channel()
+                client.privmsg("#" + twitch_channel, "!pokecheck")
 
             self.get_missions()
         elif spawned_seconds <= POKEMON_CHECK_LIMIT_MAX:
