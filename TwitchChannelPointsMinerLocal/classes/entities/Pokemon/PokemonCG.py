@@ -199,7 +199,7 @@ class PokemonComunityGame(object):
             if channel in self.channel_list:
                 return channel
 
-        return self.get_highest_loyalty_channel
+        return self.get_highest_loyalty_channel()
 
     def random_channel(self):
         nr_channels = len(self.channel_list)
@@ -240,12 +240,12 @@ class PokemonComunityGame(object):
         if len(self.loyalty_data.keys()) == 0:
             return None
 
-        featured_channels = sorted([(channel, data["points"]) for channel, data in self.loyalty_data.items() if data["featured"]], key=lambda x: x[1])
-        if len(featured_channels) > 0:
-            return featured_channels[-1]
+        all_channels = sorted(
+            [(key, values) for key, values in self.loyalty_data.items()],
+            key=lambda x: (not x[1]["featured"], 0 - x[1]["points"])
+        )
 
-        all_channels = sorted([(channel, data["points"]) for channel, data in self.loyalty_data.items()], key=lambda x: x[1])
-        return all_channels[-1]
+        return all_channels[0][0]
 
     def increment_loyalty(self, channel):
         to_return = None
