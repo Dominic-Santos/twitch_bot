@@ -733,9 +733,10 @@ Inventory: {cash}$ {coins} Battle Coins
                         rewards_msg = f"Loyalty tier completed in {twitch_channel}, new reward: {reward}"
                         self.log(f"{GREENLOG}{rewards_msg}")
                         if next_reward is not None:
-                            rewards_msg = rewards_msg + f"\n next reward: {next_reward}"
+                            rewards_msg = rewards_msg + f"\nNext reward: {next_reward}"
                             self.log(f"{GREENLOG}next reward: {next_reward}")
-                        POKEMON.discord.post(DISCORD_ALERTS, rewards_msg)
+                        sprite = get_sprite("streamer", twitch_channel)
+                        POKEMON.discord.post(DISCORD_ALERTS, rewards_msg, file=sprite)
             else:
                 self.log_file(f"{REDLOG}Don't need pokemon, skipping")
 

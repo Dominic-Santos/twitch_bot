@@ -232,6 +232,8 @@ class PokemonComunityGame(object):
             "limit": level_points
         }
 
+        self.output_loyalty()
+
     def get_loyalty(self, level, featured):
         loyalty_data = FEATURED_LOYALTY if featured else LOYALTY
         return loyalty_data.get(level, None)

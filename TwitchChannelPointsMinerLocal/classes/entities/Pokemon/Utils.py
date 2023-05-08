@@ -54,10 +54,34 @@ def get_sprite(sprite_type, sprite_name, shiny=False):
     try:
         if sprite_type == "pokemon":
             return get_pokemon_sprite(sprite_name, shiny)
+        elif sprite_type == "streamer":
+            return get_streamer_avatar(sprite_name)
         return get_item_sprite(sprite_type, sprite_name)
     except:
         pass
     return None
+
+
+def get_streamer_avatar(streamer):
+    check_output_folder(f"sprites/avatars")
+    file_path = f"sprites/avatars/{streamer}.png"
+
+    if os.path.isfile(file_path):
+        return open(file_path, "rb")
+
+    res = requests.get(f"https://www.twitch.tv/{streamer}")
+    soup = BeautifulSoup(res.text, "html.parser")
+    avatar = soup.find("meta", {"name": "twitter:image"})
+
+    res = requests.get(avatar["content"])
+    with open(file_path, "wb") as o:
+        o.write(res.content)
+
+    im = Image.open(file_path)
+    im = im.resize((64, 64))
+    im.save(file_path)
+
+    return open(file_path, "rb")
 
 
 def get_item_sprite(sprite_type, sprite_name):
