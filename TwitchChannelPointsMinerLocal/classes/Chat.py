@@ -283,8 +283,10 @@ class ClientIRCPokemon(ClientIRCBase):
                 self.pokemon_active = True
                 self.pokemon_disabled = False
                 self.log(f"{YELLOWLOG}Joined Pokemon for {message.target[1:]}")
-                client.privmsg("#" + message.target[1:], "!pokeloyalty")
-                POKEMON.add_channel(message.target[1:])
+                POKEMON.add_channel(self.channel[1:])
+
+        if self.pokemon_active and self.channel[1:] not in POKEMON.loyalty_data:
+            client.privmsg("#" + self.channel[1:], "!pokeloyalty")
 
     def pokedaily_main(self):
         POKEMON.discord.post(DISCORD_POKEDAILY, "!pokedaily")
