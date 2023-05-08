@@ -243,7 +243,7 @@ class PokemonComunityGame(object):
             return None
 
         all_channels = sorted(
-            [(key, values) for key, values in self.loyalty_data.items()],
+            [(key, values) for key, values in self.loyalty_data.items() if key in self.channel_list],
             key=lambda x: (not x[1]["featured"], 0 - x[1]["points"])
         )
 
