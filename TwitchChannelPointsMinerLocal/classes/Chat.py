@@ -277,11 +277,14 @@ class ClientIRCPokemon(ClientIRCBase):
             self.pokemon_active = False
             logger.info(f"Pokemon Disabled: {self.channel}", extra={"emoji": ":speech_balloon:"})
             leave_channel(self.channel[1:])
-        elif self.pokemon_active is False and self.pokemon_disabled is False:
-            self.pokemon_active = True
-            self.log(f"{YELLOWLOG}Joined Pokemon for {message.target[1:]}")
-            client.privmsg("#" + message.target[1:], "!pokeloyalty")
-            POKEMON.add_channel(message.target[1:])
+
+        elif self.pokemon_active is False:
+            if self.pokemon_disabled is False or (" has been caught by:" in argstring or " escaped." in argstring):
+                self.pokemon_active = True
+                self.pokemon_disabled = False
+                self.log(f"{YELLOWLOG}Joined Pokemon for {message.target[1:]}")
+                client.privmsg("#" + message.target[1:], "!pokeloyalty")
+                POKEMON.add_channel(message.target[1:])
 
     def pokedaily_main(self):
         POKEMON.discord.post(DISCORD_POKEDAILY, "!pokedaily")
