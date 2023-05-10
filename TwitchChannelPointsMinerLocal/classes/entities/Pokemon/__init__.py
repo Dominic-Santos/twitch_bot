@@ -8,4 +8,5 @@ from .CGApi import API as CGApi
 from .Pokemon import Pokemon
 from .Computer import Computer
 from .Pokedaily import parse_message
+from .Loyalty import Loyalty
 from .Utils import *

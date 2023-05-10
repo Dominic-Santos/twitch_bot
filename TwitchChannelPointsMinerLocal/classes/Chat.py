@@ -12,8 +12,12 @@ from .ChatO import ThreadChat as ThreadChatO
 from .ChatO import logger
 
 from .entities.Pokemon import PokemonComunityGame, CGApi, Pokedaily, Pokemon, get_sprite
-# from .WinAlerts import send_alert
-# from .DiscordAPI import DiscordAPI
+
+""" TODO
+- add call to timer to get pokemon id more confidently
+    this will allow to move from depending on pokeping for IDs
+- battle system
+"""
 
 formatter = logging.Formatter('%(asctime)s %(message)s', datefmt="%Y-%m-%d %H:%M:%S")
 file_handler = logging.FileHandler("logs/pokemoncg.txt", encoding='utf-8')
