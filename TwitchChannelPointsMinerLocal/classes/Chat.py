@@ -240,8 +240,9 @@ class ClientIRCPokemon(ClientIRCBase):
     def log_file(msg):
         poke_logger.info(msg)
 
-    def have_pokemon(self):
-        return self.pokemon_active and self.pokemon_disabled is False
+    def die(self):
+        self.pokemon_active = False
+        self.pokemon_disabled = False
 
     def on_pubmsg(self, client, message):
         argstring = " ".join(message.arguments)
@@ -275,7 +276,6 @@ class ClientIRCPokemon(ClientIRCBase):
             POKEMON.set_loyalty(channel, loyalty_level, current_points, level_points)
 
     def check_pokemon_active(self, client, message, argstring):
-
         if "Spawns and payouts are disabled" in argstring:
             self.pokemon_disabled = True
             self.pokemon_active = False
@@ -288,9 +288,9 @@ class ClientIRCPokemon(ClientIRCBase):
                 self.pokemon_disabled = False
                 self.log(f"{YELLOWLOG}Joined Pokemon for {message.target[1:]}")
                 POKEMON.add_channel(self.channel[1:])
-
-        if self.pokemon_active and self.channel[1:] not in POKEMON.loyalty_data:
-            client.privmsg("#" + self.channel[1:], "!pokeloyalty")
+                sleep(5)
+                self.log(f"{YELLOWLOG}{self.channel[1:]} loyalty request")
+                client.privmsg("#" + self.channel[1:], "!pokeloyalty")
 
     def pokedaily_main(self):
         POKEMON.discord.post(DISCORD_POKEDAILY, "!pokedaily")
@@ -769,6 +769,12 @@ class ClientIRC(ClientIRCMarbles, ClientIRCPokemon):
     def on_pubmsg(self, client, message):
         ClientIRCMarbles.on_pubmsg(self, client, message)
         ClientIRCPokemon.on_pubmsg(self, client, message)
+
+    def die(self, msg="Bye, cruel world!"):
+        ClientIRCPokemon.die(self)
+        self.connection.disconnect(msg)
+        self.__active = False
+
 
 
 class ThreadChat(ThreadChatO):
