@@ -277,10 +277,11 @@ class ClientIRCPokemon(ClientIRCBase):
 
     def check_pokemon_active(self, client, message, argstring):
         if "Spawns and payouts are disabled" in argstring:
-            self.pokemon_disabled = True
-            self.pokemon_active = False
-            logger.info(f"Pokemon Disabled: {self.channel}", extra={"emoji": ":speech_balloon:"})
-            leave_channel(self.channel[1:])
+            if self.pokemon_disabled is False:
+                self.pokemon_disabled = True
+                self.pokemon_active = False
+                logger.info(f"Pokemon Disabled: {self.channel}", extra={"emoji": ":speech_balloon:"})
+                leave_channel(self.channel[1:])
 
         elif self.pokemon_active is False:
             if self.pokemon_disabled is False or (" has been caught by:" in argstring or " escaped." in argstring):
