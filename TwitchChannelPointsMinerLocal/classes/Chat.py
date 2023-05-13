@@ -746,7 +746,7 @@ Inventory: {cash}$ {coins} Battle Coins
             else:
                 self.log_file(f"{REDLOG}Don't need pokemon, skipping")
 
-                twitch_channel = POKEMON.get_channel()
+                twitch_channel = POKEMON.get_channel(ignore_priority=True)
                 client.privmsg("#" + twitch_channel, "!pokecheck")
                 self.log(f"{GREENLOG}Pokecheck in {twitch_channel}")
 

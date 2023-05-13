@@ -37,6 +37,8 @@ class PokemonComunityGame(Loyalty):
             "catch_starters": True,
             "catch_legendaries": True,
             "money_saving": 0,
+            "spend_money_above": 0,
+            "spend_money_strategy": "save",
             "catch": [],
             "catch_tiers": [],
             "catch_types": [],
@@ -154,6 +156,10 @@ class PokemonComunityGame(Loyalty):
             # catch anything:
             reasons.append("everything")
 
+        if self.settings["spend_money_above"] > 0 and self.settings["spend_money_above"] < self.inventory.cash:
+            # Catch anything if money above X, X <= 0 is ignored
+            reasons.append("spend_money")
+
         strategy = "worst"
         for reason in reasons:
             if self.missions.mission_best_ball(reason):
@@ -162,6 +168,10 @@ class PokemonComunityGame(Loyalty):
         if strategy == "best":
             if self.inventory.cash < self.settings["money_saving"]:
                 strategy = "save"
+
+        if len(reasons) == 1 and "spend_money" in reasons:
+            # if the only reason is to spend money, then apply the selected strategy
+            strategy = self.settings["spend_money_strategy"]
 
         return reasons, strategy
 
@@ -175,13 +185,14 @@ class PokemonComunityGame(Loyalty):
         if channel in self.channel_list:
             self.channel_list.remove(channel)
 
-    def get_channel(self):
+    def get_channel(self, ignore_priority=False):
         if len(self.channel_list) == 0:
             return None
 
-        for channel in self.settings["channel_priority"]:
-            if channel in self.channel_list:
-                return channel
+        if not ignore_priority:
+            for channel in self.settings["channel_priority"]:
+                if channel in self.channel_list:
+                    return channel
 
         return self.get_highest_loyalty_channel()
 
