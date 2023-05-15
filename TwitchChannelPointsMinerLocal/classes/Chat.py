@@ -401,10 +401,11 @@ class ClientIRCPokemon(ClientIRCBase):
                     pokemon_received = self.pokemon_api.wondertrade(pokemon_traded["id"])
 
                     if "pokemon" in pokemon_received:
+                        pokemon_received = pokemon_received["pokemon"]
                         pokemon_traded_tier = POKEMON.pokedex.tier(pokemon_traded["name"])
-                        pokemon_received_tier = POKEMON.pokedex.tier(pokemon_received["pokemon"]["name"])
+                        pokemon_received_tier = POKEMON.pokedex.tier(pokemon_received["name"])
 
-                        if POKEMON.pokedex.have(pokemon_received["pokemon"]["name"]):
+                        if POKEMON.pokedex.have(pokemon_received["name"]):
                             pokemon_received_need = ""
                             pokemon_sprite = None
                         else:

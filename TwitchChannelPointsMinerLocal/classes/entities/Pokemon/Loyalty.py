@@ -64,13 +64,13 @@ class Loyalty(object):
         return LOYALTY.get(featured, {}).get(level, None)
 
     def get_highest_loyalty_channel(self):
-        if len(self.loyalty_data.keys()) == 0:
-            return None
-
         all_channels = sorted(
             [(key, values) for key, values in self.loyalty_data.items() if key in self.channel_list],
             key=lambda x: (0 - x[1]["featured"], 0 - x[1]["points"])
         )
+
+        if len(all_channels) == 0:
+            return None
 
         return all_channels[0][0]
 
@@ -116,13 +116,3 @@ class Loyalty(object):
                 points = data["points"]
                 limit = data["limit"]
                 output.write(f"{featured} - {channel} - level {level} - {points}/{limit}\n")
-
-    def get_channel(self):
-        if len(self.channel_list) == 0:
-            return None
-
-        for channel in self.settings["channel_priority"]:
-            if channel in self.channel_list:
-                return channel
-
-        return self.get_highest_loyalty_channel()
