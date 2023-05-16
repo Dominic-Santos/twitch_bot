@@ -415,7 +415,7 @@ class ClientIRCPokemon(ClientIRCBase):
 
                         reasons_string = "" if len(reasons) == 0 else " ({})".format(", ".join(reasons))
 
-                        wondertrade_msg = f"Wondertraded {pokemon_traded['name']} ({pokemon_traded_tier}){reasons_string} for {pokemon_received['pokemon']['name']} ({pokemon_received_tier}){pokemon_received_need}"
+                        wondertrade_msg = f"Wondertraded {pokemon_traded['name']} ({pokemon_traded_tier}){reasons_string} for {pokemon_received['name']} ({pokemon_received_tier}){pokemon_received_need}"
                         self.log(f"{GREENLOG}{wondertrade_msg}")
                         POKEMON.discord.post(DISCORD_ALERTS, wondertrade_msg, file=pokemon_sprite)
                         POKEMON.reset_wondertrade_timer()

@@ -39,6 +39,7 @@ class PokemonComunityGame(Loyalty):
             "money_saving": 0,
             "spend_money_above": 0,
             "spend_money_strategy": "save",
+            "spend_money_level": 0,
             "catch": [],
             "catch_tiers": [],
             "catch_types": [],
@@ -158,7 +159,10 @@ class PokemonComunityGame(Loyalty):
 
         if self.settings["spend_money_above"] > 0 and self.settings["spend_money_above"] < self.inventory.cash:
             # Catch anything if money above X, X <= 0 is ignored
-            reasons.append("spend_money")
+            channel = self.get_channel()
+            if channel is not None:
+                if self.loyalty_data[channel]["featured"] >= self.settings["spend_money_level"]:
+                    reasons.append("spend_money")
 
         strategy = "worst"
         for reason in reasons:
