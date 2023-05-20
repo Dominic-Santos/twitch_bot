@@ -509,9 +509,20 @@ class ClientIRCPokemon(ClientIRCBase):
                 coins = item["amount"]
                 break
 
-        missing_a_string = "missing: " + ", ".join(spawnables_a_dont_have) if len(spawnables_a_dont_have) in range(0, 10) else ""
-        missing_b_string = "missing: " + ", ".join(spawnables_b_dont_have) if len(spawnables_b_dont_have) in range(0, 10) else ""
-        missing_c_string = "missing: " + ", ".join(spawnables_c_dont_have) if len(spawnables_c_dont_have) in range(0, 10) else ""
+        if len(spawnables_a_dont_have) == 0:
+            missing_a_string = "Done"
+        else:
+            missing_a_string = "missing: " + ", ".join(spawnables_a_dont_have) if len(spawnables_a_dont_have) in range(0, 10) else ""
+
+        if len(spawnables_b_dont_have) == 0:
+            missing_b_string = "Done"
+        else:
+            missing_b_string = "missing: " + ", ".join(spawnables_b_dont_have) if len(spawnables_b_dont_have) in range(0, 10) else ""
+
+        if len(spawnables_c_dont_have) == 0:
+            missing_c_string = "Done"
+        else:
+            missing_c_string = "missing: " + ", ".join(spawnables_c_dont_have) if len(spawnables_c_dont_have) in range(0, 10) else ""
 
         discord_msg = f"""Bag Summary:
 
