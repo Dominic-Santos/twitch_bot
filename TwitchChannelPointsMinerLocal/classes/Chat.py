@@ -57,6 +57,7 @@ FISH_EVENT = True
 
 class ThreadController(object):
     def __init__(self):
+        self.client_channel = None
         self.client = None
         self.wondertrade = False
         self.pokecatch = False
@@ -253,6 +254,8 @@ class ClientIRCPokemon(ClientIRCBase):
 
         if THREADCONTROLLER.client is None:
             THREADCONTROLLER.client = client
+            THREADCONTROLLER.client_channel = self.channel[1:]
+            self.log(f"{YELLOWLOG}{self.channel[1:]} is primary client")
 
         if len(POKEMON.channel_list) > 0:
             if THREADCONTROLLER.pokecatch is False:
@@ -691,13 +694,24 @@ Inventory: {cash}$ {coins} Battle Coins
             # find reasons to catch the pokemon
             catch_reasons, strategy = POKEMON.need_pokemon(pokemon)
             repeat = True
+
             for reason in ["pokedex", "bag", "alt"]:
                 if reason in catch_reasons:
                     repeat = False
                     break
 
+            if "ball" in catch_reasons:
+                if strategy == "worst":
+                    for catch_ball in POKEMON.missions.data["ball"]:
+                        if POKEMON.inventory.have_ball(catch_ball + "ball"):
+                            ball = catch_ball + "ball"
+                            strategy = "force"
+                            break
+
             if len(catch_reasons) > 0:
-                ball = POKEMON.inventory.get_catch_ball(pokemon, repeat=repeat, strategy=strategy)
+                if strategy != "force":
+                    ball = POKEMON.inventory.get_catch_ball(pokemon, repeat=repeat, strategy=strategy)
+
                 if ball is None:
                     self.log_file(f"{REDLOG}Won't catch {pokemon.name} ran out of balls (strategy: {strategy})")
                 else:
@@ -789,7 +803,6 @@ class ClientIRC(ClientIRCMarbles, ClientIRCPokemon):
         self.__active = False
 
 
-
 class ThreadChat(ThreadChatO):
     def __init__(self, username, token, channel, channel_id, get_pokemoncg_token, marbles):
         ThreadChatO.__init__(self, username, token, channel)
@@ -827,6 +840,13 @@ def leave_channel(channel):
         if len(POKEMON.channel_list) == 0:
             poke_logger.info("Nobody is streaming Pokemon CG")
             POKEMON.save_settings()
+
+    if channel == THREADCONTROLLER.client_channel:
+        logger.info(
+            f"Disconnecting primary channel ({channel})", extra={"emoji": ":speech_balloon:"}
+        )
+        THREADCONTROLLER.client_channel = None
+        THREADCONTROLLER.client = None
 
 
 ChatPresence = ChatPresenceO

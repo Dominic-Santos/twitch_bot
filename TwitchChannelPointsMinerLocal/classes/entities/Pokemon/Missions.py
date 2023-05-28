@@ -118,6 +118,9 @@ class Missions(object):
                             self.data.setdefault("bst", []).append((0, the_bst))
                         else:
                             self.data.setdefault("bst", []).append((the_bst, 9999))
+                    elif "with" in mission_title:
+                        ball = mission_title.split("ball")[0].strip().split(" ")[-1]
+                        self.data.setdefault("ball", []).append(ball)
                     else:
                         the_type = mission_title.split(" ")[1].title()
                         self.data.setdefault("type", []).append(the_type)
@@ -198,6 +201,9 @@ class Missions(object):
     def check_bst_mission(self, bst):
         return self._between_mission("bst", bst)
 
+    def check_ball_mission(self):
+        return self.have_mission("ball")
+
     def check_all_missions(self, pokemon):
         reasons = []
         if self.check_type_mission(pokemon.types):
@@ -221,7 +227,10 @@ class Missions(object):
         if self.check_attempt_mission():
             reasons.append("attempt")
 
+        if self.check_ball_mission():
+            reasons.append("ball")
+
         return reasons
 
     def mission_best_ball(self, mission):
-        return mission not in ["attempt", "miss", "miss_type", "spend_money"]
+        return mission not in ["attempt", "miss", "miss_type", "spend_money", "ball"]
