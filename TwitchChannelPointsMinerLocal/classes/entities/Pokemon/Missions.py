@@ -96,7 +96,6 @@ class Missions(object):
                 elif "miss" in mission_title and "type" in mission_title:
                     the_type = mission_title.split("type")[0].strip().split(" ")[-1].title()
                     self.data.setdefault("miss_type", []).append(the_type)
-                    print(self.data["miss_type"])
                 elif "miss" in mission_title and "catch" in mission_title:
                     self.data["miss"] = True
                 elif mission_title == "attempt catches":
