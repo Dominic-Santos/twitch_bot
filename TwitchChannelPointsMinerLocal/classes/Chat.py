@@ -263,6 +263,7 @@ class ClientIRCPokemon(ClientIRCBase):
             if THREADCONTROLLER.wondertrade is False:
                 wondertrade_thread(self.wondertrade_main)
             if THREADCONTROLLER.pokedaily is False:
+                self.pokedaily_setup()
                 pokedaily_thread(self.pokedaily_main)
             if THREADCONTROLLER.bag_stats is False:
                 bag_stats_thread(self.stats_computer)
@@ -295,6 +296,27 @@ class ClientIRCPokemon(ClientIRCBase):
                 sleep(5)
                 self.log(f"{YELLOWLOG}{self.channel[1:]} loyalty request")
                 client.privmsg("#" + self.channel[1:], "!pokeloyalty")
+
+    def pokedaily_setup(self):
+        resp = POKEMON.discord.get(DISCORD_POKEDAILY_SEARCH.format(discord_id=POKEMON.discord.data["user"]))
+        latest_message = resp["messages"][0][0]
+        message = Pokedaily.parse_message(latest_message["content"])
+
+        timestamp = parse(latest_message["timestamp"])
+        now = datetime.now()
+
+        diff = now.timestamp() - timestamp.timestamp()
+
+        message.add_last_redeemed(diff)
+
+        last_redeemed = timedelta(
+            hours=message.last_redeemed["hours"],
+            minutes=message.last_redeemed["minutes"],
+            seconds=message.last_redeemed["seconds"]
+        )
+
+        POKEMON.pokedaily_timer = datetime.utcnow() - last_redeemed
+        self.log(f"{YELLOWLOG}Last Pokedaily at {POKEMON.pokedaily_timer}")
 
     def pokedaily_main(self):
         POKEMON.discord.post(DISCORD_POKEDAILY, "!pokedaily")

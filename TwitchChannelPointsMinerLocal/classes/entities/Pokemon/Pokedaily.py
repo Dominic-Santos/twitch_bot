@@ -23,6 +23,29 @@ class Message(object):
             "seconds": seconds
         })
 
+    def add_last_redeemed(self, seconds):
+        hours = int(seconds // 3600)
+        seconds = seconds - (hours * 3600)
+
+        minutes = int(seconds // 60)
+        seconds = seconds - (minutes * 60)
+
+        seconds = int(seconds // 1)
+
+        self.last_redeemed["hours"] = self.last_redeemed["hours"] + hours
+        self.last_redeemed["minutes"] = self.last_redeemed["minutes"] + minutes
+        self.last_redeemed["seconds"] = self.last_redeemed["seconds"] + seconds
+
+        if self.last_redeemed["seconds"] >= 60:
+            mins = self.last_redeemed["seconds"] // 60
+            self.last_redeemed["seconds"] = self.last_redeemed["seconds"] - mins * 60
+            self.last_redeemed["minutes"] = self.last_redeemed["minutes"] + mins
+
+        if self.last_redeemed["minutes"] >= 60:
+            hours = self.last_redeemed["minutes"] // 60
+            self.last_redeemed["minutes"] = self.last_redeemed["minutes"] - hours * 60
+            self.last_redeemed["hours"] = self.last_redeemed["hours"] + hours
+
 
 def parse_message(content):
     message = Message()
