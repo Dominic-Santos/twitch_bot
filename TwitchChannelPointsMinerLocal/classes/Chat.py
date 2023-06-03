@@ -773,7 +773,7 @@ Inventory: {cash}$ {coins} Battle Coins
             else:
                 self.log_file(f"{REDLOG}Don't need pokemon, skipping")
 
-                twitch_channel = POKEMON.get_channel(ignore_priority=True)
+                twitch_channel = POKEMON.get_channel(ignore_priority=False)
                 client.privmsg("#" + twitch_channel, "!pokecheck")
                 self.log(f"{GREENLOG}Pokecheck in {twitch_channel}")
 
@@ -824,6 +824,7 @@ class ThreadChat(ThreadChatO):
         logger.info(
             f"Join IRC Chat: {self.channel}", extra={"emoji": ":speech_balloon:"}
         )
+        POKEMON.channel_online(self.channel)
         self.chat_irc.start()
 
     def stop(self):
@@ -840,6 +841,9 @@ def leave_channel(channel):
         if len(POKEMON.channel_list) == 0:
             poke_logger.info("Nobody is streaming Pokemon CG")
             POKEMON.save_settings()
+
+    if channel in POKEMON.online_channels:
+        POKEMON.channel_offline(channel)
 
     if channel == THREADCONTROLLER.client_channel:
         logger.info(

@@ -6285,11 +6285,53 @@
             "c": true,
             "order": 898,
             "pokedexId": 898
+        },
+        {
+            "name": "Wyrdeer",
+            "id": 899,
+            "c": true,
+            "order": 899,
+            "pokedexId": 899
+        },
+        {
+            "name": "Kleavor",
+            "id": 900,
+            "c": true,
+            "order": 900,
+            "pokedexId": 900
+        },
+        {
+            "name": "Ursaluna",
+            "id": 901,
+            "c": true,
+            "order": 901,
+            "pokedexId": 901
+        },
+        {
+            "name": "Basculegion",
+            "id": 902,
+            "c": true,
+            "order": 550,
+            "pokedexId": 902
+        },
+        {
+            "name": "Sneasler",
+            "id": 903,
+            "c": true,
+            "order": 903,
+            "pokedexId": 903
+        },
+        {
+            "name": "Overqwil",
+            "id": 904,
+            "c": true,
+            "order": 904,
+            "pokedexId": 904
         }
     ],
-    "progress": 757,
-    "catchableProgress": 731,
-    "totalPkm": 898,
+    "progress": 766,
+    "catchableProgress": 726,
+    "totalPkm": 904,
     "catchablePkm": 734,
-    "shinyCharmClaimed": false
+    "shinyCharmClaimed": true
 }

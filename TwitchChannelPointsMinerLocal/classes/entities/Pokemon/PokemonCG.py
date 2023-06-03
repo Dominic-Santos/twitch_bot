@@ -27,6 +27,7 @@ class PokemonComunityGame(Loyalty):
         self.last_random = None
 
         self.channel_list = []
+        self.online_channels = []
 
         self.settings = {
             "catch_everything": False,
@@ -189,13 +190,21 @@ class PokemonComunityGame(Loyalty):
         if channel in self.channel_list:
             self.channel_list.remove(channel)
 
+    def channel_online(self, channel):
+        if channel not in self.online_channels:
+            self.online_channels.append(channel)
+
+    def channel_offline(self, channel):
+        if channel in self.online_channels:
+            self.online_channels.remove(channel)
+
     def get_channel(self, ignore_priority=False):
         if len(self.channel_list) == 0:
             return None
 
         if not ignore_priority:
             for channel in self.settings["channel_priority"]:
-                if channel in self.channel_list:
+                if channel in self.online_channels:
                     return channel
 
         return self.get_highest_loyalty_channel()

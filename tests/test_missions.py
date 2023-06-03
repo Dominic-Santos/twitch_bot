@@ -36,7 +36,8 @@ def test_check_missions_completed():
 
     for mission in MISSIONS_JSON["missions"]:
         if mission["name"] == mission_title:
-            mission["progress"] = mission["goal"]
+            mission_goal = mission["goal"]
+            mission["progress"] = mission_goal
             reward = mission["rewardItem"]["name"]
             reward_amount = mission["rewardItem"]["amount"]
         tmp_missions["missions"].append(mission)
@@ -45,8 +46,8 @@ def test_check_missions_completed():
 
     completed = MISSIONS.get_completed()
     assert len(completed) == 1
-    assert completed[0][0] == mission_title
-    assert completed[0][1] == f"{reward_amount} {reward}"
+    assert completed[0][0] == f"{mission_title} ({mission_goal})"
+    assert completed[0][1]["reward"] == f"{reward_amount} {reward}"
 
 
 def test_check_missions_case2():
