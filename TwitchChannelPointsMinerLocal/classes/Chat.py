@@ -702,6 +702,13 @@ Inventory: {cash}$ {coins} Battle Coins
             POKEMON.delay = POKEMON_CHECK_DELAY_RELAX
             self.log_file(f"{YELLOWLOG}Pokemon spawned - processing {pokemon}")
 
+            pokedex_tier = POKEMON.pokedex.tier(pokemon)
+            if pokedex_tier != pokemon.tier:
+                msg = f"{pokemon.name} changed from tier {pokedex_tier} to tier {pokemon.tier}"
+                self.log_file(f"{YELLOWLOG}{msg}")
+                POKEMON.discord.post(DISCORD_ALERTS, msg)
+                POKEMON.pokedex.set_tier(pokemon, pokemon.tier)
+
             # sync everything
             dex = self.pokemon_api.get_pokedex()
             POKEMON.sync_pokedex(dex)
