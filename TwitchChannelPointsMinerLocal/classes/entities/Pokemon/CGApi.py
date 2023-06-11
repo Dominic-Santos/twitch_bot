@@ -5,7 +5,7 @@ from .Utils import save_to_json
 BASE_URL = "https://poketwitch.bframework.de/api/game/ext/"
 TRAINER_URL = f"{BASE_URL}trainer/"
 SHOP_URL = f"{BASE_URL}shop/"
-
+BATTLE_URL = f"https://battle.bframework.de/api/game/ext/battle/"
 
 ERROR_JWT_EXPIRE = -24
 
@@ -109,3 +109,48 @@ class API(object):
     def buy_item(self, item_name, amount):
         # returns {"cash": 123}
         return self._do_request("POST", SHOP_URL + "purchase/", payload={"item_name": item_name, "amount": amount})
+
+    # Battles
+
+    @save_to_json
+    def get_battle(self):
+        # returns {"rejoinableBattle": false}
+        return self._do_request("GET", BATTLE_URL + "check_if_rejoinable/")
+
+    @save_to_json
+    def get_teams(self):
+        return self._do_request("GET", TRAINER_URL + "pokemon-team-list/")
+
+    @save_to_json
+    def team_remove(self, pokemon_id):
+        return self._do_request("POST", TRAINER_URL + "pokemon-remove-team/", payload={"pokemon_id": pokemon_id})
+
+    @save_to_json
+    def team_add(self, pokemon_id):
+        return self._do_request("POST", TRAINER_URL + "pokemon-set-team/", payload={"pokemon_id": pokemon_id})
+
+    @save_to_json
+    def team_change(self, team_id):
+        return self._do_request("POST", TRAINER_URL + "pokemon-change-active-team/", payload={"team_id": team_id})
+
+    @save_to_json
+    def battle_create(self, mode, difficulty, team_id):
+        # returns {"battle_id": 2993670}
+        return self._do_request("POST", BATTLE_URL + "search/bot/", payload={"mode": mode, "difficulty": difficulty, "teamID": team_id})
+
+    @save_to_json
+    def battle_join(self):
+        # returns {"battle_id": 2993670, "player_id": 5983522, "unique_battle_key": "CU8L4"}
+        return self._do_request("POST", BATTLE_URL + "search/", payload={"action": "accept"})
+
+    @save_to_json
+    def battle_submit_move(self, battle_id, move_id):
+        return self._do_request("POST", BATTLE_URL + f"v2/action/?battle_id={battle_id}", payload={"action": "next_move", "move_id": str(move_id)})
+
+    @save_to_json
+    def battle_switch_pokemon(self, battle_id, pokemon_id):
+        return self._do_request("POST", BATTLE_URL + f"v2/action/?battle_id={battle_id}", payload={"action": "change_pokemon", "battle_pokemon_id": str(pokemon_id)})
+
+    @save_to_json
+    def battle_action(self, action_no, battle_id, player_id):
+        return self._do_request("GET", BATTLE_URL + f"v2/action/?action_no={action_no}&battle_id={battle_id}&player_id={player_id}&isViewer=false")

@@ -12,12 +12,7 @@ from .ChatO import ChatPresence as ChatPresenceO
 from .ChatO import ThreadChat as ThreadChatO
 from .ChatO import logger
 
-from .entities.Pokemon import PokemonComunityGame, CGApi, Pokedaily, get_sprite
-
-""" TODO
-- battle system
-
-"""
+from .entities.Pokemon import PokemonComunityGame, CGApi, Pokedaily, get_sprite, Battle, weakness_resistance
 
 formatter = logging.Formatter('%(asctime)s %(message)s', datefmt="%Y-%m-%d %H:%M:%S")
 file_handler = logging.FileHandler("logs/pokemoncg.txt", encoding='utf-8')
@@ -64,6 +59,7 @@ class ThreadController(object):
         self.pokedaily = False
         self.bag_stats = False
         self.pokedex = False
+        self.battle = False
 
     def remove_client(self, channel):
         self.clients.pop(channel, None)
@@ -171,6 +167,38 @@ def wondertrade_thread(func):
         logger.info(f"{YELLOWLOG}Thread Created Wondertrade", extra={"emoji": ":speech_balloon:"})
         THREADCONTROLLER.wondertrade = True
         create_thread(wondertrade_timer)
+
+
+def battle_thread(func):
+    def battle_timer():
+        if POKEMON.battle_timer is None:
+            remaining = 5
+        else:
+            remaining = POKEMON.check_battle_left().total_seconds()
+
+        remaining_human = seconds_readable(remaining)
+        logger.info(f"{YELLOWLOG}Waiting for {remaining_human}", extra={"emoji": ":speech_balloon:"})
+
+        sleep(max(remaining, 1))
+        try:
+            func()
+        except KeyboardInterrupt:
+            return
+        except Exception as ex:
+            str_ex = str(ex)
+            logger.info(f"{REDLOG}Battle func failed - {str_ex}", extra={"emoji": ":speech_balloon:"})
+            POKEMON.battle_timer = None
+            print(traceback.format_exc())
+
+            if len(POKEMON.channel_list) == 0:
+                THREADCONTROLLER.battle = False
+
+        create_thread(battle_timer)
+
+    if THREADCONTROLLER.battle is False:
+        logger.info(f"{YELLOWLOG}Thread Created Battle", extra={"emoji": ":speech_balloon:"})
+        THREADCONTROLLER.battle = True
+        create_thread(battle_timer)
 
 
 def pokedaily_thread(func):
@@ -304,6 +332,157 @@ class ClientIRCPokemon(ClientIRCBase):
                 bag_stats_thread(self.stats_computer)
             if THREADCONTROLLER.pokedex is False:
                 pokedex_thread(self.fill_pokedex)
+            if THREADCONTROLLER.battle is False and POKEMON.auto_battle:
+                battle_thread(self.auto_battle)
+
+    def find_best_move(self, attacker, attacker_moves, defender):
+        best_move = list(attacker_moves.keys())[0]
+        best_damage = 0
+
+        for move_id in attacker_moves:
+            move = attacker_moves[move_id]
+            if move["pp"] <= 0:
+                continue
+
+            move_type = move["type"].title()
+
+            effective = weakness_resistance(move_type, defender.types)
+            if move_type in attacker.types:
+                # STAB
+                effective = effective * 1.5
+
+            if effective > best_damage:
+                best_damage = effective
+                best_move = move_id
+
+        return best_damage, best_move
+
+    def do_battle(self):
+        battle_data = self.pokemon_api.battle_join()
+        battle = Battle()
+        battle.set_battle(battle_data["battle_id"], battle_data["player_id"], battle_data["unique_battle_key"])
+        while battle.state != "end":
+            if battle.state == "move":
+                # submit a move or switch
+                """
+                    Strategy:
+                        - if i have a super effective move, use it
+                        - elif enemy has a super effective move
+                            - if have another pokemon that is not weak to all enemy moves
+                                - switch
+                        - else use best move
+                """
+
+                pokemon = battle.team["pokemon"][str(battle.team["current_pokemon"])]
+                pokemon_stats = self.get_pokemon_stats(pokemon["pokedex_id"], cached=True)
+                enemy = battle.enemy_team["pokemon"][str(battle.enemy_team["current_pokemon"])]
+                enemy_stats = self.get_pokemon_stats(enemy["pokedex_id"], cached=True)
+
+                best_damage, best_move = self.find_best_move(pokemon_stats, pokemon["moves"], enemy_stats)
+
+                if best_damage >= 2:
+                    # super effective or better
+                    self.pokemon_api.battle_submit_move(battle.battle_id, best_move)
+                    battle.state = "continue"
+                    continue
+
+                best_enemy_damage, best_enemy_move = self.find_best_move(enemy_stats, enemy["moves"], pokemon_stats)
+
+                if best_enemy_damage >= 2:
+                    # enemy has super effective or better see if can safely switch
+                    best_wall_id = ""
+                    best_wall = 99
+                    for other_pokemon_id in battle.team["pokemon"]:
+                        if other_pokemon_id == str(battle.team["current_pokemon"]):
+                            continue
+
+                        other_pokemon = battle.team["pokemon"][other_pokemon_id]
+
+                        if other_pokemon["hp"] <= 0:
+                            continue
+
+                        other_pokemon_stats = self.get_pokemon_stats(other_pokemon["pokedex_id"], cached=True)
+                        best_switch_damage, best_switch_move = self.find_best_move(enemy_stats, enemy["moves"], other_pokemon_stats)
+
+                        if best_switch_damage < best_wall:
+                            best_wall = best_switch_damage
+                            best_wall_id = other_pokemon_id
+
+                    if best_wall < 2:
+                        # have a pokemon that should be good to switch in
+                        self.pokemon_api.battle_switch_pokemon(battle.battle_id, best_wall_id)
+                        battle.state = "continue"
+                        continue
+
+                # pokemon seem evenly matched, just use a move
+                self.pokemon_api.battle_submit_move(battle.battle_id, best_move)
+
+            elif battle.state == "switch":
+                # pick a pokemon to switch to
+                enemy = battle.enemy_team["pokemon"][str(battle.enemy_team["current_pokemon"])]
+                enemy_stats = self.get_pokemon_stats(enemy["pokedex_id"], cached=True)
+
+                best_wall_id = ""
+                best_wall = 99
+                for other_pokemon_id in battle.team["pokemon"]:
+                    if other_pokemon_id == str(battle.team["current_pokemon"]):
+                        continue
+
+                    other_pokemon = battle.team["pokemon"][other_pokemon_id]
+
+                    if other_pokemon["hp"] <= 0:
+                        continue
+
+                    other_pokemon_stats = self.get_pokemon_stats(other_pokemon["pokedex_id"], cached=True)
+                    best_switch_damage, best_switch_move = self.find_best_move(enemy_stats, enemy["moves"], other_pokemon_stats)
+
+                    if best_switch_damage < best_wall:
+                        best_wall = best_switch_damage
+                        best_wall_id = other_pokemon_id
+
+                self.pokemon_api.battle_switch_pokemon(battle.battle_id, best_wall_id)
+
+            resp = self.pokemon_api.battle_action(battle.action, battle.battle_id, battle.player_id)
+            battle.run_action(resp)
+
+        if battle.result:
+            self.log(f"{GREENLOG}Won the battle! rewards: {battle.rewards}")
+        else:
+            self.log(f"{REDLOG}Lost the battle! rewards: {battle.rewards}")
+
+    def auto_battle(self):
+
+        data = self.pokemon_api.get_battle()
+
+        if data["rejoinableBattle"]:
+            self.do_battle()
+            return
+
+        team_data = self.pokemon_api.get_teams()
+
+        if POKEMON.battle_timer is None:
+
+            if team_data["stadium"]["error"] == "":
+                POKEMON.battle_timer = datetime.utcnow() - timedelta(minutes=20)
+            else:
+                time_array = team_data["stadium"]["error"].split("(")[1].split(" ")
+                if len(time_array) == 5:
+                    mins = 14 - int(time_array[0])
+                    secs = 60 - int(time_array[3])
+                elif "minutes" in time_array:
+                    mins = 15 - int(time_array[0])
+                    secs = 0
+                else:
+                    mins = 14
+                    secs = 60 - int(time_array[0])
+
+                POKEMON.battle_timer = datetime.utcnow() - timedelta(minutes=mins, seconds=secs)
+
+        if POKEMON.check_battle():
+            team_id = team_data["teamNumber"]
+            data = self.pokemon_api.battle_create("stadium", "easy", team_id)
+            POKEMON.battle_timer = datetime.utcnow()
+            self.do_battle()
 
     def fill_pokedex(self):
         dex = self.pokemon_api.get_pokedex()

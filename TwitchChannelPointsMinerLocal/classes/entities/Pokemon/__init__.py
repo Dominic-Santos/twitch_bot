@@ -10,3 +10,4 @@ from .Computer import Computer
 from .Pokedaily import parse_message
 from .Loyalty import Loyalty
 from .Utils import *
+from .Battle import *
