@@ -76,7 +76,7 @@ class Missions(object):
                 mission_title = mission["name"].lower().replace("[flash]", " ").replace("[event]", " ").replace("é", "e").replace("wonder trade", "wondertrade").strip()
                 mission_title = "".join([c for c in mission_title if c.isalnum() or c == " "]).strip()
                 mission_title = " ".join([w for w in mission_title.split(" ") if w != ""])
-                print(mission_title)
+
                 if mission_title.startswith("wondertrade"):
                     if mission_title == "wondertrade":
                         # just wondertrade anything does not require a mission
