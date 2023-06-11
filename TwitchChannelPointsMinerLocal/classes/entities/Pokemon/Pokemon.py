@@ -25,5 +25,14 @@ class Pokemon(object):
 
     def __str__(self):
         alt_name = "" if self.is_alternate is False else f" ({self.pokemon_id} - {self.alt_name})"
-        spawn_human = str(self.spawn).split(".")[0]
-        return f"{spawn_human} {self.name}{alt_name}, {self.bst}BST, {self.weight}KG, tier {self.tier}, types {self.types}"
+        return f"{self.name}{alt_name}, {self.bst}BST, {self.weight}KG, tier {self.tier}, types {self.types}"
+
+    def parse(self, data):
+        self.name = data["name"]
+        self.bst = sum(data["base_stats"][k] for k in data["base_stats"])
+        self.tier = data["tier"]
+        self.types = [data["type1"].title()]
+        if data["type2"] != "none":
+            self.types.append(data["type2"].title())
+        self.weight = data["weight"]
+        self.pokemon_id = data["pokedex_id"]

@@ -41,7 +41,7 @@ def get_pokemon_sprite(sprite_name, shiny=False):
     res = requests.get(url)
     content = res.content
 
-    shiny_prefix = "/shiny" if shiny else ""
+    shiny_prefix = "shiny/" if shiny else ""
     file_path = f"sprites/pokemon/{shiny_prefix}{sprite_name}.gif"
 
     with open(file_path, "wb") as o:

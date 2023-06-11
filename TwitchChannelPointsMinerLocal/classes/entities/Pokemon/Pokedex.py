@@ -1,9 +1,8 @@
 import json
 
 from .Pokemon import Pokemon
-from .Utils import save_to_file
 
-TIERS_FILE = "pokemon_tiers.json"
+POKEDEX_FILE = "pokemon_pokedex.json"
 
 STARTER_POKEMON = ["Bulbasaur", "Ivysaur", "Venusaur", "Charmander", "Charmeleon", "Charizard", "Squirtle", "Wartortle", "Blastoise", "Chikorita", "Bayleef", "Meganium", "Cyndaquil", "Quilava", "Typhlosion", "Totodile", "Croconaw", "Feraligatr", "Treecko", "Grovyle", "Sceptile", "Torchic", "Combusken", "Blaziken", "Mudkip", "Marshtomp", "Swampert", "Turtwig", "Grotle", "Torterra", "Chimchar", "Monferno", "Infernape", "Piplup", "Prinplup", "Empoleon", "Snivy", "Servine", "Serperior", "Tepig", "Pignite", "Emboar", "Oshawott", "Dewott", "Samurott", "Chespin", "Quilladin", "Chesnaught", "Fennekin", "Braixen", "Delphox", "Froakie", "Frogadier", "Greninja", "Rowlet", "Dartrix", "Decidueye", "Litten", "Torracat", "Incineroar", "Popplio", "Brionne", "Primarina", "Grookey", "Thwackey", "Rillaboom", "Scorbunny", "Raboot", "Cinderace", "Sobble", "Drizzile", "Inteleon"]
 LEGENDARY_POKEMON = ["Articuno", "Zapdos", "Moltres", "Mewtwo", "Mew", "Raikou", "Entei", "Suicune", "Lugia", "Ho-Oh", "Celebi", "Regirock", "Regice", "Registeel", "Latias", "Latios", "Kyogre", "Groudon", "Rayquaza", "Jirachi", "Deoxys", "Uxie", "Mesprit", "Azelf", "Dialga", "Palkia", "Heatran", "Regigigas", "Giratina", "Cresselia", "Phione", "Manaphy", "Darkrai", "Shaymin", "Arceus", "Victini", "Cobalion", "Terrakion", "Virizion", "Tornadus", "Thundurus", "Reshiram", "Zekrom", "Landorus", "Kyurem", "Keldeo", "Meloetta", "Genesect", "Xerneas", "Yveltal", "Zygarde", "Diancie", "Hoopa", "Volcanion", "Type: Null", "Silvally", "Tapu Koko", "Tapu Lele", "Tapu Bulu", "Tapu Fini", "Cosmog", "Cosmoem", "Solgaleo", "Lunala", "Nihilego", "Buzzwole", "Pheromosa", "Xurkitree", "Celesteela", "Kartana", "Guzzlord", "Necrozma", "Magearna", "Marshadow", "Poipole", "Naganadel", "Stakataka", "Blacephalon", "Zeraora", "Meltan", "Melmetal", "Zacian", "Zamazenta", "Eternatus", "Kubfu", "Urshifu", "Zarude", "Regieleki", "Regidrago", "Glastrier", "Spectrier", "Calyrex", "Wyrdeer", "Kleavor", "Ursaluna", "Basculegion", "Sneasler", "Overqwil"]
@@ -21,19 +20,21 @@ REGION_PREFIX = {
 class Pokedex(object):
     def __init__(self):
         self.pokemon = {}
+        self.pokemon_stats = {}
         self._total = 898
-        self.load_tiers()
+        self.load_pokedex()
 
-    def load_tiers(self):
+    def load_pokedex(self):
         try:
-            with open(TIERS_FILE, "r", encoding="utf-8") as f:
-                self.tiers = json.load(f)
-        except:
-            self.tiers = {}
-        print(self.tiers)
+            with open(POKEDEX_FILE, "r", encoding="utf-8") as f:
+                self.pokemon_stats = json.load(f)
+        except Exception as e:
+            print(e)
+            self.pokemon_stats = {}
 
-    def save_tiers(self):
-        save_to_file(TIERS_FILE, self.tiers)
+    def save_pokedex(self):
+        with open(POKEDEX_FILE, "w", encoding="utf-8") as f:
+            f.write(json.dumps(self.pokemon_stats, indent=4))
 
     def set(self, dex):
         for pokemon in dex["dex"]:
@@ -46,7 +47,7 @@ class Pokedex(object):
         poke_name = self._get_pokemon_name(pokemon)
         for t in self.tiers:
             if poke_name in self.tiers[t]:
-                self.tiers.remove(poke_name)
+                self.tiers[t].remove(poke_name)
 
         self.tiers[tier].append(poke_name)
         self.save_tiers()
@@ -59,24 +60,21 @@ class Pokedex(object):
 
     def _clean_pokedex_name(self, pokemon):
         new_name = pokemon.replace("’", "").replace("'", "")
-        if self._check_valid(new_name):
-            return new_name
 
         if "Null" in new_name:
             return "Silvally"
 
+        if new_name.startswith("Aegislash"):
+            return "Aegislash"
+
         if new_name.startswith("Nidoran"):
             new_name = "Nidoran-{sex}".format(sex="male" if "♂" in new_name else "female")
-            if self._check_valid(new_name):
-                return new_name
+            return new_name
 
-        for split_char in ["(", "-"]:
-            while split_char in new_name:
-                new_name = "-".join(new_name.split(split_char)[0:-1]).strip()
-                if self._check_valid(new_name):
-                    return new_name
+        for split_char in ["("]:
+            new_name = new_name.split(split_char)[0].strip()
 
-        return None
+        return new_name
 
     def _get_pokemon_name(self, pokemon):
         if isinstance(pokemon, Pokemon):
@@ -130,15 +128,14 @@ class Pokedex(object):
             poke_name = poke_name.replace(f"{prefix} ", "").strip()
         return poke_name
 
-    def tier(self, pokemon):
-        poke_name = self._get_pokemon_name(pokemon)
-        if poke_name is None:
+    def stats(self, pokemon_id):
+        if pokemon_id not in self.pokemon_stats:
             return None
 
-        for k in self.tiers.keys():
-            if poke_name in self.tiers[k]:
-                return k
-        return None
+        poke = Pokemon()
+        poke.parse(self.pokemon_stats[pokemon_id])
+
+        return poke
 
     @property
     def total(self):

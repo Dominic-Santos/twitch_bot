@@ -6,7 +6,6 @@ from .Discord import Discord
 from .Missions import Missions
 from .Inventory import Inventory
 from .Pokedex import Pokedex
-from .Pokeping import Pokeping
 from .Computer import Computer
 from .Loyalty import Loyalty
 
@@ -51,15 +50,11 @@ class PokemonComunityGame(Loyalty):
         self.inventory = Inventory()
         self.pokedex = Pokedex()
         self.missions = Missions()
-        self.pokeping = Pokeping()
         self.computer = Computer()
-
-        self.pokeping.set_discord(self.discord)
 
         self.load_settings()
 
         self.discord.connect()
-        self.pokeping.get_roles()
         self.inventory.use_special_balls = self.settings["use_special_balls"]
 
     def reset_timer(self):
@@ -105,12 +100,6 @@ class PokemonComunityGame(Loyalty):
 
     def set_delay(self, delay):
         self.delay = delay
-
-    def get_last_spawned(self):
-        pokemon = self.pokeping.get_pokemon()
-        # dont need this for now because getting from pokeping
-        # pokemon.is_fish = self.pokedex.fish(pokemon)
-        return pokemon
 
     def need_pokemon(self, pokemon):
         reasons = []
@@ -162,7 +151,7 @@ class PokemonComunityGame(Loyalty):
             # Catch anything if money above X, X <= 0 is ignored
             channel = self.get_channel()
             if channel is not None:
-                if self.loyalty_data[channel]["featured"] >= self.settings["spend_money_level"]:
+                if channel not in self.loyalty_data or self.loyalty_data[channel]["featured"] >= self.settings["spend_money_level"]:
                     reasons.append("spend_money")
 
         strategy = "worst"

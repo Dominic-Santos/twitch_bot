@@ -5,18 +5,18 @@ import random
 import logging
 from threading import Thread
 import traceback
+import requests
 
 from .ChatO import ClientIRC as ClientIRCO
 from .ChatO import ChatPresence as ChatPresenceO
 from .ChatO import ThreadChat as ThreadChatO
 from .ChatO import logger
 
-from .entities.Pokemon import PokemonComunityGame, CGApi, Pokedaily, Pokemon, get_sprite
+from .entities.Pokemon import PokemonComunityGame, CGApi, Pokedaily, get_sprite
 
 """ TODO
-- add call to timer to get pokemon id more confidently
-    this will allow to move from depending on pokeping for IDs
 - battle system
+
 """
 
 formatter = logging.Formatter('%(asctime)s %(message)s', datefmt="%Y-%m-%d %H:%M:%S")
@@ -58,11 +58,28 @@ FISH_EVENT = True
 class ThreadController(object):
     def __init__(self):
         self.client_channel = None
-        self.client = None
+        self.clients = {}
         self.wondertrade = False
         self.pokecatch = False
         self.pokedaily = False
         self.bag_stats = False
+        self.pokedex = False
+
+    def remove_client(self, channel):
+        self.clients.pop(channel, None)
+        if self.client_channel == channel:
+            self.client_channel = None
+
+    def chose_client(self):
+        client_keys = list(self.clients.keys())
+        if len(client_keys) > 0:
+            self.client_channel = client_keys[0]
+
+    def get_client(self):
+        if self.client_channel is None:
+            self.chose_client()
+
+        return self.client_channel, self.clients.get(self.client_channel, None)
 
 
 THREADCONTROLLER = ThreadController()
@@ -92,14 +109,18 @@ def timer_thread(func):
         sleep(POKEMON.delay)
 
         try:
-            if THREADCONTROLLER.client is not None:
-                func(THREADCONTROLLER.client)
+            client_channel, client = THREADCONTROLLER.get_client()
+            if client is not None:
+                func(client)
+
+            data = requests.get("https://poketwitch.bframework.de/info/events/last_spawn/").json()
+            POKEMON.delay = data["next_spawn"] + 2
         except KeyboardInterrupt:
             return
         except Exception as ex:
             str_ex = str(ex)
             logger.info(f"{REDLOG}Timer func failed - {str_ex}", extra={"emoji": ":speech_balloon:"})
-            THREADCONTROLLER.client = None
+            THREADCONTROLLER.remove_client(client_channel)
             POKEMON.delay = 5
             print(traceback.format_exc())
 
@@ -110,7 +131,10 @@ def timer_thread(func):
             create_thread(pokemon_timer)
 
     if THREADCONTROLLER.pokecatch is False:
+        logger.info(f"{YELLOWLOG}Thread Created Spawn Timer", extra={"emoji": ":speech_balloon:"})
         THREADCONTROLLER.pokecatch = True
+        data = requests.get("https://poketwitch.bframework.de/info/events/last_spawn/").json()
+        POKEMON.delay = data["next_spawn"] + 2
         create_thread(pokemon_timer)
 
 
@@ -144,6 +168,7 @@ def wondertrade_thread(func):
         create_thread(wondertrade_timer)
 
     if THREADCONTROLLER.wondertrade is False:
+        logger.info(f"{YELLOWLOG}Thread Created Wondertrade", extra={"emoji": ":speech_balloon:"})
         THREADCONTROLLER.wondertrade = True
         create_thread(wondertrade_timer)
 
@@ -167,6 +192,7 @@ def pokedaily_thread(func):
         create_thread(pokedaily_timer)
 
     if THREADCONTROLLER.pokedaily is False:
+        logger.info(f"{YELLOWLOG}Thread Created Pokedaily", extra={"emoji": ":speech_balloon:"})
         THREADCONTROLLER.pokedaily = True
         create_thread(pokedaily_timer)
 
@@ -177,13 +203,25 @@ def bag_stats_thread(func):
         while True:
             cur_date = datetime.now().date()
             if cur_date != previous:
+                logger.info(f"{YELLOWLOG}Running Bag Stats", extra={"emoji": ":speech_balloon:"})
                 func()
                 previous = cur_date
             sleep(60 * 15)  # 15 mins
 
     if THREADCONTROLLER.bag_stats is False:
+        logger.info(f"{YELLOWLOG}Thread Created Bag Stats", extra={"emoji": ":speech_balloon:"})
         THREADCONTROLLER.bag_stats = True
         create_thread(bag_stats_timer)
+
+
+def pokedex_thread(func):
+    def pokedex_timer():
+        func()
+
+    if THREADCONTROLLER.pokedex is False:
+        logger.info(f"{YELLOWLOG}Thread Created Pokedex", extra={"emoji": ":speech_balloon:"})
+        THREADCONTROLLER.pokedex = True
+        create_thread(pokedex_timer)
 
 
 class ClientIRCBase(ClientIRCO):
@@ -252,10 +290,7 @@ class ClientIRCPokemon(ClientIRCBase):
             self.check_pokemon_active(client, message, argstring)
             self.check_loyalty_info(client, message, argstring)
 
-        if THREADCONTROLLER.client is None:
-            THREADCONTROLLER.client = client
-            THREADCONTROLLER.client_channel = self.channel[1:]
-            self.log(f"{YELLOWLOG}{self.channel[1:]} is primary client")
+        THREADCONTROLLER.clients[self.channel[1:]] = client
 
         if len(POKEMON.channel_list) > 0:
             if THREADCONTROLLER.pokecatch is False:
@@ -267,6 +302,32 @@ class ClientIRCPokemon(ClientIRCBase):
                 pokedaily_thread(self.pokedaily_main)
             if THREADCONTROLLER.bag_stats is False:
                 bag_stats_thread(self.stats_computer)
+            if THREADCONTROLLER.pokedex is False:
+                pokedex_thread(self.fill_pokedex)
+
+    def fill_pokedex(self):
+        dex = self.pokemon_api.get_pokedex()
+        POKEMON.sync_pokedex(dex)
+
+        all_pokemon = self.pokemon_api.get_all_pokemon()
+        POKEMON.sync_computer(all_pokemon)
+        allpokemon = POKEMON.computer.pokemon
+
+        for n in range(1, POKEMON.pokedex.total + 1):
+            i = str(n)
+            if POKEMON.pokedex.stats(i) is None:
+                POKEMON.pokedex.pokemon_stats[i] = self.pokemon_api.get_pokedex_info(i)["content"]
+
+            if n % 10 == 0:
+                POKEMON.pokedex.save_pokedex()
+
+        for pokemon in allpokemon:
+            i = str(pokemon["pokedexId"])
+
+            if POKEMON.pokedex.stats(i) is None:
+                POKEMON.pokedex.pokemon_stats[i] = self.pokemon_api.get_pokedex_info(i)["content"]
+
+        POKEMON.pokedex.save_pokedex()
 
     def check_loyalty_info(self, client, message, argstring):
         if self.username in argstring and "Your loyalty level" in argstring:
@@ -400,21 +461,13 @@ class ClientIRCPokemon(ClientIRCBase):
                         for pokemon in tradable:
                             if looking_for in pokemon["nickname"]:
                                 if missions_active:
-                                    pokedex_entry = self.pokemon_api.get_pokedex_info(pokemon["pokedexId"])["content"]
-                                    sleep(0.5)
-
-                                    pokemon_object = Pokemon()
-                                    pokemon_object.types = [pokedex_entry["type1"].title(), pokedex_entry["type2"].title()]
-                                    pokemon_object.bst = sum([pokedex_entry["base_stats"][k] for k in pokedex_entry["base_stats"]])
+                                    pokemon_object = self.get_pokemon_stats(pokemon["pokedexId"], cached=True)
                                     pokemon_object.is_fish = POKEMON.pokedex.fish(pokemon["name"])
 
                                     reasons = POKEMON.missions.check_all_wondertrade_missions(pokemon_object)
                                     if len(reasons) == 0:
                                         continue
                                 pokemon_to_trade.append(pokemon)
-                                if missions_active:
-                                    # if missions are active and find pokemon just take it to not spam api
-                                    break
 
                 if len(pokemon_to_trade) == 0:
                     self.log(f"{REDLOG}Could not find a pokemon to wondertrade")
@@ -427,8 +480,8 @@ class ClientIRCPokemon(ClientIRCBase):
 
                     if "pokemon" in pokemon_received:
                         pokemon_received = pokemon_received["pokemon"]
-                        pokemon_traded_tier = POKEMON.pokedex.tier(pokemon_traded["name"])
-                        pokemon_received_tier = POKEMON.pokedex.tier(pokemon_received["name"])
+                        pokemon_traded_tier = self.get_pokemon_stats(pokemon_traded["pokedexId"], cached=True).tier
+                        pokemon_received_tier = self.get_pokemon_stats(pokemon_received["pokedexId"], cached=True).tier
 
                         if POKEMON.pokedex.have(pokemon_received["name"]):
                             pokemon_received_need = ""
@@ -467,24 +520,28 @@ class ClientIRCPokemon(ClientIRCBase):
 
         allpokemon = POKEMON.computer.pokemon
 
-        spawnables = [pokemon for pokemon in POKEMON.pokedex.pokemon if (POKEMON.pokedex.starter(pokemon) or POKEMON.pokedex.legendary(pokemon)) is False]
         spawnables_a = []
         spawnables_b = []
         spawnables_c = []
 
-        for pokemon in spawnables:
-            t = POKEMON.pokedex.tier(pokemon)
-            if t == "A":
-                spawnables_a.append(pokemon)
-            elif t == "B":
-                spawnables_b.append(pokemon)
-            elif t == "C":
-                spawnables_c.append(pokemon)
+        for i in range(1, POKEMON.pokedex.total + 1):
+            pokemon = self.get_pokemon_stats(i, cached=True)
 
-        spawnables_total = len(spawnables)
+            if POKEMON.pokedex.starter(pokemon.name) or POKEMON.pokedex.legendary(pokemon.name):
+                continue
+
+            if pokemon.tier == "A":
+                spawnables_a.append(pokemon.name)
+            elif pokemon.tier == "B":
+                spawnables_b.append(pokemon.name)
+            elif pokemon.tier == "C":
+                spawnables_c.append(pokemon.name)
+
         spawnables_a_total = len(spawnables_a)
         spawnables_b_total = len(spawnables_b)
         spawnables_c_total = len(spawnables_c)
+
+        spawnables_total = spawnables_a_total + spawnables_b_total + spawnables_c_total
 
         spawnables_a_have = len([pokemon for pokemon in spawnables_a if POKEMON.pokedex.have(pokemon)])
         spawnables_b_have = len([pokemon for pokemon in spawnables_b if POKEMON.pokedex.have(pokemon)])
@@ -618,11 +675,10 @@ Inventory: {cash}$ {coins} Battle Coins
                     else:
                         nick = ""
                 else:
-                    tier = POKEMON.pokedex.tier(pokemon["name"])
-                    if tier is None:
-                        nick = "trade?"
-                    else:
-                        nick = "trade" + tier
+
+                    tier = self.get_pokemon_stats(pokemon["pokedexId"], cached=True).tier
+                    nick = "trade" + tier
+
                     if POKEMON.pokedex.starter(pokemon["name"]):
                         nick = CHARACTERS["starter"] + nick
                     elif POKEMON.pokedex.legendary(pokemon["name"]):
@@ -690,131 +746,128 @@ Inventory: {cash}$ {coins} Battle Coins
             if reward_sprite is not None:
                 reward_sprite.close()
 
+    def get_pokemon_stats(self, pokedex_id, cached=False):
+
+        pokemon = POKEMON.pokedex.stats(str(pokedex_id))
+
+        if cached is False or pokemon is None:
+            pokemon_data = self.pokemon_api.get_pokedex_info(pokedex_id)["content"]
+
+            if pokemon.tier != pokemon_data["tier"]:
+                self.log(f"{YELLOWLOG}{pokemon} changed to {pokemon_data['tier']} tier")
+            POKEMON.pokedex.pokemon_stats[str(pokedex_id)] = pokemon_data
+            POKEMON.pokedex.save_pokedex()
+
+            pokemon = POKEMON.pokedex.stats(str(pokedex_id))
+
+        return pokemon
+
     def check_main(self, client):
-        POKEMON.reset_timer()
-        self.log_file(f"{YELLOWLOG}Checking pokemon spawn in pokeping")
-        pokemon = POKEMON.get_last_spawned()
+        data = requests.get("https://poketwitch.bframework.de/info/events/last_spawn/").json()
+        pokemon_id = data["pokedex_id"]
 
-        spawned_seconds = (datetime.utcnow() - pokemon.spawn).total_seconds()
+        pokemon = self.get_pokemon_stats(pokemon_id)
 
-        if spawned_seconds <= POKEMON_CHECK_LIMIT_MAX and spawned_seconds >= POKEMON_CHECK_LIMIT_MIN:
-            # pokemon spawned recently relax and process it
-            POKEMON.delay = POKEMON_CHECK_DELAY_RELAX
-            self.log_file(f"{YELLOWLOG}Pokemon spawned - processing {pokemon}")
+        self.log_file(f"{YELLOWLOG}Pokemon spawned - processing {pokemon}")
 
-            pokedex_tier = POKEMON.pokedex.tier(pokemon)
-            if pokedex_tier != pokemon.tier:
-                msg = f"{pokemon.name} changed from tier {pokedex_tier} to tier {pokemon.tier}"
-                self.log_file(f"{YELLOWLOG}{msg}")
-                POKEMON.discord.post(DISCORD_ALERTS, msg)
-                POKEMON.pokedex.set_tier(pokemon, pokemon.tier)
+        # sync everything
+        dex = self.pokemon_api.get_pokedex()
+        POKEMON.sync_pokedex(dex)
 
-            # sync everything
-            dex = self.pokemon_api.get_pokedex()
-            POKEMON.sync_pokedex(dex)
+        all_pokemon = self.pokemon_api.get_all_pokemon()
+        POKEMON.sync_computer(all_pokemon)
 
-            all_pokemon = self.pokemon_api.get_all_pokemon()
-            POKEMON.sync_computer(all_pokemon)
+        self.check_inventory()
 
-            self.check_inventory()
+        self.get_missions()
 
-            self.get_missions()
+        # find reasons to catch the pokemon
+        catch_reasons, strategy = POKEMON.need_pokemon(pokemon)
+        repeat = True
 
-            # find reasons to catch the pokemon
-            catch_reasons, strategy = POKEMON.need_pokemon(pokemon)
-            repeat = True
+        for reason in ["pokedex", "bag", "alt"]:
+            if reason in catch_reasons:
+                repeat = False
+                break
 
-            for reason in ["pokedex", "bag", "alt"]:
-                if reason in catch_reasons:
-                    repeat = False
-                    break
+        if "ball" in catch_reasons:
+            if strategy == "worst":
+                for catch_ball in POKEMON.missions.data["ball"]:
+                    if POKEMON.inventory.have_ball(catch_ball + "ball"):
+                        ball = catch_ball + "ball"
+                        strategy = "force"
+                        break
 
-            if "ball" in catch_reasons:
-                if strategy == "worst":
-                    for catch_ball in POKEMON.missions.data["ball"]:
-                        if POKEMON.inventory.have_ball(catch_ball + "ball"):
-                            ball = catch_ball + "ball"
-                            strategy = "force"
-                            break
+        if len(catch_reasons) > 0:
+            if strategy != "force":
+                ball = POKEMON.inventory.get_catch_ball(pokemon, repeat=repeat, strategy=strategy)
 
-            if len(catch_reasons) > 0:
-                if strategy != "force":
-                    ball = POKEMON.inventory.get_catch_ball(pokemon, repeat=repeat, strategy=strategy)
-
-                if ball is None:
-                    self.log_file(f"{REDLOG}Won't catch {pokemon.name} ran out of balls (strategy: {strategy})")
-                else:
-                    twitch_channel = POKEMON.get_channel()
-                    message = f"!pokecatch {ball}"
-                    client.privmsg("#" + twitch_channel, message)
-
-                    reasons_string = ", ".join(catch_reasons)
-                    self.log_file(f"{GREENLOG}Trying to catch {pokemon.name} with {ball} because {reasons_string}")
-
-                    sleep(5)
-
-                    all_pokemon = self.pokemon_api.get_all_pokemon()
-                    POKEMON.sync_computer(all_pokemon)
-
-                    # find all the pokemon that are the current one that spawned
-                    filtered = POKEMON.computer.get_pokemon(pokemon)
-                    caught = None
-                    for poke in filtered:
-                        if (datetime.utcnow() - parse(poke["caughtAt"][:-1])).total_seconds() < 60 * 5:
-                            caught = poke
-                            break
-
-                    discord_pokemon_name = pokemon.name if pokemon.is_alternate is False else pokemon.alt_name
-                    rewards = None
-                    self.log(f"{GREENLOG}Trying to catch in {twitch_channel}")
-                    if caught is not None:
-                        ivs = int(poke["avgIV"])
-                        lvl = poke['lvl']
-                        shiny = " Shiny" if poke["isShiny"] else ""
-                        self.log_file(f"{GREENLOG}Caught{shiny} {pokemon.name} ({pokemon.tier}) Lvl.{lvl} {ivs}IV")
-                        msg = f"I caught a{shiny} {discord_pokemon_name} ({pokemon.tier}) Lvl.{lvl} {ivs}IV!"
-                        if pokemon.is_fish and FISH_EVENT:
-                            caught_pokemon = self.pokemon_api.get_pokemon(poke["id"])
-                            if "🐟" in caught_pokemon["description"]:
-                                msg += "\n" + caught_pokemon["description"].split("Your fish is ")[-1].split("Your fish has ")[-1]
-
-                        sprite = str(poke["pokedexId"])
-                        pokemon_sprite = get_sprite("pokemon", sprite, shiny=poke["isShiny"])
-                        rewards = POKEMON.increment_loyalty(twitch_channel)
-                    else:
-                        self.log_file(f"{REDLOG}Failed to catch {pokemon.name}")
-                        msg = f"I missed {discord_pokemon_name}!"
-                        pokemon_sprite = None
-
-                    msg = msg + f" {ball}, because {reasons_string}"
-
-                    POKEMON.discord.post(DISCORD_ALERTS, msg, file=pokemon_sprite)
-
-                    if rewards is not None:
-                        reward, next_reward = rewards
-                        rewards_msg = f"Loyalty tier completed in {twitch_channel}, new reward: {reward}"
-                        self.log(f"{GREENLOG}{rewards_msg}")
-                        if next_reward is not None:
-                            rewards_msg = rewards_msg + f"\nNext reward: {next_reward}"
-                            self.log(f"{GREENLOG}next reward: {next_reward}")
-                        sprite = get_sprite("streamer", twitch_channel)
-                        POKEMON.discord.post(DISCORD_ALERTS, rewards_msg, file=sprite)
+            if ball is None:
+                self.log_file(f"{REDLOG}Won't catch {pokemon.name} ran out of balls (strategy: {strategy})")
             else:
-                self.log_file(f"{REDLOG}Don't need pokemon, skipping")
+                twitch_channel = POKEMON.get_channel()
+                message = f"!pokecatch {ball}"
+                client.privmsg("#" + twitch_channel, message)
 
-                twitch_channel = POKEMON.get_channel(ignore_priority=False)
-                client.privmsg("#" + twitch_channel, "!pokecheck")
-                self.log(f"{GREENLOG}Pokecheck in {twitch_channel}")
+                reasons_string = ", ".join(catch_reasons)
+                self.log_file(f"{GREENLOG}Trying to catch {pokemon.name} with {ball} because {reasons_string}")
 
-            self.get_missions()
-        elif spawned_seconds <= POKEMON_CHECK_LIMIT_MAX:
-            # pokemon spawned but its too new, make sure pokeping sends all messages
-            POKEMON.delay = POKEMON_CHECK_LIMIT_MIN
-            self.log_file(f"{YELLOWLOG}Pokemon spawed, waiting to see if is alt")
+                sleep(5)
+
+                all_pokemon = self.pokemon_api.get_all_pokemon()
+                POKEMON.sync_computer(all_pokemon)
+
+                # find all the pokemon that are the current one that spawned
+                filtered = POKEMON.computer.get_pokemon(pokemon)
+                caught = None
+                for poke in filtered:
+                    if (datetime.utcnow() - parse(poke["caughtAt"][:-1])).total_seconds() < 60 * 5:
+                        caught = poke
+                        break
+
+                discord_pokemon_name = pokemon.name if pokemon.is_alternate is False else pokemon.alt_name
+                rewards = None
+                self.log(f"{GREENLOG}Trying to catch in {twitch_channel}")
+                if caught is not None:
+                    ivs = int(poke["avgIV"])
+                    lvl = poke['lvl']
+                    shiny = " Shiny" if poke["isShiny"] else ""
+                    self.log_file(f"{GREENLOG}Caught{shiny} {pokemon.name} ({pokemon.tier}) Lvl.{lvl} {ivs}IV")
+                    msg = f"I caught a{shiny} {discord_pokemon_name} ({pokemon.tier}) Lvl.{lvl} {ivs}IV!"
+                    if pokemon.is_fish and FISH_EVENT:
+                        caught_pokemon = self.pokemon_api.get_pokemon(poke["id"])
+                        if "🐟" in caught_pokemon["description"]:
+                            msg += "\n" + caught_pokemon["description"].split("Your fish is ")[-1].split("Your fish has ")[-1]
+
+                    sprite = str(poke["pokedexId"])
+                    pokemon_sprite = get_sprite("pokemon", sprite, shiny=poke["isShiny"])
+                    rewards = POKEMON.increment_loyalty(twitch_channel)
+                else:
+                    self.log_file(f"{REDLOG}Failed to catch {pokemon.name}")
+                    msg = f"I missed {discord_pokemon_name}!"
+                    pokemon_sprite = None
+
+                msg = msg + f" {ball}, because {reasons_string}"
+
+                POKEMON.discord.post(DISCORD_ALERTS, msg, file=pokemon_sprite)
+
+                if rewards is not None:
+                    reward, next_reward = rewards
+                    rewards_msg = f"Loyalty tier completed in {twitch_channel}, new reward: {reward}"
+                    self.log(f"{GREENLOG}{rewards_msg}")
+                    if next_reward is not None:
+                        rewards_msg = rewards_msg + f"\nNext reward: {next_reward}"
+                        self.log(f"{GREENLOG}next reward: {next_reward}")
+                    sprite = get_sprite("streamer", twitch_channel)
+                    POKEMON.discord.post(DISCORD_ALERTS, rewards_msg, file=sprite)
         else:
-            # pokemon should be spawning soon
-            POKEMON.delay = POKEMON_CHECK_DELAY
-            self.log_file(f"{YELLOWLOG}Pokemon spawning soon")
+            self.log_file(f"{REDLOG}Don't need pokemon, skipping")
+
+            twitch_channel = POKEMON.get_channel(ignore_priority=False)
+            client.privmsg("#" + twitch_channel, "!pokecheck")
+            self.log(f"{GREENLOG}Pokecheck in {twitch_channel}")
+
+        self.get_missions()
 
 
 class ClientIRC(ClientIRCMarbles, ClientIRCPokemon):
@@ -874,12 +927,7 @@ def leave_channel(channel):
     if channel in POKEMON.online_channels:
         POKEMON.channel_offline(channel)
 
-    if channel == THREADCONTROLLER.client_channel:
-        logger.info(
-            f"Disconnecting primary channel ({channel})", extra={"emoji": ":speech_balloon:"}
-        )
-        THREADCONTROLLER.client_channel = None
-        THREADCONTROLLER.client = None
+    THREADCONTROLLER.remove_client(channel)
 
 
 ChatPresence = ChatPresenceO

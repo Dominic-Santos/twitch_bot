@@ -1,4 +1,7 @@
 
+VALID_TYPES = ['Bug', 'Dark', 'Dragon', 'Electric', 'Fairy', 'Fighting', 'Fire', 'Flying', 'Ghost', 'Grass', 'Ground', 'Ice', 'Normal', 'Poison', 'Psychic', 'Rock', 'Steel', 'Water']
+
+
 class Missions(object):
     def __init__(self):
         self.data = {}
@@ -93,11 +96,18 @@ class Missions(object):
                         self.data.setdefault("wondertrade_type", []).append(the_type)
                 elif "fish" in mission_title:
                     self.data["fish"] = True
-                elif "miss" in mission_title and "type" in mission_title:
-                    the_type = mission_title.split("type")[0].strip().split(" ")[-1].title()
-                    self.data.setdefault("miss_type", []).append(the_type)
-                elif "miss" in mission_title and "catch" in mission_title:
-                    self.data["miss"] = True
+                elif "miss" in mission_title:
+                    miss_list = mission_title.split(" ")
+                    just_miss = True
+                    if len(miss_list) > 2:
+                        the_type = miss_list[1].title()
+                        if the_type in VALID_TYPES:
+                            just_miss = False
+
+                    if just_miss:
+                        self.data["miss"] = True
+                    else:
+                        self.data.setdefault("miss_type", []).append(the_type)
                 elif mission_title == "attempt catches":
                     self.data["attempt"] = True
                 elif mission_title.startswith("catch"):
