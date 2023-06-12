@@ -17,6 +17,7 @@ from .entities.Pokemon import PokemonComunityGame, CGApi, Pokedaily, get_sprite,
 """
     TODO:
         heal pokemon when bellow a threshold between battles
+        stadium battles difficulties in settings
 """
 
 formatter = logging.Formatter('%(asctime)s %(message)s', datefmt="%Y-%m-%d %H:%M:%S")
@@ -449,6 +450,7 @@ class ClientIRCPokemon(ClientIRCBase):
 
             resp = self.pokemon_api.battle_action(battle.action, battle.battle_id, battle.player_id)
             battle.run_action(resp)
+            sleep(0.1)
 
         if battle.result:
             self.log(f"{GREENLOG}Won the battle! rewards: {battle.rewards}")
@@ -634,6 +636,7 @@ class ClientIRCPokemon(ClientIRCBase):
                 checks = [POKEMON.missions.have_wondertrade_missions()]
                 pokemon_to_trade = []
                 reasons = []
+                best_nr_reasons = 0
 
                 if checks[0] == True:
                     checks.append(False)
@@ -653,6 +656,10 @@ class ClientIRCPokemon(ClientIRCBase):
                                     reasons = POKEMON.missions.check_all_wondertrade_missions(pokemon_object)
                                     if len(reasons) == 0:
                                         continue
+                                    elif len(reasons) > best_nr_reasons:
+                                        pokemon_to_trade = []
+                                        best_nr_reasons = len(reasons)
+
                                 pokemon_to_trade.append(pokemon)
 
                 if len(pokemon_to_trade) == 0:
@@ -662,6 +669,8 @@ class ClientIRCPokemon(ClientIRCBase):
 
                     # pokemon_traded = random.choice(pokemon_to_trade)
                     pokemon_traded = sorted_pokemon_to_trade[0]
+                    pokemon_object = self.get_pokemon_stats(pokemon["pokedexId"], cached=True)
+                    reasons = POKEMON.missions.check_all_wondertrade_missions(pokemon_object)
                     pokemon_received = self.pokemon_api.wondertrade(pokemon_traded["id"])
 
                     if "pokemon" in pokemon_received:

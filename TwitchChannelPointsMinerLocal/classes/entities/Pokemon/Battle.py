@@ -168,28 +168,65 @@ class Battle():
         if "player" in data and "pokemon" in data:
             prefix, pokemon = self._get_pokemon(data["player"], data["pokemon"])
 
-        if data["type"] == "MOVE_USED":
-            move_name = self._use_move(data["player"], data["pokemon"], data["move"])
-            self.log.append(f"{prefix} {pokemon['name']} used {move_name}")
-        elif data["type"] == "MOVE_EFFECTIVE":
-            self.log.append(f"Effective x{data['factor']}")
-        elif data["type"] == "BURN_APPLIED":
+        typ = data["type"]
+
+        if typ == "ATTACK_MISSED":
+            self.log.append(f"Attack missed")
+        elif typ == "BURN_APPLIED":
             self.log.append(f"{prefix} {pokemon['name']} was burned")
-        elif data["type"] == "BURN_DAMAGE":
+        elif typ == "BURN_DAMAGE":
             self._apply_damage(data["player"], data["pokemon"], data["damage"])
             prefix, pokemon = self._get_pokemon(data["player"], data["pokemon"])
             self.log.append(f"{prefix} {pokemon['name']} took {data['damage']} burn damage")
             self.log.append(f"Current HP {pokemon['hp']}/{pokemon['max_hp']}")
-        elif data["type"] == "CRITICAL_HIT":
+        elif typ == "CONFUSED":
+            self.log.append(f"{prefix} {pokemon['name']} is confused")
+        elif typ == "CONFUSION_APPLIED":
+            self.log.append(f"{prefix} {pokemon['name']} was confused")
+        elif typ == "CRITICAL_HIT":
             self.log.append("Critical Hit")
-        elif data["type"] == "FLINCHED":
+        elif typ == "END_CONFUSION":
+            self.log.append(f"{prefix} {pokemon['name']} is not confused anymore")
+        elif typ == "END_MAGNET_RISE":
+            self.log.append(f"{prefix} {pokemon['name']} magnet rise ended")
+        elif typ == "FLINCHED":
             self.log.append(f"{prefix} {pokemon['name']} flinched")
-        elif data["type"] == "HEALED":
+        elif typ == "FREEZE_APPLIED":
+            self.log.append(f"{prefix} {pokemon['name']} was frozen")
+        elif typ == "HAZE_USED":
+            self.log.append("Haze used")
+        elif typ == "HEALED":
             self._apply_damage(data["player"], data["pokemon"], 0 - data["heal"])
             prefix, pokemon = self._get_pokemon(data["player"], data["pokemon"])
             self.log.append(f"{prefix} {pokemon['name']} healed {data['heal']} damage")
             self.log.append(f"Current HP {pokemon['hp']}/{pokemon['max_hp']}")
-        elif data["type"] == "POKEMON_CHANGED":
+        elif typ == "IS_FROZEN":
+            self.log.append(f"{prefix} {pokemon['name']} is frozen")
+        elif typ == "IS_PARALYZED":
+            self.log.append(f"{prefix} {pokemon['name']} can't attack due to paralysis")
+        elif typ == "IS_SLEEPING":
+            self.log.append(f"{prefix} {pokemon['name']} is asleep")
+        elif typ == "MOVE_EFFECTIVE":
+            self.log.append(f"Effective x{data['factor']}")
+        elif typ == "MOVE_FAILED":
+            self.log.append("Move Failed")
+        elif typ == "MOVE_USED":
+            move_name = self._use_move(data["player"], data["pokemon"], data["move"])
+            self.log.append(f"{prefix} {pokemon['name']} used {move_name}")
+        elif typ == "MOVE_USED_NAME":
+            self.log.append(f"{prefix} {pokemon['name']} used {data['move']}")
+        elif typ == "MULTIPLE_HITS":
+            self.log.append(f"Attack hit {data['amount']} times")
+        elif typ == "PARALYSIS_APPLIED":
+            self.log.append(f"{prefix} {pokemon['name']} was paralyzed")
+        elif typ == "POISON_APPLIED":
+            self.log.append(f"{prefix} {pokemon['name']} was poisoned")
+        elif typ == "POISON_DAMAGE":
+            self._apply_damage(data["player"], data["pokemon"], data["damage"])
+            prefix, pokemon = self._get_pokemon(data["player"], data["pokemon"])
+            self.log.append(f"{prefix} {pokemon['name']} took {data['damage']} poison damage")
+            self.log.append(f"Current HP {pokemon['hp']}/{pokemon['max_hp']}")
+        elif typ == "POKEMON_CHANGED":
             if self.team["current_pokemon"] == data["last_pokemon"]:
                 prefix, last = self._get_pokemon(self.player_id, data["last_pokemon"])
                 prefix, current = self._get_pokemon(self.player_id, data["current_pokemon"])
@@ -200,38 +237,22 @@ class Battle():
                 self.enemy_team["current_pokemon"] = data["current_pokemon"]
             self.log.append(f"Switched {prefix} {last['name']} for {current['name']}")
             self.log.append(f"Current HP {current['hp']}/{current['max_hp']}")
-        elif data["type"] == "ATTACK_MISSED":
-            self.log.append(f"Attack missed")
-        elif data["type"] == "MULTIPLE_HITS":
-            self.log.append(f"Attack hit {data['amount']} times")
-        elif data["type"] == "PARALYSIS_APPLIED":
-            self.log.append(f"{prefix} {pokemon['name']} was paralyzed")
-        elif data["type"] == "IS_PARALYZED":
-            self.log.append(f"{prefix} {pokemon['name']} can't attack due to paralysis")
-        elif data["type"] == "STAT_CHANGED":
-            self.log.append(f"{prefix} {pokemon['name']} {data['stat']} changed by {data['change_by']}")
-        elif data["type"] == "MOVE_USED_NAME":
-            self.log.append(f"{prefix} {pokemon['name']} used {data['move']}")
-        elif data["type"] == "CONFUSION_APPLIED":
-            self.log.append(f"{prefix} {pokemon['name']} was confused")
-        elif data["type"] == "CONFUSED":
-            self.log.append(f"{prefix} {pokemon['name']} is confused")
-        elif data["type"] == "SLEEP_APPLIED":
-            self.log.append(f"{prefix} {pokemon['name']} fell asleep")
-        elif data["type"] == "IS_SLEEPING":
-            self.log.append(f"{prefix} {pokemon['name']} is asleep")
-        elif data["type"] == "WOKE_UP":
-            self.log.append(f"{prefix} {pokemon['name']} woke up")
-        elif data["type"] == "MOVE_FAILED":
-            self.log.append("Move Failed")
-        elif data["type"] == "FREEZE_APPLIED":
-            self.log.append(f"{prefix} {pokemon['name']} was frozen")
-        elif data["type"] == "IS_FROZEN":
-            self.log.append(f"{prefix} {pokemon['name']} is frozen")
-        elif data["type"] == "SANDSTORM_STARTED":
+        elif typ == "RECOIL_APPLIED":
+            self.log.append("Hurt by recoil")
+        elif typ == "SANDSTORM_STARTED":
             self.log.append("Sandstorm started")
-        elif data["type"] == "END_CONFUSION":
-            self.log.append(f"{prefix} {pokemon['name']} is not confused anymore")
+        elif typ == "SLEEP_APPLIED":
+            self.log.append(f"{prefix} {pokemon['name']} fell asleep")
+        elif typ == "STAT_CHANGED":
+            self.log.append(f"{prefix} {pokemon['name']} {data['stat']} changed by {data['change_by']}")
+        elif typ == "TRICK_ROOM_STARTED":
+            self.log.append("Trick room started")
+        elif typ == "TRICK_ROOM_END":
+            self.log.append("Trick room ended")
+        elif typ == "UNTHAWED":
+            self.log.append(f"{prefix} {pokemon['name']} unthawed")
+        elif typ == "WOKE_UP":
+            self.log.append(f"{prefix} {pokemon['name']} woke up")
         else:
             return False
         return True

@@ -154,3 +154,8 @@ class API(object):
     @save_to_json
     def battle_action(self, action_no, battle_id, player_id):
         return self._do_request("GET", BATTLE_URL + f"v2/action/?action_no={action_no}&battle_id={battle_id}&player_id={player_id}&isViewer=false")
+
+    @save_to_json
+    def use_item_on_pokemon(self, pokemon_id, item_id):
+        # IE: use potion
+        return self._do_request("POST", TRAINER_URL + f"use-item-on-pkm/", payload={"pokemon_id": pokemon_id, "item_id": item_id})
