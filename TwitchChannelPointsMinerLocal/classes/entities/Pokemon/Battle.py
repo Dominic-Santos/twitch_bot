@@ -119,8 +119,10 @@ class Battle():
     def action_ko(self, data):
         if self.team["current_pokemon"] == data["pokemon"]:
             prefix, pokemon = self._get_pokemon(self.player_id, data["pokemon"])
+            self.team["pokemon"][str(data["pokemon"])]["hp"] = 0
         else:
             prefix, pokemon = self._get_pokemon(0, data["pokemon"])
+            self.enemy_team["pokemon"][str(data["pokemon"])]["hp"] = 0
         self.log.append(f"{prefix} {pokemon['name']} fainted")
 
     def action_end(self, data):
@@ -245,6 +247,8 @@ class Battle():
             self.log.append(f"{prefix} {pokemon['name']} fell asleep")
         elif typ == "STAT_CHANGED":
             self.log.append(f"{prefix} {pokemon['name']} {data['stat']} changed by {data['change_by']}")
+        elif typ == "TOXIC_APPLIED":
+            self.log.append(f"{prefix} {pokemon['name']} was badly poisoned")
         elif typ == "TRICK_ROOM_STARTED":
             self.log.append("Trick room started")
         elif typ == "TRICK_ROOM_END":

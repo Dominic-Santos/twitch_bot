@@ -352,10 +352,13 @@ class ClientIRCPokemon(ClientIRCBase):
 
             move_type = move["type"].title()
 
-            effective = weakness_resistance(move_type, defender.types)
-            if move_type in attacker.types:
-                # STAB
-                effective = effective * 1.5
+            if move["name"] in ["Metronome", "Mirror Move"]:
+                effective = 1
+            else:
+                effective = weakness_resistance(move_type, defender.types)
+                if move_type in attacker.types:
+                    # STAB
+                    effective = effective * 1.5
 
             if effective > best_damage:
                 best_damage = effective
@@ -470,7 +473,20 @@ class ClientIRCPokemon(ClientIRCBase):
 
         if POKEMON.battle_timer is None:
 
-            if team_data["stadium"]["error"] == "":
+            if "challenge" in team_data and "name" in team_data["challenge"] and team_data["challenge"]["name"] != "":
+                time_array = team_data["challenge"]["error"].split("(")[1].split(" ")
+                if len(time_array) == 5:
+                    mins = 15 - int(time_array[0])
+                    secs = 60 - int(time_array[3])
+                elif "minutes" in time_array:
+                    mins = 16 - int(time_array[0])
+                    secs = 0
+                else:
+                    mins = 15
+                    secs = 60 - int(time_array[0])
+
+                POKEMON.battle_timer = datetime.utcnow() - timedelta(minutes=mins, seconds=secs)
+            elif team_data["stadium"]["error"] == "":
                 POKEMON.battle_timer = datetime.utcnow() - timedelta(minutes=20)
             else:
                 time_array = team_data["stadium"]["error"].split("(")[1].split(" ")
@@ -486,11 +502,19 @@ class ClientIRCPokemon(ClientIRCBase):
 
                 POKEMON.battle_timer = datetime.utcnow() - timedelta(minutes=mins, seconds=secs)
 
-        if POKEMON.check_battle():
+        if POKEMON.auto_battle_challenge and "challenge" in team_data and "name" in team_data["challenge"] and team_data["challenge"]["name"] != "":
+            if POKEMON.check_battle() and team_data["challenge"]["meet_requirements"]:
+                team_id = team_data["teamNumber"]
+                data = self.pokemon_api.battle_create("challenge", "medium", team_id)
+                POKEMON.battle_timer = datetime.utcnow()
+                self.log(f"{YELLOWLOG}Starting challenge battle")
+                self.do_battle()
+
+        elif POKEMON.check_battle() and team_data["stadium"]["meet_requirements"]:
             team_id = team_data["teamNumber"]
             data = self.pokemon_api.battle_create("stadium", "hard", team_id)
             POKEMON.battle_timer = datetime.utcnow()
-            self.log(f"{YELLOWLOG}Starting battle")
+            self.log(f"{YELLOWLOG}Starting stadium battle")
             self.do_battle()
 
     def fill_pokedex(self):
