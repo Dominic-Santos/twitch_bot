@@ -228,6 +228,10 @@ class Battle():
             self.log.append(f"{prefix} {pokemon['name']} was frozen")
         elif data["type"] == "IS_FROZEN":
             self.log.append(f"{prefix} {pokemon['name']} is frozen")
+        elif data["type"] == "SANDSTORM_STARTED":
+            self.log.append("Sandstorm started")
+        elif data["type"] == "END_CONFUSION":
+            self.log.append(f"{prefix} {pokemon['name']} is not confused anymore")
         else:
             return False
         return True

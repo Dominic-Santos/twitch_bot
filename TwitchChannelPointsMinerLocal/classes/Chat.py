@@ -14,6 +14,11 @@ from .ChatO import logger
 
 from .entities.Pokemon import PokemonComunityGame, CGApi, Pokedaily, get_sprite, Battle, weakness_resistance
 
+"""
+    TODO:
+        heal pokemon when bellow a threshold between battles
+"""
+
 formatter = logging.Formatter('%(asctime)s %(message)s', datefmt="%Y-%m-%d %H:%M:%S")
 file_handler = logging.FileHandler("logs/pokemoncg.txt", encoding='utf-8')
 file_handler.setFormatter(formatter)
@@ -455,6 +460,7 @@ class ClientIRCPokemon(ClientIRCBase):
         data = self.pokemon_api.get_battle()
 
         if data["rejoinableBattle"]:
+            self.log(f"{YELLOWLOG}Rejoining battle")
             self.do_battle()
             return
 
@@ -467,21 +473,22 @@ class ClientIRCPokemon(ClientIRCBase):
             else:
                 time_array = team_data["stadium"]["error"].split("(")[1].split(" ")
                 if len(time_array) == 5:
-                    mins = 14 - int(time_array[0])
+                    mins = 7 - int(time_array[0])
                     secs = 60 - int(time_array[3])
                 elif "minutes" in time_array:
-                    mins = 15 - int(time_array[0])
+                    mins = 8 - int(time_array[0])
                     secs = 0
                 else:
-                    mins = 14
+                    mins = 7
                     secs = 60 - int(time_array[0])
 
                 POKEMON.battle_timer = datetime.utcnow() - timedelta(minutes=mins, seconds=secs)
 
         if POKEMON.check_battle():
             team_id = team_data["teamNumber"]
-            data = self.pokemon_api.battle_create("stadium", "easy", team_id)
+            data = self.pokemon_api.battle_create("stadium", "hard", team_id)
             POKEMON.battle_timer = datetime.utcnow()
+            self.log(f"{YELLOWLOG}Starting battle")
             self.do_battle()
 
     def fill_pokedex(self):

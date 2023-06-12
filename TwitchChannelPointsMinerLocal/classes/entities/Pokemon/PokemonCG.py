@@ -13,7 +13,7 @@ SETTINGS_FILE = "pokemon.json"
 
 WONDERTRADE_DELAY = 60 * 60 * 3 + 60  # 3 hours and 1 min (just in case)
 POKEDAILY_DELAY = 60 * 60 * 20 + 60  # 20 hours and 1 min
-BATTLE_DELAY = 60 * 16  # 16 mins
+BATTLE_DELAY = 60 * 8  # 8 mins
 
 
 class PokemonComunityGame(Loyalty):
