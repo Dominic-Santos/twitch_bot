@@ -177,15 +177,6 @@ def wondertrade_thread(func):
 
 def battle_thread(func):
     def battle_timer():
-        if POKEMON.battle_timer is None:
-            remaining = 5
-        else:
-            remaining = POKEMON.check_battle_left().total_seconds()
-
-        remaining_human = seconds_readable(remaining)
-        logger.info(f"{YELLOWLOG}Waiting for {remaining_human}", extra={"emoji": ":speech_balloon:"})
-
-        sleep(max(remaining, 1))
         try:
             func()
         except KeyboardInterrupt:
@@ -193,7 +184,6 @@ def battle_thread(func):
         except Exception as ex:
             str_ex = str(ex)
             logger.info(f"{REDLOG}Battle func failed - {str_ex}", extra={"emoji": ":speech_balloon:"})
-            POKEMON.battle_timer = None
             print(traceback.format_exc())
 
             if len(POKEMON.channel_list) == 0:
@@ -474,16 +464,20 @@ class ClientIRCPokemon(ClientIRCBase):
         if POKEMON.battle_timer is None:
 
             if "challenge" in team_data and "name" in team_data["challenge"] and team_data["challenge"]["name"] != "":
-                time_array = team_data["challenge"]["error"].split("(")[1].split(" ")
-                if len(time_array) == 5:
-                    mins = 15 - int(time_array[0])
-                    secs = 60 - int(time_array[3])
-                elif "minutes" in time_array:
-                    mins = 16 - int(time_array[0])
+                if team_data["challenge"]["error"] == "":
+                    mins = 30
                     secs = 0
                 else:
-                    mins = 15
-                    secs = 60 - int(time_array[0])
+                    time_array = team_data["challenge"]["error"].split("(")[1].split(" ")
+                    if len(time_array) == 5:
+                        mins = 15 - int(time_array[0])
+                        secs = 60 - int(time_array[3])
+                    elif "minutes" in time_array:
+                        mins = 16 - int(time_array[0])
+                        secs = 0
+                    else:
+                        mins = 15
+                        secs = 60 - int(time_array[0])
 
                 POKEMON.battle_timer = datetime.utcnow() - timedelta(minutes=mins, seconds=secs)
             elif team_data["stadium"]["error"] == "":
@@ -503,19 +497,38 @@ class ClientIRCPokemon(ClientIRCBase):
                 POKEMON.battle_timer = datetime.utcnow() - timedelta(minutes=mins, seconds=secs)
 
         if POKEMON.auto_battle_challenge and "challenge" in team_data and "name" in team_data["challenge"] and team_data["challenge"]["name"] != "":
-            if POKEMON.check_battle() and team_data["challenge"]["meet_requirements"]:
+
+            remaining = POKEMON.check_battle_challenge_left().total_seconds()
+
+            remaining_human = seconds_readable(remaining)
+            logger.info(f"{YELLOWLOG}Next Challenge battle in {remaining_human}", extra={"emoji": ":speech_balloon:"})
+
+            sleep(max(remaining, 1))
+
+            team_data = self.pokemon_api.get_teams()
+            if team_data["challenge"]["meet_requirements"]:
                 team_id = team_data["teamNumber"]
                 data = self.pokemon_api.battle_create("challenge", "medium", team_id)
                 POKEMON.battle_timer = datetime.utcnow()
                 self.log(f"{YELLOWLOG}Starting challenge battle")
                 self.do_battle()
 
-        elif POKEMON.check_battle() and team_data["stadium"]["meet_requirements"]:
-            team_id = team_data["teamNumber"]
-            data = self.pokemon_api.battle_create("stadium", "hard", team_id)
-            POKEMON.battle_timer = datetime.utcnow()
-            self.log(f"{YELLOWLOG}Starting stadium battle")
-            self.do_battle()
+        else:
+
+            remaining = POKEMON.check_battle_left().total_seconds()
+
+            remaining_human = seconds_readable(remaining)
+            logger.info(f"{YELLOWLOG}Next Stadium battle in {remaining_human}", extra={"emoji": ":speech_balloon:"})
+
+            sleep(max(remaining, 1))
+
+            team_data = self.pokemon_api.get_teams()
+            if team_data["stadium"]["meet_requirements"]:
+                team_id = team_data["teamNumber"]
+                data = self.pokemon_api.battle_create("stadium", "hard", team_id)
+                POKEMON.battle_timer = datetime.utcnow()
+                self.log(f"{YELLOWLOG}Starting stadium battle")
+                self.do_battle()
 
     def fill_pokedex(self):
         dex = self.pokemon_api.get_pokedex()

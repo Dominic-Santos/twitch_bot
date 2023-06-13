@@ -55,8 +55,8 @@ class Battle():
         self.rewards = ""
 
     def save_log(self):
-        check_output_folder(f"battles/{self.battle_id}_{self.battle_key}")
-        with open(f"battles/{self.battle_id}_{self.battle_key}/log.txt", "w") as f:
+        check_output_folder(f"battles")
+        with open(f"battles/{self.battle_id}_{self.battle_key}.log", "w") as f:
             for line in self.log:
                 f.write(line + "\n")
 
@@ -107,7 +107,7 @@ class Battle():
             # pokemon ko'ed
             self.action_ko(data["decoded"])
         elif action == "WAIT":
-            self.state = "switch"
+            self.state = "end"
         else:
             self.log.append(f"Unknown action {action} ({self.action})")
             self.save_action(data)
@@ -208,6 +208,10 @@ class Battle():
             self.log.append(f"{prefix} {pokemon['name']} can't attack due to paralysis")
         elif typ == "IS_SLEEPING":
             self.log.append(f"{prefix} {pokemon['name']} is asleep")
+        elif typ == "LIGHT_SCREEN_END":
+            self.log.append("Light Screen ended")
+        elif typ == "LIGHT_SCREEN_STARTED":
+            self.log.append("Light Screen started")
         elif typ == "MOVE_EFFECTIVE":
             self.log.append(f"Effective x{data['factor']}")
         elif typ == "MOVE_FAILED":
@@ -239,14 +243,37 @@ class Battle():
                 self.enemy_team["current_pokemon"] = data["current_pokemon"]
             self.log.append(f"Switched {prefix} {last['name']} for {current['name']}")
             self.log.append(f"Current HP {current['hp']}/{current['max_hp']}")
+        elif typ == "RAIN_END":
+            self.log.append("Rain ended")
+        elif typ == "RAIN_STARTED":
+            self.log.append("Rain started")
         elif typ == "RECOIL_APPLIED":
             self.log.append("Hurt by recoil")
+        elif typ == "REFLECT_END":
+            self.log.append("Reflect ended")
+        elif typ == "REFLECT_STARTED":
+            self.log.append("Reflect started")
+        elif typ == "SANDSTORM_DAMAGE":
+            self._apply_damage(data["player"], data["pokemon"], data["damage"])
+            prefix, pokemon = self._get_pokemon(data["player"], data["pokemon"])
+            self.log.append(f"{prefix} {pokemon['name']} took {data['damage']} sandstorm damage")
+            self.log.append(f"Current HP {pokemon['hp']}/{pokemon['max_hp']}")
+        elif typ == "SANDSTORM_END":
+            self.log.append("Sandstorm ended")
         elif typ == "SANDSTORM_STARTED":
             self.log.append("Sandstorm started")
         elif typ == "SLEEP_APPLIED":
             self.log.append(f"{prefix} {pokemon['name']} fell asleep")
         elif typ == "STAT_CHANGED":
             self.log.append(f"{prefix} {pokemon['name']} {data['stat']} changed by {data['change_by']}")
+        elif typ == "SUN_END":
+            self.log.append("Sun ended")
+        elif typ == "SUN_STARTED":
+            self.log.append("Sun started")
+        elif typ == "TAILWIND_END":
+            self.log.append("Tailwind ended")
+        elif typ == "TAILWIND_STARTED":
+            self.log.append("Tailwind started")
         elif typ == "TOXIC_APPLIED":
             self.log.append(f"{prefix} {pokemon['name']} was badly poisoned")
         elif typ == "TRICK_ROOM_STARTED":

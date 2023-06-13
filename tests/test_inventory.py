@@ -6,6 +6,20 @@ INVENTORY_DATA = {
     "cash": 21569,
     "allItems": [
         {
+            "id": 107,
+            "name": "Magnet Ball",
+            "sprite_name": "magnet_ball",
+            "amount": 3,
+            "price": None,
+            "type": 2,
+            "sell_price": 300,
+            "catchRate": "70%",
+            "description": "A somewhat different Pok\u00e9 Ball that is more effective when attempting to catch Steel- or Electric-type Pok\u00e9mon.",
+            "category": "ball",
+            "tmType": None,
+            "usable": False
+        },
+        {
             "id": 53,
             "name": "Pokedaily Reset",
             "sprite_name": "pokedaily_reset",
@@ -669,6 +683,8 @@ def test_inventory():
     assert INVENTORY.special_balls.get("Bug", ["unknown"])[0] == "netball"
     assert INVENTORY.special_balls.get("Dark", ["unknown"])[0] == "nightball"
     assert INVENTORY.special_balls.get("Ghost", ["unknown"])[0] == "phantomball"
+    assert INVENTORY.special_balls.get("Electric", ["unknown"])[0] == "magnetball"
+    assert INVENTORY.special_balls.get("Steel", ["unknown"])[0] == "magnetball"
 
 
 def test_best_ball():
