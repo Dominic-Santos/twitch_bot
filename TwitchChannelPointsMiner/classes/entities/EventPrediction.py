@@ -1,7 +1,7 @@
-from .Bet import Bet
-from .Streamer import Streamer
-from ..Settings import Settings
-from ...utils import _millify, float_round
+from TwitchChannelPointsMiner.classes.entities.Bet import Bet
+from TwitchChannelPointsMiner.classes.entities.Streamer import Streamer
+from TwitchChannelPointsMiner.classes.Settings import Settings
+from TwitchChannelPointsMiner.utils import _millify, float_round
 
 
 class EventPrediction(object):
@@ -66,7 +66,9 @@ class EventPrediction(object):
         result_type = result["type"]
 
         points = {}
-        points["placed"] = self.bet.decision["amount"]
+        points["placed"] = (
+            self.bet.decision["amount"] if result_type != "REFUND" else 0
+        )
         points["won"] = (
             result["points_won"]
             if result["points_won"] or result_type == "REFUND"

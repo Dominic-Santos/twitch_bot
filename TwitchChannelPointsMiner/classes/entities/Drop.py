@@ -1,7 +1,7 @@
 from datetime import datetime
 
-from ..Settings import Settings
-from ...utils import percentage
+from TwitchChannelPointsMiner.classes.Settings import Settings
+from TwitchChannelPointsMiner.utils import percentage
 
 
 class Drop(object):

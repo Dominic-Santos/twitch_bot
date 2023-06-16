@@ -1,7 +1,7 @@
 from datetime import datetime
 
-from .Drop import Drop
-from ..Settings import Settings
+from TwitchChannelPointsMiner.classes.entities.Drop import Drop
+from TwitchChannelPointsMiner.classes.Settings import Settings
 
 
 class Campaign(object):

@@ -4,7 +4,7 @@ import time
 
 from websocket import WebSocketApp, WebSocketConnectionClosedException
 
-from ..utils import create_nonce
+from TwitchChannelPointsMiner.utils import create_nonce
 
 logger = logging.getLogger(__name__)
 

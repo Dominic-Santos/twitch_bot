@@ -2,6 +2,7 @@ import logging
 import os
 import platform
 import queue
+import pytz
 from datetime import datetime
 from logging.handlers import QueueHandler, QueueListener, TimedRotatingFileHandler
 from pathlib import Path
@@ -9,10 +10,11 @@ from pathlib import Path
 import emoji
 from colorama import Fore, init
 
-from .classes.Discord import Discord
-from .classes.Settings import Events
-from .classes.Telegram import Telegram
-from .utils import remove_emoji
+from TwitchChannelPointsMiner.classes.Discord import Discord
+from TwitchChannelPointsMiner.classes.Matrix import Matrix
+from TwitchChannelPointsMiner.classes.Settings import Events
+from TwitchChannelPointsMiner.classes.Telegram import Telegram
+from TwitchChannelPointsMiner.utils import remove_emoji
 
 
 # Fore: BLACK, RED, GREEN, YELLOW, BLUE, MAGENTA, CYAN, WHITE, RESET.
@@ -62,6 +64,8 @@ class LoggerSettings:
         "save",
         "less",
         "console_level",
+        "console_username",
+        "time_zone",
         "file_level",
         "emoji",
         "colored",
@@ -69,6 +73,7 @@ class LoggerSettings:
         "auto_clear",
         "telegram",
         "discord",
+        "matrix"
     ]
 
     def __init__(
@@ -76,6 +81,8 @@ class LoggerSettings:
         save: bool = True,
         less: bool = False,
         console_level: int = logging.INFO,
+        console_username: bool = False,
+        time_zone: str or None = None,
         file_level: int = logging.DEBUG,
         emoji: bool = platform.system() != "Windows",
         colored: bool = False,
@@ -83,10 +90,13 @@ class LoggerSettings:
         auto_clear: bool = True,
         telegram: Telegram or None = None,
         discord: Discord or None = None,
+        matrix: Matrix or None = None
     ):
         self.save = save
         self.less = less
         self.console_level = console_level
+        self.console_username = console_username
+        self.time_zone = time_zone
         self.file_level = file_level
         self.emoji = emoji
         self.colored = colored
@@ -94,16 +104,55 @@ class LoggerSettings:
         self.auto_clear = auto_clear
         self.telegram = telegram
         self.discord = discord
+        self.matrix = matrix
+
+
+class FileFormatter(logging.Formatter):
+    def __init__(self, *, fmt, settings: LoggerSettings, datefmt=None):
+        self.settings = settings
+        self.timezone = None
+        if settings.time_zone:
+            try:
+                self.timezone = pytz.timezone(settings.time_zone)
+                logging.info(f"File logger time zone set to: {self.timezone}")
+            except pytz.UnknownTimeZoneError:
+                logging.error(
+                    f"File logger: invalid time zone: {settings.time_zone}")
+        logging.Formatter.__init__(self, fmt=fmt, datefmt=datefmt)
+
+    def formatTime(self, record, datefmt=None):
+        if self.timezone:
+            dt = datetime.fromtimestamp(record.created, self.timezone)
+        else:
+            dt = datetime.fromtimestamp(record.created)
+        return dt.strftime(datefmt or self.default_time_format)
 
 
 class GlobalFormatter(logging.Formatter):
     def __init__(self, *, fmt, settings: LoggerSettings, datefmt=None):
         self.settings = settings
+        self.timezone = None
+        if settings.time_zone:
+            try:
+                self.timezone = pytz.timezone(settings.time_zone)
+                logging.info(
+                    f"Console logger time zone set to: {self.timezone}")
+            except pytz.UnknownTimeZoneError:
+                logging.error(
+                    f"Console logger: invalid time zone: {settings.time_zone}")
         logging.Formatter.__init__(self, fmt=fmt, datefmt=datefmt)
+
+    def formatTime(self, record, datefmt=None):
+        if self.timezone:
+            dt = datetime.fromtimestamp(record.created, self.timezone)
+        else:
+            dt = datetime.fromtimestamp(record.created)
+        return dt.strftime(datefmt or self.default_time_format)
 
     def format(self, record):
         record.emoji_is_present = (
-            record.emoji_is_present if hasattr(record, "emoji_is_present") else False
+            record.emoji_is_present if hasattr(
+                record, "emoji_is_present") else False
         )
         if (
             hasattr(record, "emoji")
@@ -126,6 +175,7 @@ class GlobalFormatter(logging.Formatter):
         if hasattr(record, "event"):
             self.telegram(record)
             self.discord(record)
+            self.matrix(record)
 
             if self.settings.colored is True:
                 record.msg = (
@@ -135,7 +185,8 @@ class GlobalFormatter(logging.Formatter):
         return super().format(record)
 
     def telegram(self, record):
-        skip_telegram = False if hasattr(record, "skip_telegram") is False else True
+        skip_telegram = False if hasattr(
+            record, "skip_telegram") is False else True
 
         if (
             self.settings.telegram is not None
@@ -145,7 +196,8 @@ class GlobalFormatter(logging.Formatter):
             self.settings.telegram.send(record.msg, record.event)
 
     def discord(self, record):
-        skip_discord = False if hasattr(record, "skip_discord") is False else True
+        skip_discord = False if hasattr(
+            record, "skip_discord") is False else True
 
         if (
             self.settings.discord is not None
@@ -154,6 +206,17 @@ class GlobalFormatter(logging.Formatter):
             != "https://discord.com/api/webhooks/0123456789/0a1B2c3D4e5F6g7H8i9J"
         ):
             self.settings.discord.send(record.msg, record.event)
+
+    def matrix(self, record):
+        skip_matrix = False if hasattr(
+            record, "skip_matrix") is False else True
+
+        if (
+            self.settings.matrix is not None
+            and skip_matrix is False
+            and self.settings.matrix.access_token
+        ):
+            self.settings.matrix.send(record.msg, record.event)
 
 
 def configure_loggers(username, settings):
@@ -169,14 +232,18 @@ def configure_loggers(username, settings):
     # Send log messages to another thread through the queue
     root_logger.addHandler(queue_handler)
 
+    # Adding a username to the format based on settings
+    console_username = "" if settings.console_username is False else f"[{username}] "
+
     console_handler = logging.StreamHandler()
     console_handler.setLevel(settings.console_level)
     console_handler.setFormatter(
         GlobalFormatter(
             fmt=(
-                "%(asctime)s - %(levelname)s - [%(funcName)s]: %(message)s"
+                "%(asctime)s - %(levelname)s - [%(funcName)s]: " +
+                console_username + "%(message)s"
                 if settings.less is False
-                else "%(asctime)s - %(message)s"
+                else "%(asctime)s - " + console_username + "%(message)s"
             ),
             datefmt=(
                 "%d/%m/%y %H:%M:%S" if settings.less is False else "%d/%m %H:%M:%S"
@@ -202,16 +269,19 @@ def configure_loggers(username, settings):
                 delay=False,
             )
         else:
+            # Getting time zone from the console_handler's formatter since they are the same
+            tz = "" if console_handler.formatter.timezone is False else console_handler.formatter.timezone
             logs_file = os.path.join(
                 logs_path,
-                f"{username}.{datetime.now().strftime('%Y%m%d-%H%M%S')}.log",
+                f"{username}.{datetime.now(tz).strftime('%Y%m%d-%H%M%S')}.log",
             )
             file_handler = logging.FileHandler(logs_file, "w", "utf-8")
 
         file_handler.setFormatter(
-            logging.Formatter(
+            FileFormatter(
                 fmt="%(asctime)s - %(levelname)s - %(name)s - [%(funcName)s]: %(message)s",
                 datefmt="%d/%m/%y %H:%M:%S",
+                settings=settings
             )
         )
         file_handler.setLevel(settings.file_level)
