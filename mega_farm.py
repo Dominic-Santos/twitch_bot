@@ -88,7 +88,7 @@ twitch_miner.mine(
     [
         Streamer(streamer, settings=StreamerSettings(marbles=streamers[streamer].get("marbles", False))) for streamer in streamers_ordered
     ],                                  # Array of streamers (order = priority)
-    followers=True,                    # Automatic download the list of your followers
+    followers=False,                    # Automatic download the list of your followers
     followers_order=FollowersOrder.ASC  # Sort the followers list by follow date. ASC or DESC
 )
 
