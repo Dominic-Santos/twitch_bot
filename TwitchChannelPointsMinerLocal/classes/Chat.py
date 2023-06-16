@@ -18,6 +18,7 @@ from .entities.Pokemon import PokemonComunityGame, CGApi, Pokedaily, get_sprite,
     TODO:
         heal pokemon when bellow a threshold between battles
         stadium battles difficulties in settings
+        better ai, looking at moves, getting from api
 """
 
 formatter = logging.Formatter('%(asctime)s %(message)s', datefmt="%Y-%m-%d %H:%M:%S")
@@ -26,11 +27,6 @@ file_handler.setFormatter(formatter)
 poke_logger = logging.getLogger(__name__ + "pokemon")
 poke_logger.setLevel(logging.DEBUG)
 poke_logger.addHandler(file_handler)
-
-POKEMON_CHECK_DELAY = 30  # seconds
-POKEMON_CHECK_DELAY_RELAX = 60 * 14  # 14 mins
-POKEMON_CHECK_LIMIT_MAX = 75  # pokemon is valid for 75 seconds after spawning
-POKEMON_CHECK_LIMIT_MIN = 10  # pokemon is valid 10 seconds after spawning
 
 ITEM_MIN_AMOUNT = 10
 ITEM_MIN_PURCHASE = 10
@@ -53,7 +49,7 @@ DISCORD_ALERTS = f"{DISCORD_BASE}channels/{ALERTS_CHANNEL}/messages"
 DISCORD_POKEDAILY = f"{DISCORD_BASE}channels/{POKEDAILY_CHANNEL}/messages"
 DISCORD_POKEDAILY_SEARCH = f"{DISCORD_BASE}guilds/{POKEDAILY_GUILD}/messages/search?channel_id={POKEDAILY_CHANNEL}&mentions=" + "{discord_id}"
 
-FISH_EVENT = True
+FISH_EVENT = False
 
 
 class ThreadController(object):
@@ -64,7 +60,6 @@ class ThreadController(object):
         self.pokecatch = False
         self.pokedaily = False
         self.bag_stats = False
-        self.pokedex = False
         self.battle = False
 
     def remove_client(self, channel):
@@ -238,16 +233,6 @@ def bag_stats_thread(func):
         create_thread(bag_stats_timer)
 
 
-def pokedex_thread(func):
-    def pokedex_timer():
-        func()
-
-    if THREADCONTROLLER.pokedex is False:
-        logger.info(f"{YELLOWLOG}Thread Created Pokedex", extra={"emoji": ":speech_balloon:"})
-        THREADCONTROLLER.pokedex = True
-        create_thread(pokedex_timer)
-
-
 class ClientIRCBase(ClientIRCO):
     def __init__(self, username, token, channel):
         ClientIRCO.__init__(self, username, token, channel)
@@ -326,8 +311,6 @@ class ClientIRCPokemon(ClientIRCBase):
                 pokedaily_thread(self.pokedaily_main)
             if THREADCONTROLLER.bag_stats is False:
                 bag_stats_thread(self.stats_computer)
-            if THREADCONTROLLER.pokedex is False:
-                pokedex_thread(self.fill_pokedex)
             if THREADCONTROLLER.battle is False and POKEMON.auto_battle:
                 battle_thread(self.auto_battle)
 
@@ -489,30 +472,6 @@ class ClientIRCPokemon(ClientIRCBase):
         else:
             self.log(f"{REDLOG}Didn't meet requirements for {battle_mode} battle")
             sleep(15)
-
-    def fill_pokedex(self):
-        dex = self.pokemon_api.get_pokedex()
-        POKEMON.sync_pokedex(dex)
-
-        all_pokemon = self.pokemon_api.get_all_pokemon()
-        POKEMON.sync_computer(all_pokemon)
-        allpokemon = POKEMON.computer.pokemon
-
-        for n in range(1, POKEMON.pokedex.total + 1):
-            i = str(n)
-            if POKEMON.pokedex.stats(i) is None:
-                POKEMON.pokedex.pokemon_stats[i] = self.pokemon_api.get_pokedex_info(i)["content"]
-
-            if n % 10 == 0:
-                POKEMON.pokedex.save_pokedex()
-
-        for pokemon in allpokemon:
-            i = str(pokemon["pokedexId"])
-
-            if POKEMON.pokedex.stats(i) is None:
-                POKEMON.pokedex.pokemon_stats[i] = self.pokemon_api.get_pokedex_info(i)["content"]
-
-        POKEMON.pokedex.save_pokedex()
 
     def check_loyalty_info(self, client, message, argstring):
         if self.username in argstring and "Your loyalty level" in argstring:
