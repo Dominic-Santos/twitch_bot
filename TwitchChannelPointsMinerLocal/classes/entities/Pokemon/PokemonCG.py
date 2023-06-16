@@ -13,8 +13,6 @@ SETTINGS_FILE = "pokemon.json"
 
 WONDERTRADE_DELAY = 60 * 60 * 3 + 60  # 3 hours and 1 min (just in case)
 POKEDAILY_DELAY = 60 * 60 * 20 + 60  # 20 hours and 1 min
-BATTLE_DELAY = 60 * 8  # 8 mins
-BATTLE_CHALLENGE_DELAY = 60 * 15 + 30  # 15 mins 30 secs
 
 
 class PokemonComunityGame(Loyalty):
@@ -24,7 +22,6 @@ class PokemonComunityGame(Loyalty):
         self.delay = 0
         self.reset_timer()
         self.wondertrade_timer = None
-        self.battle_timer = None
         self.pokedaily_timer = None
         self.last_random = None
 
@@ -233,36 +230,9 @@ class PokemonComunityGame(Loyalty):
     def auto_battle(self):
         return self.settings["auto_battle"]
 
-    def reset_battle_timer(self):
-        self.battle_timer = datetime.utcnow()
-
-    def check_battle(self):
-        if self.battle_timer is None:
-            return False
-
-        if (datetime.utcnow() - self.battle_timer).total_seconds() > BATTLE_DELAY:
-            return True
-
-        return False
-
-    def check_battle_left(self):
-        return timedelta(seconds=BATTLE_DELAY) - (datetime.utcnow() - self.battle_timer)
-
     @property
     def auto_battle_challenge(self):
         return self.settings["auto_battle_challenge"]
-
-    def check_battle_challenge(self):
-        if self.battle_timer is None:
-            return False
-
-        if (datetime.utcnow() - self.battle_timer).total_seconds() > BATTLE_CHALLENGE_DELAY:
-            return True
-
-        return False
-
-    def check_battle_challenge_left(self):
-        return timedelta(seconds=BATTLE_CHALLENGE_DELAY) - (datetime.utcnow() - self.battle_timer)
 
     # ########### Pokedaily ############
 

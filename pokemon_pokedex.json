@@ -18088,5 +18088,41 @@
             "special_attack": 81,
             "special_defense": 100
         }
+    },
+    "10465": {
+        "pokedex_id": 10465,
+        "name": "Sawsbuck",
+        "description": "They migrate according to the seasons, so some people call Sawsbuck the harbingers of spring.",
+        "weight": 92.5,
+        "generation": 5,
+        "type1": "grass",
+        "type2": "normal",
+        "tier": "B",
+        "base_stats": {
+            "hp": 80,
+            "speed": 95,
+            "attack": 100,
+            "defense": 70,
+            "special_attack": 60,
+            "special_defense": 70
+        }
+    },
+    "86318": {
+        "pokedex_id": 86318,
+        "name": "His Goodra",
+        "description": "Able to freely control the hardness of its metallic shell. It loathes solitude and is extremely clingy\u2014it will fume and run riot if those dearest to it ever leave its side.",
+        "weight": 334.1,
+        "generation": 6,
+        "type1": "dragon",
+        "type2": "steel",
+        "tier": "A",
+        "base_stats": {
+            "hp": 80,
+            "speed": 60,
+            "attack": 100,
+            "defense": 100,
+            "special_attack": 110,
+            "special_defense": 150
+        }
     }
 }

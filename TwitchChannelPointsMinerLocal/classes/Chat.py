@@ -333,26 +333,24 @@ class ClientIRCPokemon(ClientIRCBase):
 
     def find_best_move(self, attacker, attacker_moves, defender):
         best_move = list(attacker_moves.keys())[0]
-        best_damage = 0
+        best_damage = -1
 
         for move_id in attacker_moves:
             move = attacker_moves[move_id]
-            if move["pp"] <= 0:
-                continue
 
-            move_type = move["type"].title()
+            if move["pp"] > 0:
+                move_type = move["type"].title()
 
-            if move["name"] in ["Metronome", "Mirror Move"]:
-                effective = 1
-            else:
-                effective = weakness_resistance(move_type, defender.types)
-                if move_type in attacker.types:
-                    # STAB
-                    effective = effective * 1.5
-
-            if effective > best_damage:
-                best_damage = effective
-                best_move = move_id
+                if move["name"] in ["Metronome", "Mirror Move"]:
+                    effective = 1
+                else:
+                    effective = weakness_resistance(move_type, defender.types)
+                    if move_type in attacker.types:
+                        # STAB
+                        effective = effective * 1.5
+                if effective > best_damage:
+                    best_damage = effective
+                    best_move = move_id
 
         return best_damage, best_move
 
@@ -371,7 +369,7 @@ class ClientIRCPokemon(ClientIRCBase):
                                 - switch
                         - else use best move
                 """
-
+                battle.state = "continue"
                 pokemon = battle.team["pokemon"][str(battle.team["current_pokemon"])]
                 pokemon_stats = self.get_pokemon_stats(pokemon["pokedex_id"], cached=True)
                 enemy = battle.enemy_team["pokemon"][str(battle.enemy_team["current_pokemon"])]
@@ -382,7 +380,6 @@ class ClientIRCPokemon(ClientIRCBase):
                 if best_damage >= 2:
                     # super effective or better
                     self.pokemon_api.battle_submit_move(battle.battle_id, best_move)
-                    battle.state = "continue"
                     continue
 
                 best_enemy_damage, best_enemy_move = self.find_best_move(enemy_stats, enemy["moves"], pokemon_stats)
@@ -397,20 +394,16 @@ class ClientIRCPokemon(ClientIRCBase):
 
                         other_pokemon = battle.team["pokemon"][other_pokemon_id]
 
-                        if other_pokemon["hp"] <= 0:
-                            continue
-
-                        other_pokemon_stats = self.get_pokemon_stats(other_pokemon["pokedex_id"], cached=True)
-                        best_switch_damage, best_switch_move = self.find_best_move(enemy_stats, enemy["moves"], other_pokemon_stats)
-
-                        if best_switch_damage < best_wall:
-                            best_wall = best_switch_damage
-                            best_wall_id = other_pokemon_id
+                        if other_pokemon["hp"] > 0:
+                            other_pokemon_stats = self.get_pokemon_stats(other_pokemon["pokedex_id"], cached=True)
+                            best_switch_damage, best_switch_move = self.find_best_move(enemy_stats, enemy["moves"], other_pokemon_stats)
+                            if best_switch_damage < best_wall:
+                                best_wall = best_switch_damage
+                                best_wall_id = other_pokemon_id
 
                     if best_wall < 2:
                         # have a pokemon that should be good to switch in
                         self.pokemon_api.battle_switch_pokemon(battle.battle_id, best_wall_id)
-                        battle.state = "continue"
                         continue
 
                 # pokemon seem evenly matched, just use a move
@@ -424,21 +417,19 @@ class ClientIRCPokemon(ClientIRCBase):
                 best_wall_id = ""
                 best_wall = 99
                 for other_pokemon_id in battle.team["pokemon"]:
-                    if other_pokemon_id == str(battle.team["current_pokemon"]):
-                        continue
+                    if other_pokemon_id != str(battle.team["current_pokemon"]):
+                        other_pokemon = battle.team["pokemon"][other_pokemon_id]
 
-                    other_pokemon = battle.team["pokemon"][other_pokemon_id]
+                        if other_pokemon["hp"] > 0:
 
-                    if other_pokemon["hp"] <= 0:
-                        continue
+                            other_pokemon_stats = self.get_pokemon_stats(other_pokemon["pokedex_id"], cached=True)
+                            best_switch_damage, best_switch_move = self.find_best_move(enemy_stats, enemy["moves"], other_pokemon_stats)
 
-                    other_pokemon_stats = self.get_pokemon_stats(other_pokemon["pokedex_id"], cached=True)
-                    best_switch_damage, best_switch_move = self.find_best_move(enemy_stats, enemy["moves"], other_pokemon_stats)
+                            if best_switch_damage < best_wall:
+                                best_wall = best_switch_damage
+                                best_wall_id = other_pokemon_id
 
-                    if best_switch_damage < best_wall:
-                        best_wall = best_switch_damage
-                        best_wall_id = other_pokemon_id
-
+                battle.state = "continue"
                 self.pokemon_api.battle_switch_pokemon(battle.battle_id, best_wall_id)
 
             resp = self.pokemon_api.battle_action(battle.action, battle.battle_id, battle.player_id)
@@ -449,6 +440,8 @@ class ClientIRCPokemon(ClientIRCBase):
             self.log(f"{GREENLOG}Won the battle! rewards: {battle.rewards}")
         else:
             self.log(f"{REDLOG}Lost the battle! rewards: {battle.rewards}")
+
+        return battle.result
 
     def auto_battle(self):
 
@@ -461,74 +454,41 @@ class ClientIRCPokemon(ClientIRCBase):
 
         team_data = self.pokemon_api.get_teams()
 
-        if POKEMON.battle_timer is None:
-
-            if "challenge" in team_data and "name" in team_data["challenge"] and team_data["challenge"]["name"] != "":
-                if team_data["challenge"]["error"] == "":
-                    mins = 30
-                    secs = 0
-                else:
-                    time_array = team_data["challenge"]["error"].split("(")[1].split(" ")
-                    if len(time_array) == 5:
-                        mins = 15 - int(time_array[0])
-                        secs = 60 - int(time_array[3])
-                    elif "minutes" in time_array:
-                        mins = 16 - int(time_array[0])
-                        secs = 0
-                    else:
-                        mins = 15
-                        secs = 60 - int(time_array[0])
-
-                POKEMON.battle_timer = datetime.utcnow() - timedelta(minutes=mins, seconds=secs)
-            elif team_data["stadium"]["error"] == "":
-                POKEMON.battle_timer = datetime.utcnow() - timedelta(minutes=20)
-            else:
-                time_array = team_data["stadium"]["error"].split("(")[1].split(" ")
-                if len(time_array) == 5:
-                    mins = 7 - int(time_array[0])
-                    secs = 60 - int(time_array[3])
-                elif "minutes" in time_array:
-                    mins = 8 - int(time_array[0])
-                    secs = 0
-                else:
-                    mins = 7
-                    secs = 60 - int(time_array[0])
-
-                POKEMON.battle_timer = datetime.utcnow() - timedelta(minutes=mins, seconds=secs)
-
-        if POKEMON.auto_battle_challenge and "challenge" in team_data and "name" in team_data["challenge"] and team_data["challenge"]["name"] != "":
-
-            remaining = POKEMON.check_battle_challenge_left().total_seconds()
-
-            remaining_human = seconds_readable(remaining)
-            logger.info(f"{YELLOWLOG}Next Challenge battle in {remaining_human}", extra={"emoji": ":speech_balloon:"})
-
-            sleep(max(remaining, 1))
-
-            team_data = self.pokemon_api.get_teams()
-            if team_data["challenge"]["meet_requirements"]:
-                team_id = team_data["teamNumber"]
-                data = self.pokemon_api.battle_create("challenge", "medium", team_id)
-                POKEMON.battle_timer = datetime.utcnow()
-                self.log(f"{YELLOWLOG}Starting challenge battle")
-                self.do_battle()
-
+        if POKEMON.auto_battle_challenge and team_data["challenge"] is not None:
+            battle_mode = "challenge"
+            difficulty = "medium"
         else:
+            battle_mode = "stadium"
+            difficulty = "hard"
 
-            remaining = POKEMON.check_battle_left().total_seconds()
+        if team_data[battle_mode]["error"] == "":
+            remaining = 0
+        else:
+            time_array = team_data[battle_mode]["error"].split("(")[1].split(" ")
+            if len(time_array) == 5:
+                remaining = 60 * int(time_array[0]) + int(time_array[3])
+            elif "minutes" in time_array:
+                remaining = 60 * int(time_array[0])
+            else:
+                remaining = int(time_array[0])
 
+        if remaining > 0:
             remaining_human = seconds_readable(remaining)
-            logger.info(f"{YELLOWLOG}Next Stadium battle in {remaining_human}", extra={"emoji": ":speech_balloon:"})
+            logger.info(f"{YELLOWLOG}Next {battle_mode} battle in {remaining_human}", extra={"emoji": ":speech_balloon:"})
 
-            sleep(max(remaining, 1))
+        sleep(remaining + 1)
 
-            team_data = self.pokemon_api.get_teams()
-            if team_data["stadium"]["meet_requirements"]:
-                team_id = team_data["teamNumber"]
-                data = self.pokemon_api.battle_create("stadium", "hard", team_id)
-                POKEMON.battle_timer = datetime.utcnow()
-                self.log(f"{YELLOWLOG}Starting stadium battle")
-                self.do_battle()
+        team_data = self.pokemon_api.get_teams()
+        if team_data[battle_mode]["meet_requirements"]:
+            team_id = team_data["teamNumber"]
+            data = self.pokemon_api.battle_create(battle_mode, difficulty, team_id)
+            self.log(f"{YELLOWLOG}Starting {battle_mode} battle")
+            result = self.do_battle()
+            if result and battle_mode == "challenge":
+                POKEMON.discord.post(DISCORD_ALERTS, f"Won challenge battle {team_data['challenge']['name']}")
+        else:
+            self.log(f"{REDLOG}Didn't meet requirements for {battle_mode} battle")
+            sleep(15)
 
     def fill_pokedex(self):
         dex = self.pokemon_api.get_pokedex()
@@ -1075,7 +1035,7 @@ Inventory: {cash}$ {coins} Battle Coins
                     pokemon_sprite = get_sprite("pokemon", sprite, shiny=poke["isShiny"])
                     rewards = POKEMON.increment_loyalty(twitch_channel)
                 else:
-                    self.log_file(f"{REDLOG}Failed to catch {pokemon.name}")
+                    self.log_file(f"{REDLOG}Failed to catch {pokemon.name} ({pokemon.tier})")
                     msg = f"I missed {discord_pokemon_name}!"
                     pokemon_sprite = None
 
