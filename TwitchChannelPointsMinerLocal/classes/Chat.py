@@ -204,7 +204,7 @@ def pokedaily_thread(func):
         remaining_human = seconds_readable(remaining)
         logger.info(f"{YELLOWLOG}Waiting for {remaining_human}", extra={"emoji": ":speech_balloon:"})
 
-        sleep(min(remaining, max_wait))
+        sleep(max(min(remaining, max_wait), 1))
         if remaining <= max_wait:
             func()
 
