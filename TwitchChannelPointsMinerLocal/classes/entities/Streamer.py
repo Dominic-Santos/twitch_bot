@@ -1,4 +1,3 @@
-from datetime import datetime
 from ..Chat import ChatPresence, ThreadChat
 from .Bet import BetSettings
 from .StreamerO import StreamerSettings as StreamerSettingsO
@@ -21,21 +20,22 @@ class StreamerSettings(StreamerSettingsO):
         make_predictions: bool = None,
         follow_raid: bool = None,
         claim_drops: bool = None,
+        claim_moments: bool = None,
         watch_streak: bool = None,
         marbles: bool = None,
         bet: BetSettings = None,
         chat: ChatPresence = None,
     ):
-        StreamerSettingsO.__init__(self, make_predictions, follow_raid, claim_drops, watch_streak, bet, chat)
+        super().__init__(make_predictions, follow_raid, claim_drops, claim_moments, watch_streak, bet, chat)
         self.marbles = marbles
 
     def default(self):
-        StreamerSettingsO.default(self)
+        super().default()
         if self.marbles is None:
             self.marbles = False
 
     def __repr__(self):
-        return StreamerSettingsO.__repr__(self) + f", marbles={self.marbles})"
+        return super().__repr__(self) + f", marbles={self.marbles})"
 
 
 class Streamer(StreamerO):

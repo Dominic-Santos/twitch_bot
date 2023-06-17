@@ -51,20 +51,36 @@ def filter_datas(start_date, end_date, datas):
         else datetime.now()
     ).replace(hour=23, minute=59, second=59).timestamp() * 1000
 
+    original_series = datas["series"]
+
     if "series" in datas:
         df = pd.DataFrame(datas["series"])
         df["datetime"] = pd.to_datetime(df.x // 1000, unit="s")
 
         df = df[(df.x >= start_date) & (df.x <= end_date)]
-        df = aggregate(df)
+
 
         datas["series"] = (
             df.drop(columns="datetime")
-            .sort_values(by="x", ascending=True)
+            .sort_values(by=["x", "y"], ascending=True)
             .to_dict("records")
         )
     else:
         datas["series"] = []
+
+    # If no data is found within the timeframe, that usually means the streamer hasn't streamed within that timeframe
+    # We create a series that shows up as a straight line on the dashboard, with 'No Stream' as labels
+    if len(datas["series"]) == 0:
+        new_end_date = start_date
+        new_start_date = 0
+        df = pd.DataFrame(original_series)
+        df["datetime"] = pd.to_datetime(df.x // 1000, unit="s")
+
+        # Attempt to get the last known balance from before the provided timeframe
+        df = df[(df.x >= new_start_date) & (df.x <= new_end_date)]
+        last_balance = df.drop(columns="datetime").sort_values(by=["x", "y"], ascending=True).to_dict("records")[-1]['y']
+
+        datas["series"] = [{'x': start_date, 'y': last_balance, 'z': 'No Stream'}, {'x': end_date, 'y': last_balance, 'z': 'No Stream'}]
 
     if "annotations" in datas:
         df = pd.DataFrame(datas["annotations"])
@@ -115,6 +131,13 @@ def get_challenge_points(streamer):
     return 0
 
 
+def get_last_activity(streamer):
+    datas = read_json(streamer, return_response=False)
+    if datas != {}:
+        return datas["series"][-1]["x"]
+    return 0
+
+
 def json_all():
     return Response(
         json.dumps(
@@ -143,7 +166,7 @@ def streamers():
     return Response(
         json.dumps(
             [
-                {"name": s, "points": get_challenge_points(s)}
+                {"name": s, "points": get_challenge_points(s), "last_activity": get_last_activity(s)}
                 for s in sorted(streamers_available())
             ]
         ),
